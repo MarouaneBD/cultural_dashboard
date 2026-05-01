@@ -72,6 +72,8 @@ model Actual {
   facility        String?
   confidenceScore Float       @default(1.0)
   createdAt       DateTime    @default(now())
+
+  @@unique([kpiId, period, year])
 }
 
 model Program {

@@ -20,13 +20,12 @@ const kpis: Array<{ nameAr: string; pillar: Pillar; unit: KpiUnit; targetAnnual:
 
 async function main() {
   for (const k of kpis) {
-    // Idempotent: find by nameAr (unique), create if absent
-    let kpi = await prisma.kpiRegistry.findFirst({ where: { nameAr: k.nameAr } })
-    if (!kpi) {
-      kpi = await prisma.kpiRegistry.create({
-        data: { nameAr: k.nameAr, pillar: k.pillar, unit: k.unit },
-      })
-    }
+    // Atomic upsert by nameAr (unique)
+    const kpi = await prisma.kpiRegistry.upsert({
+      where: { nameAr: k.nameAr },
+      create: { nameAr: k.nameAr, pillar: k.pillar, unit: k.unit },
+      update: {},
+    })
 
     // Upsert annual target
     await prisma.target.upsert({
@@ -47,14 +46,8 @@ async function main() {
     for (let i = 0; i < 4; i++) {
       const period = periods[i]
       await prisma.actual.upsert({
-        where: { id: `${kpi.id}-${period}-${YEAR}` },
-        create: {
-          id: `${kpi.id}-${period}-${YEAR}`,
-          kpiId: kpi.id,
-          period,
-          year: YEAR,
-          value: actuals[i],
-        },
+        where: { kpiId_period_year: { kpiId: kpi.id, period, year: YEAR } },
+        create: { kpiId: kpi.id, period, year: YEAR, value: actuals[i] },
         update: { value: actuals[i] },
       })
     }
