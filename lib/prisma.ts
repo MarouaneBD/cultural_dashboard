@@ -1,42 +1,58 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import 'dotenv/config'
 
 const url = process.env.DATABASE_URL
 if (!url) throw new Error('DATABASE_URL environment variable is not set')
 
-const READ_ACTIONS = new Set(['findMany', 'findFirst', 'findUnique', 'findFirstOrThrow', 'findUniqueOrThrow', 'count', 'aggregate', 'groupBy'])
 const AUDITED_MODELS = new Set(['Actual', 'KpiRegistry'])
+const WRITE_OPS = new Set(['create', 'update', 'delete', 'upsert', 'createMany', 'updateMany', 'deleteMany'])
 
 function createPrismaClient() {
   const adapter = new PrismaPg({ connectionString: url! })
-  const base = new PrismaClient({ adapter })
 
-  // Audit extension — logs every mutation on Actual and KpiRegistry
-  return base.$extends({
+  // Store the base client before extending so it can be used for prefetch lookups
+  const basePrisma = new PrismaClient({ adapter })
+
+  const extendedPrisma = basePrisma.$extends({
     query: {
       $allModels: {
-        async $allOperations({ model, operation, args, query }) {
+        async $allOperations({ model, operation, args, query }: any) {
+          if (!AUDITED_MODELS.has(model) || !WRITE_OPS.has(operation)) {
+            return query(args)
+          }
+
+          // Capture old value for single-record updates
+          let oldValue: string | null = null
+          if (operation === 'update' && (args as any)?.where) {
+            try {
+              const modelKey = model.charAt(0).toLowerCase() + model.slice(1)
+              const before = await (basePrisma as any)[modelKey].findUnique({
+                where: (args as any).where,
+              })
+              oldValue = before ? JSON.stringify(before) : null
+            } catch {
+              // swallow prefetch errors — audit must not break the main operation
+            }
+          }
+
           const result = await query(args)
 
-          if (model && AUDITED_MODELS.has(model) && !READ_ACTIONS.has(operation)) {
-            try {
-              const typedArgs = args as Record<string, unknown>
-              await base.auditLog.create({
-                data: {
-                  userId: 'system',
-                  action: `${model}.${operation}`,
-                  kpiId:
-                    (typedArgs?.where as Record<string, unknown>)?.id as string | null ??
-                    (typedArgs?.data as Record<string, unknown>)?.kpiId as string | null ??
-                    null,
-                  oldValue: null,
-                  newValue: result ? JSON.stringify(result) : null,
-                },
-              })
-            } catch {
-              // Never let audit failure break the main operation
-            }
+          try {
+            const typedArgs = args as Record<string, unknown>
+            await basePrisma.auditLog.create({
+              data: {
+                userId: 'system',
+                action: `${model}.${operation}`,
+                kpiId:
+                  (typedArgs?.where as Record<string, unknown>)?.id as string | null ??
+                  (typedArgs?.data as Record<string, unknown>)?.kpiId as string | null ??
+                  null,
+                oldValue,
+                newValue: result ? JSON.stringify(result) : null,
+              },
+            })
+          } catch {
+            // Never let audit failure break the main operation
           }
 
           return result
@@ -44,6 +60,8 @@ function createPrismaClient() {
       },
     },
   })
+
+  return extendedPrisma
 }
 
 type ExtendedPrismaClient = ReturnType<typeof createPrismaClient>
