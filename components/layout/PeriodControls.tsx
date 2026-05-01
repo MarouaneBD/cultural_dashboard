@@ -17,7 +17,10 @@ export function PeriodControls() {
   const router = useRouter()
   const params = useSearchParams()
   const year = params.get('year') ?? '2026'
-  const period = (params.get('period') ?? 'ANNUAL') as Quarter
+  const rawPeriod = params.get('period') ?? 'ANNUAL'
+  const period: Quarter = (QUARTERS as readonly string[]).includes(rawPeriod)
+    ? (rawPeriod as Quarter)
+    : 'ANNUAL'
 
   function update(key: string, value: string) {
     const next = new URLSearchParams(params.toString())

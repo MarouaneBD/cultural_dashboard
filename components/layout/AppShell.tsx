@@ -14,13 +14,13 @@ export function AppShell({ children, title, actions }: AppShellProps) {
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-14 border-b border-[--border] bg-white px-6 flex items-center justify-between sticky top-0 z-10">
+          <h2 className="font-semibold text-base text-[--text]">{title}</h2>
           <div className="flex items-center gap-4">
-            {actions}
             <Suspense fallback={null}>
               <PeriodControls />
             </Suspense>
+            {actions}
           </div>
-          <h2 className="font-semibold text-base text-[--text]">{title}</h2>
         </header>
         <main className="flex-1 p-6">{children}</main>
       </div>
