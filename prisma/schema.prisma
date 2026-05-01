@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Pillar {
+  ISLAMIC_EDUCATION
+  HOLY_QURAN
+  TEACHER_SPONSORSHIP
+  UNIVERSITY_SPONSORSHIP
+}
+
+enum KpiUnit {
+  PERCENT
+  COUNT
+  CURRENCY
+}
+
+enum ProgramStatus {
+  ON_TRACK
+  AT_RISK
+  COMPLETED
+}
+
+enum UserRole {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum Period {
+  Q1
+  Q2
+  Q3
+  Q4
+  ANNUAL
+}
+
+model KpiRegistry {
+  id        String    @id @default(cuid())
+  nameAr    String    @unique
+  pillar    Pillar
+  unit      KpiUnit
+  owner     String?
+  targets   Target[]
+  actuals   Actual[]
+  createdAt DateTime  @default(now())
+}
+
+model Target {
+  id     String      @id @default(cuid())
+  kpiId  String
+  kpi    KpiRegistry @relation(fields: [kpiId], references: [id])
+  period Period
+  year   Int
+  value  Float
+
+  @@unique([kpiId, period, year])
+}
+
+model Actual {
+  id              String      @id @default(cuid())
+  kpiId           String
+  kpi             KpiRegistry @relation(fields: [kpiId], references: [id])
+  period          Period
+  year            Int
+  value           Float
+  region          String?
+  facility        String?
+  confidenceScore Float       @default(1.0)
+  createdAt       DateTime    @default(now())
+}
+
+model Program {
+  id            String        @id @default(cuid())
+  nameAr        String
+  pillar        Pillar
+  status        ProgramStatus
+  completionPct Float         @default(0)
+  budget        Float?
+  updatedAt     DateTime      @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  kpiId     String?
+  oldValue  String?
+  newValue  String?
+  timestamp DateTime @default(now())
+}
+
+model User {
+  id    String   @id @default(cuid())
+  email String   @unique
+  name  String?
+  role  UserRole @default(VIEWER)
+}
