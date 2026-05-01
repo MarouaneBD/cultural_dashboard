@@ -32,7 +32,7 @@ export interface DrillDownRow {
 
 export interface UploadRow {
   kpiId: string
-  period: string
+  period: 'Q1' | 'Q2' | 'Q3' | 'Q4' | 'ANNUAL'
   year: number
   value: number
   region?: string

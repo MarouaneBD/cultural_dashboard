@@ -1,4 +1,4 @@
-import { computeVariance, formatVariancePct, formatValue, COLOR_CLASSES, COLOR_DOT } from '@/lib/kpi'
+import { computeVariance, formatVariancePct, formatValue, COLOR_CLASSES, COLOR_DOT, getVarianceColor } from '@/lib/kpi'
 
 describe('computeVariance', () => {
   it('returns pct as (actual/target)*100', () => {
@@ -10,8 +10,12 @@ describe('computeVariance', () => {
     expect(computeVariance(96, 100).color).toBe('green')
   })
 
-  it('classifies exactly 95% as green', () => {
-    expect(computeVariance(95, 100).color).toBe('green')
+  it('classifies exactly 95% as amber', () => {
+    expect(computeVariance(95, 100).color).toBe('amber')
+  })
+
+  it('classifies 96% as green', () => {
+    expect(computeVariance(96, 100).color).toBe('green')
   })
 
   it('classifies 90% as amber', () => {
@@ -47,6 +51,14 @@ describe('formatVariancePct', () => {
   })
 })
 
+describe('COLOR_DOT', () => {
+  it('has entries for green, amber, red', () => {
+    expect(COLOR_DOT.green).toBeDefined()
+    expect(COLOR_DOT.amber).toBeDefined()
+    expect(COLOR_DOT.red).toBeDefined()
+  })
+})
+
 describe('formatValue', () => {
   it('formats COUNT values as Arabic locale numbers', () => {
     const result = formatValue(1000, 'COUNT')
@@ -61,4 +73,10 @@ describe('formatValue', () => {
   it('formats CURRENCY values with dirham suffix', () => {
     expect(formatValue(5000, 'CURRENCY')).toContain('د.إ')
   })
+})
+
+describe('getVarianceColor', () => {
+  it('returns green for >95', () => expect(getVarianceColor(96)).toBe('green'))
+  it('returns amber for 85-95', () => expect(getVarianceColor(90)).toBe('amber'))
+  it('returns red for <85', () => expect(getVarianceColor(80)).toBe('red'))
 })

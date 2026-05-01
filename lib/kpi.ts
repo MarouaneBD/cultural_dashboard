@@ -12,11 +12,16 @@ export const COLOR_DOT: Record<VarianceColor, string> = {
   red: 'bg-red-500',
 }
 
+export function getVarianceColor(pct: number): VarianceColor {
+  if (pct > 95) return 'green'
+  if (pct >= 85) return 'amber'
+  return 'red'
+}
+
 export function computeVariance(actual: number, target: number): KpiVariance {
   if (target === 0) return { actual, target, pct: 0, color: 'red' }
   const pct = (actual / target) * 100
-  const color: VarianceColor = pct >= 95 ? 'green' : pct >= 85 ? 'amber' : 'red'
-  return { actual, target, pct, color }
+  return { actual, target, pct, color: getVarianceColor(pct) }
 }
 
 export function formatVariancePct(pct: number): string {
