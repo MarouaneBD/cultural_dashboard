@@ -16,33 +16,43 @@ export function FileUploader() {
     setStatus('loading')
     setPreview(null)
 
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('dryRun', 'true')
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('dryRun', 'true')
 
-    const res = await fetch('/api/upload', { method: 'POST', body: formData })
-    const body = await res.json()
-    setPreview(body)
-    setStatus('idle')
+      const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      const body = await res.json()
+      setPreview(body)
+      setStatus('idle')
+    } catch {
+      setMessage('خطأ في الاتصال بالخادم')
+      setStatus('error')
+    }
   }
 
   async function handleCommit() {
     if (!activeFile) return
     setStatus('loading')
 
-    const formData = new FormData()
-    formData.append('file', activeFile)
-    formData.append('dryRun', 'false')
+    try {
+      const formData = new FormData()
+      formData.append('file', activeFile)
+      formData.append('dryRun', 'false')
 
-    const res = await fetch('/api/upload', { method: 'POST', body: formData })
-    const body = await res.json()
+      const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      const body = await res.json()
 
-    if (res.ok) {
-      setMessage(`تم استيراد ${body.imported} سجل بنجاح`)
-      setStatus('done')
-      setPreview(null)
-    } else {
-      setMessage('حدث خطأ أثناء الاستيراد')
+      if (res.ok) {
+        setMessage(`تم استيراد ${body.imported} سجل بنجاح`)
+        setStatus('done')
+        setPreview(null)
+      } else {
+        setMessage('حدث خطأ أثناء الاستيراد')
+        setStatus('error')
+      }
+    } catch {
+      setMessage('خطأ في الاتصال بالخادم')
       setStatus('error')
     }
   }
@@ -50,8 +60,12 @@ export function FileUploader() {
   return (
     <div className="space-y-6">
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="منطقة رفع الملف — انقر أو اسحب ملف Excel"
         className="border-2 border-dashed border-slate-300 rounded-xl p-10 text-center cursor-pointer hover:border-[#0f4024] transition-colors"
         onClick={() => inputRef.current?.click()}
+        onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && inputRef.current?.click()}
         onDragOver={e => e.preventDefault()}
         onDrop={e => {
           e.preventDefault()

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Period } from '@prisma/client'
 import { parseExcelFile } from '@/lib/excel'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(req: NextRequest) {
+  // TODO: enforce EDITOR/ADMIN role check once auth (Phase 2) is wired
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File | null
@@ -28,7 +30,7 @@ export async function POST(req: NextRequest) {
         await prisma.actual.create({
           data: {
             kpiId: row.kpiId,
-            period: row.period as any,
+            period: row.period as Period,
             year: row.year,
             value: row.value,
             region: row.region,
