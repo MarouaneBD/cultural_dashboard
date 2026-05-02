@@ -50,4 +50,17 @@ describe('POST /api/upload', () => {
     expect(body.dryRun).toBe(true)
     expect(body.preview).toHaveLength(1)
   })
+
+  it('returns 400 when no file is provided', async () => {
+    const formData = new FormData()
+    // No file appended
+
+    const req = new NextRequest('http://localhost/api/upload', {
+      method: 'POST',
+      body: formData,
+    })
+
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+  })
 })

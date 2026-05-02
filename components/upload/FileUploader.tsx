@@ -6,11 +6,13 @@ import type { UploadValidationResult } from '@/types'
 
 export function FileUploader() {
   const inputRef = useRef<HTMLInputElement>(null)
+  const [activeFile, setActiveFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<UploadValidationResult | null>(null)
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [message, setMessage] = useState('')
 
   async function handleFile(file: File) {
+    setActiveFile(file)
     setStatus('loading')
     setPreview(null)
 
@@ -25,11 +27,11 @@ export function FileUploader() {
   }
 
   async function handleCommit() {
-    if (!inputRef.current?.files?.[0]) return
+    if (!activeFile) return
     setStatus('loading')
 
     const formData = new FormData()
-    formData.append('file', inputRef.current.files[0])
+    formData.append('file', activeFile)
     formData.append('dryRun', 'false')
 
     const res = await fetch('/api/upload', { method: 'POST', body: formData })
