@@ -44,4 +44,11 @@ describe('DrillDownModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /إغلاق/ }))
     expect(onClose).toHaveBeenCalled()
   })
+
+  it('closes on Escape key press', () => {
+    const onClose = jest.fn()
+    render(<DrillDownModal kpi={kpi} onClose={onClose} />)
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(onClose).toHaveBeenCalled()
+  })
 })

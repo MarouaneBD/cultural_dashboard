@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
 import { COLOR_CLASSES, formatVariancePct } from '@/lib/kpi'
@@ -15,6 +16,14 @@ export function DrillDownModal({ kpi, onClose }: DrillDownModalProps) {
   const year = params.get('year') ?? '2026'
   const period = params.get('period') ?? 'ANNUAL'
 
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
   const { data: rows, isLoading, error } = useQuery<DrillDownRow[]>({
     queryKey: ['drill-down', kpi.id, year, period],
     queryFn: () =>
@@ -26,6 +35,9 @@ export function DrillDownModal({ kpi, onClose }: DrillDownModalProps) {
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="drill-down-title"
       className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
       onClick={e => e.target === e.currentTarget && onClose()}
     >
@@ -39,7 +51,7 @@ export function DrillDownModal({ kpi, onClose }: DrillDownModalProps) {
           >
             ✕
           </button>
-          <h3 className="font-bold text-lg text-[--text]">{kpi.nameAr}</h3>
+          <h3 id="drill-down-title" className="font-bold text-lg text-[--text]">{kpi.nameAr}</h3>
         </div>
 
         {/* Body */}
