@@ -4,9 +4,10 @@ const config: Config = {
   projects: [
     {
       displayName: 'dom',
-      testEnvironment: 'jsdom',
+      testEnvironment: '<rootDir>/jest.env.ts',
       testMatch: ['<rootDir>/**/*.test.ts', '<rootDir>/**/*.test.tsx'],
       testPathIgnorePatterns: ['/node_modules/', '<rootDir>/prisma/'],
+      setupFiles: ['<rootDir>/jest.globals.ts'],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
       transform: {
         '^.+\\.tsx?$': ['ts-jest', { tsconfig: { jsx: 'react-jsx' } }],
