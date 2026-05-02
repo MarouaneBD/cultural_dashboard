@@ -12,7 +12,7 @@ export default function DashboardPage() {
     <AppShell title="لوحة المتابعة التنفيذية">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* ExecutiveSummary added in Task 13 */}
-        <Suspense>
+        <Suspense fallback={<div className="h-40 rounded-xl bg-slate-100 animate-pulse" />}>
           <KpiGrid onKpiClick={setSelectedKpi} />
         </Suspense>
         {/* DrillDownModal added in Task 9 */}
