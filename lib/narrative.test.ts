@@ -35,6 +35,7 @@ describe('generateNarrative', () => {
   it('handles empty input gracefully', () => {
     const text = generateNarrative([])
     expect(typeof text).toBe('string')
+    expect(text).toBe('لا توجد بيانات كافية لإنشاء الملخص التنفيذي.')
   })
 
   it('separates green/amber/red groups in separate sentences', () => {

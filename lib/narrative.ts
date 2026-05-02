@@ -11,7 +11,7 @@ export function generateNarrative(kpis: KpiWithVariance[]): string {
 
   if (green.length > 0) {
     const names = green.map(k => k.nameAr).join(' و')
-    parts.push(`حقق${green.length > 1 ? 'ت' : ''} ${names} أهدافه${green.length > 1 ? 'ا' : ''} بنسبة تجاوزت ٩٥٪، وهو مؤشر ممتاز.`)
+    parts.push(`بلغت ${names} أهدافها بنسبة تجاوزت ٩٥٪، وهو مؤشر ممتاز.`)
   }
 
   if (amber.length > 0) {

@@ -10,10 +10,22 @@ export function ExecutiveSummary() {
   const year = params.get('year') ?? '2026'
   const period = params.get('period') ?? 'ANNUAL'
 
-  const { data: kpis } = useQuery<KpiWithVariance[]>({
+  const { data: kpis, error, isLoading } = useQuery<KpiWithVariance[]>({
     queryKey: ['kpis', year, period],
     queryFn: () => fetch(`/api/kpis?year=${year}&period=${period}`).then(r => r.json()),
   })
+
+  if (error) {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 p-5">
+        <p className="text-sm text-red-600">تعذّر تحميل الملخص التنفيذي</p>
+      </div>
+    )
+  }
+
+  if (isLoading) {
+    return <div className="h-24 rounded-xl bg-slate-100 animate-pulse" />
+  }
 
   const text = generateNarrative(kpis ?? [])
 
