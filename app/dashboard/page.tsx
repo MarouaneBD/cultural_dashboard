@@ -4,6 +4,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { KpiGrid } from '@/components/kpi/KpiGrid'
 import { DrillDownModal } from '@/components/kpi/DrillDownModal'
 import { ExecutiveSummary } from '@/components/narrative/ExecutiveSummary'
+import { ExportButton } from '@/components/ExportButton'
 import { useState, Suspense } from 'react'
 import type { KpiWithVariance } from '@/types'
 
@@ -11,7 +12,7 @@ export default function DashboardPage() {
   const [selectedKpi, setSelectedKpi] = useState<KpiWithVariance | null>(null)
 
   return (
-    <AppShell title="لوحة المتابعة التنفيذية">
+    <AppShell title="لوحة المتابعة التنفيذية" actions={<Suspense fallback={null}><ExportButton /></Suspense>}>
       <div className="max-w-5xl mx-auto space-y-6">
         <Suspense fallback={<div className="h-24 rounded-xl bg-slate-100 animate-pulse" />}>
           <ExecutiveSummary />
