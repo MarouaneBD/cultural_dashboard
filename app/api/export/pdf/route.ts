@@ -5,15 +5,16 @@ import { computeVariance } from '@/lib/kpi'
 import { generateNarrative } from '@/lib/narrative'
 import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer'
 import React from 'react'
+import path from 'path'
 import type { KpiWithVariance } from '@/types'
 
 Font.register({
   family: 'Cairo',
-  src: 'https://fonts.gstatic.com/s/cairo/v28/SLXgc1nY6HkvangtZmpQdkhzfH5lkSs2SgRjCAGMQ1z0hA.woff2',
+  src: path.join(process.cwd(), 'public/fonts/Cairo-Regular.ttf'),
 })
 
 const styles = StyleSheet.create({
-  page: { fontFamily: 'Cairo', padding: 40, direction: 'rtl' },
+  page: { fontFamily: 'Cairo', padding: 40 },
   title: { fontSize: 20, fontWeight: 'bold', marginBottom: 8, textAlign: 'right' },
   subtitle: { fontSize: 10, color: '#64748b', marginBottom: 24, textAlign: 'right' },
   narrative: { fontSize: 11, marginBottom: 24, lineHeight: 1.6, textAlign: 'right' },
@@ -83,9 +84,9 @@ export async function GET(req: NextRequest) {
     )
 
     const buffer = await renderToBuffer(doc)
-    const uint8 = new Uint8Array(buffer)
+    const uint8Array = new Uint8Array(buffer)
 
-    return new NextResponse(uint8, {
+    return new NextResponse(uint8Array, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="ers-report-${period}-${year}.pdf"`,
