@@ -1,4 +1,5 @@
-import { validateRow, normalizeRow } from '@/lib/excel'
+import * as XLSX from 'xlsx'
+import { validateRow, normalizeRow, parseExcelFile } from '@/lib/excel'
 
 describe('validateRow', () => {
   it('returns no errors for a valid row', () => {
@@ -38,5 +39,48 @@ describe('normalizeRow', () => {
     const row = normalizeRow({ kpiId: 'k1', period: 'Q1', year: '2026' as any, value: '99.5' as any })
     expect(typeof row.year).toBe('number')
     expect(typeof row.value).toBe('number')
+  })
+})
+
+describe('parseExcelFile', () => {
+  function makeBuffer(rows: Record<string, unknown>[]): ArrayBuffer {
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
+    const out = XLSX.write(wb, { type: 'array', bookType: 'xlsx' })
+    return out as ArrayBuffer
+  }
+
+  it('returns valid rows for a well-formed file', () => {
+    const buffer = makeBuffer([{ kpiId: 'k1', period: 'Q1', year: 2026, value: 100 }])
+    const result = parseExcelFile(buffer)
+    expect(result.valid).toHaveLength(1)
+    expect(result.errors).toHaveLength(0)
+  })
+
+  it('returns errors for invalid rows', () => {
+    const buffer = makeBuffer([{ kpiId: '', period: 'Q1', year: 2026, value: 100 }])
+    const result = parseExcelFile(buffer)
+    expect(result.valid).toHaveLength(0)
+    expect(result.errors).toHaveLength(1)
+    expect(result.errors[0].message).toMatch(/kpiId/)
+  })
+
+  it('returns structured error when XLSX.read throws', () => {
+    // Pass null to trigger a try/catch (XLSX.read will throw on null)
+    const result = parseExcelFile(null as any)
+    expect(result.valid).toHaveLength(0)
+    expect(result.errors).toHaveLength(1)
+    expect(result.errors[0].row).toBe(0)
+    expect(result.errors[0].message).toMatch(/تعذّر/)
+  })
+
+  it('row numbers in errors account for header offset (start at 2)', () => {
+    const buffer = makeBuffer([
+      { kpiId: 'k1', period: 'Q1', year: 2026, value: 100 },
+      { kpiId: '', period: 'Q1', year: 2026, value: 50 },
+    ])
+    const result = parseExcelFile(buffer)
+    expect(result.errors[0].row).toBe(3) // row 1=header, row 2=first data, row 3=second data
   })
 })
