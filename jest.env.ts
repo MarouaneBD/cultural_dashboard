@@ -16,6 +16,11 @@ class FetchJSDOMEnvironment extends JSDOMEnvironment {
       this.global.Headers = globalThis.Headers
       this.global.fetch = globalThis.fetch
     }
+    // Replace jsdom's FormData/Blob with Node's native implementations so that
+    // NextRequest.formData() receives a proper multipart Content-Type with boundary.
+    // jsdom's FormData does not set the boundary header, causing next/server to throw.
+    this.global.FormData = globalThis.FormData
+    this.global.Blob = globalThis.Blob
   }
 }
 
