@@ -25,11 +25,11 @@ export function computeVariance(actual: number, target: number): KpiVariance {
 }
 
 export function formatVariancePct(pct: number): string {
-  return `${pct.toFixed(1)}٪`
+  return `${pct.toFixed(1)}%`
 }
 
 export function formatValue(value: number, unit: 'PERCENT' | 'COUNT' | 'CURRENCY'): string {
-  if (unit === 'PERCENT') return `${value.toFixed(1)}٪`
-  if (unit === 'CURRENCY') return value.toLocaleString('ar-AE') + ' د.إ'
-  return value.toLocaleString('ar-AE')
+  if (unit === 'PERCENT') return `${value.toFixed(1)}%`
+  if (unit === 'CURRENCY') return value.toLocaleString('en') + ' د.إ'
+  return value.toLocaleString('en')
 }

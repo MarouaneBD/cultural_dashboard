@@ -46,8 +46,8 @@ describe('COLOR_CLASSES', () => {
 })
 
 describe('formatVariancePct', () => {
-  it('formats with one decimal and Arabic percent sign', () => {
-    expect(formatVariancePct(90.123)).toBe('90.1٪')
+  it('formats with one decimal and Latin percent sign', () => {
+    expect(formatVariancePct(90.123)).toBe('90.1%')
   })
 })
 
@@ -60,18 +60,18 @@ describe('COLOR_DOT', () => {
 })
 
 describe('formatValue', () => {
-  it('formats COUNT values as Arabic locale numbers', () => {
+  it('formats COUNT values as English locale numbers', () => {
     const result = formatValue(1000, 'COUNT')
-    expect(result).toContain('1')
-    expect(result).toContain('000')
+    expect(result).toBe('1,000')
   })
 
-  it('formats PERCENT values with Arabic percent sign', () => {
-    expect(formatValue(95, 'PERCENT')).toContain('٪')
+  it('formats PERCENT values with Latin percent sign', () => {
+    expect(formatValue(95, 'PERCENT')).toBe('95.0%')
   })
 
   it('formats CURRENCY values with dirham suffix', () => {
     expect(formatValue(5000, 'CURRENCY')).toContain('د.إ')
+    expect(formatValue(5000, 'CURRENCY')).toContain('5,000')
   })
 })
 
