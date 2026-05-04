@@ -22,16 +22,22 @@ describe('KpiCard', () => {
     expect(screen.getByText('كفالات المعلمين النشطة')).toBeInTheDocument()
   })
 
-  it('renders actual and target values', () => {
+  it('renders actual value', () => {
     render(<KpiCard kpi={baseKpi} />)
-    // Values rendered via formatValue — check for partial matches
     expect(screen.getByText(/270/)).toBeInTheDocument()
-    expect(screen.getByText(/300/)).toBeInTheDocument()
   })
 
-  it('renders variance percentage', () => {
+  it('renders variance percentage in the ring', () => {
     render(<KpiCard kpi={baseKpi} />)
-    expect(screen.getByText(/90\.0٪/)).toBeInTheDocument()
+    // formatVariancePct(90) = '90.0%' — now in SVG text inside the ring
+    expect(screen.getByText(/90\.0%/)).toBeInTheDocument()
+  })
+
+  it('renders target value in footer', () => {
+    render(<KpiCard kpi={baseKpi} />)
+    // formatValue(300, 'COUNT') = '300'
+    expect(screen.getByText(/300/)).toBeInTheDocument()
+    expect(screen.getByText('المستهدف')).toBeInTheDocument()
   })
 
   it('applies amber styling for 90% variance', () => {
