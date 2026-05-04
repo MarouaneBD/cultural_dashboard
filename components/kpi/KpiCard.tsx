@@ -21,7 +21,7 @@ export function KpiCard({ kpi, onClick }: KpiCardProps) {
   const { variance, unit } = kpi
   const colorClass = COLOR_CLASSES[variance.color]
   const ring = RING_COLORS[variance.color]
-  const arcLength = Math.min(variance.pct / 100, 1) * CIRCUMFERENCE
+  const arcLength = Math.max(0, Math.min(variance.pct / 100, 1)) * CIRCUMFERENCE
 
   return (
     <button
@@ -44,7 +44,7 @@ export function KpiCard({ kpi, onClick }: KpiCardProps) {
             {formatVariancePct(variance.pct)}
           </text>
         </svg>
-        <p className="text-sm font-semibold leading-snug flex-1 mr-2">{kpi.nameAr}</p>
+        <p className="text-sm font-semibold leading-snug flex-1 ms-2">{kpi.nameAr}</p>
       </div>
 
       <div className="flex items-end justify-between">

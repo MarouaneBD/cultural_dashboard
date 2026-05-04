@@ -31,6 +31,8 @@ export function SparklineChart({ data, color }: SparklineChartProps) {
         <Tooltip
           contentStyle={{ fontSize: 11, direction: 'rtl' }}
           formatter={(val) => [
+            // toLocaleString('en') used directly — SparklineChart doesn't know the KPI unit,
+            // so CURRENCY/PERCENT suffixes won't appear in the tooltip.
             typeof val === 'number' ? val.toLocaleString('en') : String(val ?? ''),
             'القيمة',
           ]}

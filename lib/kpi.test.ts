@@ -1,4 +1,4 @@
-import { computeVariance, formatVariancePct, formatValue, COLOR_CLASSES, COLOR_DOT, getVarianceColor } from '@/lib/kpi'
+import { computeVariance, formatVariancePct, formatValue, COLOR_CLASSES, getVarianceColor } from '@/lib/kpi'
 
 describe('computeVariance', () => {
   it('returns pct as (actual/target)*100', () => {
@@ -48,14 +48,6 @@ describe('COLOR_CLASSES', () => {
 describe('formatVariancePct', () => {
   it('formats with one decimal and Latin percent sign', () => {
     expect(formatVariancePct(90.123)).toBe('90.1%')
-  })
-})
-
-describe('COLOR_DOT', () => {
-  it('has entries for green, amber, red', () => {
-    expect(COLOR_DOT.green).toBeDefined()
-    expect(COLOR_DOT.amber).toBeDefined()
-    expect(COLOR_DOT.red).toBeDefined()
   })
 })
 
