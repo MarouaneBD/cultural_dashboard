@@ -31,7 +31,7 @@ export function SparklineChart({ data, color }: SparklineChartProps) {
         <Tooltip
           contentStyle={{ fontSize: 11, direction: 'rtl' }}
           formatter={(val) => [
-            typeof val === 'number' ? val.toLocaleString('ar-AE') : String(val ?? ''),
+            typeof val === 'number' ? val.toLocaleString('en') : String(val ?? ''),
             'القيمة',
           ]}
         />

@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
-import { COLOR_CLASSES, formatVariancePct } from '@/lib/kpi'
+import { COLOR_CLASSES, formatValue, formatVariancePct } from '@/lib/kpi'
 import type { KpiWithVariance, DrillDownRow } from '@/types'
 
 interface DrillDownModalProps {
@@ -91,10 +91,10 @@ export function DrillDownModal({ kpi, onClose }: DrillDownModalProps) {
                   <tr key={i} className={`${COLOR_CLASSES[row.variance.color]} border-none`}>
                     <td className="py-2.5 font-medium">{row.region}</td>
                     <td className="py-2.5 tabular-nums">
-                      {row.actual.toLocaleString('ar-AE')}
+                      {formatValue(row.actual, kpi.unit)}
                     </td>
                     <td className="py-2.5 tabular-nums">
-                      {row.target.toLocaleString('ar-AE')}
+                      {formatValue(row.target, kpi.unit)}
                     </td>
                     <td className="py-2.5 font-bold tabular-nums">
                       {formatVariancePct(row.variance.pct)}
