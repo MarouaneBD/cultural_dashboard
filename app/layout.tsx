@@ -40,8 +40,8 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'نظام التقارير التنفيذية — شؤون الإسلامية',
-  description: 'لوحة متابعة مؤشرات الأداء التنفيذية',
+  title: 'لوحة تحكم قطاع الثقافة',
+  description: 'لوحة متابعة مؤشرات الأداء التنفيذية — قطاع الثقافة',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

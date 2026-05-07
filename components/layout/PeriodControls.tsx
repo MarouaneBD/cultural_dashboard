@@ -6,10 +6,10 @@ const QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4', 'ANNUAL'] as const
 type Quarter = typeof QUARTERS[number]
 
 const LABELS: Record<Quarter, string> = {
-  Q1: 'ر١',
-  Q2: 'ر٢',
-  Q3: 'ر٣',
-  Q4: 'ر٤',
+  Q1: 'Q1',
+  Q2: 'Q2',
+  Q3: 'Q3',
+  Q4: 'Q4',
   ANNUAL: 'سنوي',
 }
 
@@ -33,6 +33,7 @@ export function PeriodControls() {
       <select
         value={year}
         onChange={e => update('year', e.target.value)}
+        dir="ltr"
         className="font-jb text-[11px] rounded-full px-3 py-1 border transition-colors"
         style={{
           background: 'var(--hair)',

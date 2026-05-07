@@ -44,7 +44,7 @@ export function KpiCard({ kpi, onClick }: KpiCardProps) {
 
       {/* Body: bar sparkline + big number */}
       <div className="flex items-end justify-between gap-2">
-        <div className="flex-1 h-10">
+        <div className="h-10 flex-shrink-0" style={{ width: '88px' }}>
           <SparklineChart data={kpi.sparkline} color={variance.color} />
         </div>
         <p
