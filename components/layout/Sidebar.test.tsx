@@ -8,6 +8,13 @@ jest.mock('next/navigation', () => ({
   usePathname: () => '/dashboard',
 }))
 
+jest.mock('next/link', () => ({
+  __esModule: true,
+  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
+}))
+
 import { Sidebar } from './Sidebar'
 
 describe('Sidebar', () => {

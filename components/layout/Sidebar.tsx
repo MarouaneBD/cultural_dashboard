@@ -17,6 +17,7 @@ export function Sidebar() {
     <aside
       className="w-60 min-h-screen flex flex-col border-e border-white/[.06]"
       style={{ background: 'var(--sidebar-bg)' }}
+      aria-label="الشريط الجانبي"
     >
       {/* Brand */}
       <div className="px-4 py-5 flex items-center gap-3 border-b border-white/[.07]">
@@ -39,9 +40,10 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-2.5 py-3 flex flex-col gap-0.5">
+      <nav className="flex-1 px-2.5 py-3 flex flex-col gap-0.5" aria-label="القائمة الرئيسية">
         <Link
           href="/dashboard"
+          aria-current={pathname === '/dashboard' ? 'page' : undefined}
           className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] transition-colors ${
             pathname === '/dashboard'
               ? 'text-white/95 font-semibold'
