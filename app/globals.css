@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;0,500;1,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -13,6 +13,9 @@
   --font-arabic: 'Cairo', system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
+  --font-space: 'Space Grotesk', system-ui, sans-serif;
+  --font-fraunces: 'Fraunces', serif;
+  --font-jb: 'JetBrains Mono', monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -52,38 +55,38 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --background: #faf9f7;
+  --foreground: #23221f;
+  --card: #fdfcfa;
+  --card-foreground: #23221f;
+  --popover: #fdfcfa;
+  --popover-foreground: #23221f;
+  --primary: #0f4024;
+  --primary-foreground: #fdfcfa;
+  --secondary: #f4f2ed;
+  --secondary-foreground: #23221f;
+  --muted: #f4f2ed;
+  --muted-foreground: #8a867d;
+  --accent: #f4f2ed;
+  --accent-foreground: #23221f;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --border: rgba(35,34,31,.10);
+  --input: rgba(35,34,31,.10);
+  --ring: #0f4024;
+  --chart-1: #0f4024;
+  --chart-2: #14583a;
+  --chart-3: #b8822a;
+  --chart-4: #555149;
+  --chart-5: #8a867d;
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #fdfcfa;
+  --sidebar-foreground: #23221f;
+  --sidebar-primary: #0f4024;
+  --sidebar-primary-foreground: #fdfcfa;
+  --sidebar-accent: #f4f2ed;
+  --sidebar-accent-foreground: #23221f;
+  --sidebar-border: rgba(35,34,31,.10);
+  --sidebar-ring: #0f4024;
 }
 
 .dark {
@@ -130,15 +133,34 @@
   html {
     @apply font-sans;
   }
+  body {
+    background:
+      radial-gradient(800px 400px at 88% -5%, rgba(15,64,36,.03), transparent 60%),
+      radial-gradient(900px 500px at 8% 105%, rgba(184,130,42,.04), transparent 60%),
+      var(--bg);
+    color: var(--ink);
+  }
 }
 
 /* ── RTL Foundation ─────────────────────────────────────────── */
 :root {
-  --font-arabic: 'Cairo', system-ui, sans-serif;
-  --bg: #faf9f7;
+  --font-arabic:      'Cairo', system-ui, sans-serif;
+  --bg:               #faf9f7;
+  --bg-alt:           #f4f2ed;
+  --ink:              #23221f;
+  --ink-soft:         #555149;
+  --ink-muted:        #8a867d;
+  --card-bg:          #fdfcfa;
+  --hair:             rgba(35,34,31,.06);
+  --border:           rgba(35,34,31,.10);
+  --accent:           #0f4024;
+  --accent-2:         #14583a;
+  --gold:             #b8822a;
+  --sidebar-bg:       #162b1e;
+  --card-shadow:      0 1px 2px rgba(35,34,31,.04), 0 16px 40px -16px rgba(35,34,31,.10);
+  --card-shadow-hover:0 2px 4px rgba(35,34,31,.06), 0 28px 60px -16px rgba(35,34,31,.16);
+  /* backwards-compat alias used by existing components */
   --text: #23221f;
-  --accent: #0f4024;
-  --border: #e5e3df;
 }
 
 html {
