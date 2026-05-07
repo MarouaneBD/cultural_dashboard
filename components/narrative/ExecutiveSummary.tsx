@@ -51,7 +51,7 @@ export function ExecutiveSummary() {
     >
       {/* Icon chip */}
       <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-base border"
+        className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 text-base border"
         style={{
           background: 'rgba(15,64,36,.07)',
           borderColor: 'rgba(15,64,36,.12)',
@@ -87,7 +87,7 @@ export function ExecutiveSummary() {
         </div>
 
         {/* Narrative text */}
-        <p className="text-sm leading-relaxed" style={{ color: 'var(--ink-soft)' }}>
+        <p className="text-[13px] leading-relaxed font-cairo" style={{ color: 'var(--ink-soft)' }}>
           {text}
         </p>
       </div>
