@@ -1,12 +1,11 @@
 'use client'
 
-import { ResponsiveContainer, LineChart, Line, Tooltip } from 'recharts'
 import type { VarianceColor } from '@/types'
 
-const STROKE_COLOR: Record<VarianceColor, string> = {
-  green: '#059669',
-  amber: '#d97706',
-  red: '#dc2626',
+const BAR_COLORS: Record<VarianceColor, { fill: string; track: string }> = {
+  green: { fill: '#22c55e', track: '#bbf7d0' },
+  amber: { fill: '#f59e0b', track: '#fde68a' },
+  red:   { fill: '#ef4444', track: '#fecaca' },
 }
 
 interface SparklineChartProps {
@@ -15,29 +14,27 @@ interface SparklineChartProps {
 }
 
 export function SparklineChart({ data, color }: SparklineChartProps) {
-  const chartData = data.map((v, i) => ({ q: `Q${i + 1}`, v }))
+  if (!data.length) return null
+
+  const max = Math.max(...data)
+  const { fill, track } = BAR_COLORS[color]
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={chartData} margin={{ top: 2, right: 2, bottom: 2, left: 2 }}>
-        <Line
-          type="monotone"
-          dataKey="v"
-          stroke={STROKE_COLOR[color]}
-          strokeWidth={2}
-          dot={false}
-          isAnimationActive={false}
-        />
-        <Tooltip
-          contentStyle={{ fontSize: 11, direction: 'rtl' }}
-          formatter={(val) => [
-            // toLocaleString('en') used directly — SparklineChart doesn't know the KPI unit,
-            // so CURRENCY/PERCENT suffixes won't appear in the tooltip.
-            typeof val === 'number' ? val.toLocaleString('en') : String(val ?? ''),
-            'القيمة',
-          ]}
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <div className="flex items-end gap-[2px] w-full h-full">
+      {data.map((v, i) => {
+        const heightPct = max > 0 ? Math.max((v / max) * 100, 8) : 8
+        const isLast = i === data.length - 1
+        return (
+          <div
+            key={i}
+            className="flex-1 rounded-t-[3px] min-h-[4px]"
+            style={{
+              height: `${heightPct}%`,
+              background: isLast ? fill : track,
+            }}
+          />
+        )
+      })}
+    </div>
   )
 }

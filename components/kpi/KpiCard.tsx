@@ -4,19 +4,11 @@ import { HEX_COLORS, formatValue, formatVariancePct } from '@/lib/kpi'
 import { SparklineChart } from '@/components/charts/SparklineChart'
 import type { KpiWithVariance } from '@/types'
 
-const RING_COLORS = {
-  green: { arc: '#22c55e', track: '#dcfce7', text: '#166534' },
-  amber: { arc: '#f59e0b', track: '#fef3c7', text: '#92400e' },
-  red:   { arc: '#ef4444', track: '#fee2e2', text: '#991b1b' },
-} as const
-
 const PCT_COLORS = {
   green: '#16a34a',
   amber: '#d97706',
   red:   '#dc2626',
 } as const
-
-const CIRCUMFERENCE = 2 * Math.PI * 15 // r=15 → ≈94.25
 
 interface KpiCardProps {
   kpi: KpiWithVariance
@@ -25,9 +17,8 @@ interface KpiCardProps {
 
 export function KpiCard({ kpi, onClick }: KpiCardProps) {
   const { variance, unit } = kpi
-  const ring = RING_COLORS[variance.color]
-  const arcLength = Math.max(0, Math.min(variance.pct / 100, 1)) * CIRCUMFERENCE
   const topColor = HEX_COLORS[variance.color]
+  const fillPct = Math.min(Math.max(variance.pct, 0), 100)
 
   return (
     <button
@@ -43,61 +34,58 @@ export function KpiCard({ kpi, onClick }: KpiCardProps) {
       onMouseEnter={e => (e.currentTarget.style.boxShadow = 'var(--card-shadow-hover)')}
       onMouseLeave={e => (e.currentTarget.style.boxShadow = 'var(--card-shadow)')}
     >
-      {/* Header row: ring + name */}
-      <div className="flex items-center justify-between gap-2">
-        <svg width="44" height="44" viewBox="0 0 40 40" aria-hidden="true" style={{ flexShrink: 0 }}>
-          <circle cx="20" cy="20" r="15" fill="none" stroke={ring.track} strokeWidth="6" />
-          <circle
-            cx="20" cy="20" r="15"
-            fill="none"
-            stroke={ring.arc}
-            strokeWidth="6"
-            strokeDasharray={`${arcLength} ${CIRCUMFERENCE}`}
-            strokeLinecap="round"
-            transform="rotate(-90 20 20)"
-          />
-          <text x="20" y="24" textAnchor="middle" fontSize="8.5" fontWeight="700" fill={ring.text}
-            fontFamily="JetBrains Mono, monospace">
-            {formatVariancePct(variance.pct)}
-          </text>
-        </svg>
-        <p
-          className="text-[13px] leading-snug flex-1 ms-1"
-          style={{ color: 'var(--ink-soft)' }}
-        >
-          {kpi.nameAr}
-        </p>
-      </div>
+      {/* Header: KPI name */}
+      <p
+        className="text-[13px] leading-snug text-right"
+        style={{ color: 'var(--ink-soft)' }}
+      >
+        {kpi.nameAr}
+      </p>
 
-      {/* Body: sparkline + big number */}
+      {/* Body: bar sparkline + big number */}
       <div className="flex items-end justify-between gap-2">
-        <div className="w-24 h-12 flex-shrink-0">
+        <div className="flex-1 h-10">
           <SparklineChart data={kpi.sparkline} color={variance.color} />
         </div>
         <p
-          className="font-fraunces font-medium text-[38px] leading-none"
+          className="font-fraunces font-medium text-[38px] leading-none flex-shrink-0"
           style={{ color: 'var(--ink)', letterSpacing: '-.02em' }}
         >
           {formatValue(variance.actual, unit)}
         </p>
       </div>
 
-      {/* Footer: target + variance % */}
+      {/* Footer: progress line + labels */}
       <div
-        className="flex justify-between items-center pt-3 border-t"
+        className="flex flex-col gap-1.5 pt-3 border-t"
         style={{ borderColor: 'var(--hair)' }}
       >
-        <span
-          className="font-jb text-[11px] font-medium"
-          style={{ color: PCT_COLORS[variance.color] }}
-        >
-          {formatVariancePct(variance.pct)}
-        </span>
-        <div className="flex items-center gap-1.5">
-          <span className="font-jb text-[10px]" style={{ color: 'var(--ink-muted)' }}>
-            {formatValue(variance.target, unit)}
+        {/* Labels row */}
+        <div className="flex items-center justify-between">
+          <span
+            className="font-jb text-[11px] font-medium"
+            style={{ color: PCT_COLORS[variance.color] }}
+          >
+            {formatVariancePct(variance.pct)}
           </span>
-          <span className="text-[10px]" style={{ color: 'var(--ink-muted)' }}>المستهدف</span>
+          <span className="font-jb text-[10px]" style={{ color: 'var(--ink-muted)' }}>
+            المستهدف {formatValue(variance.target, unit)}
+          </span>
+        </div>
+
+        {/* Progress track */}
+        <div
+          className="h-1 w-full rounded-full overflow-hidden"
+          style={{ background: 'var(--hair)' }}
+        >
+          <div
+            className="h-full rounded-full"
+            style={{
+              width: `${fillPct}%`,
+              background: topColor,
+              transition: 'width .4s ease',
+            }}
+          />
         </div>
       </div>
     </button>

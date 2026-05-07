@@ -1,33 +1,31 @@
 import { render } from '@testing-library/react'
 import { SparklineChart } from './SparklineChart'
 
-// Mock all Recharts — it doesn't render in jsdom
-jest.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
-  LineChart: ({ children }: any) => <svg>{children}</svg>,
-  Line: () => null,
-  Tooltip: () => null,
-}))
-
 describe('SparklineChart', () => {
-  it('renders without crashing with 4 data points', () => {
+  it('renders one bar per data point', () => {
     const { container } = render(
       <SparklineChart data={[80, 85, 90, 95]} color="green" />
     )
-    expect(container.firstChild).toBeTruthy()
+    // The root flex div contains one child div per data point
+    const wrapper = container.firstChild as HTMLElement
+    expect(wrapper.children.length).toBe(4)
   })
 
-  it('renders without crashing with empty data', () => {
+  it('renders nothing for empty data', () => {
     const { container } = render(
       <SparklineChart data={[]} color="amber" />
     )
-    expect(container.firstChild).toBeTruthy()
+    expect(container.firstChild).toBeNull()
   })
 
-  it('renders without crashing with red color', () => {
+  it('last bar gets a different color than earlier bars', () => {
     const { container } = render(
       <SparklineChart data={[70, 72, 68, 75]} color="red" />
     )
-    expect(container.firstChild).toBeTruthy()
+    const wrapper = container.firstChild as HTMLElement
+    const bars = Array.from(wrapper.children) as HTMLElement[]
+    expect(bars.length).toBe(4)
+    // Last bar has a different background than earlier bars
+    expect(bars[3].style.background).not.toBe(bars[0].style.background)
   })
 })

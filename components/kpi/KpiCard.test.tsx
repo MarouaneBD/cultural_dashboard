@@ -27,18 +27,17 @@ describe('KpiCard', () => {
     expect(screen.getByText(/270/)).toBeInTheDocument()
   })
 
-  it('renders variance percentage in the ring', () => {
+  it('renders variance percentage in footer', () => {
     render(<KpiCard kpi={baseKpi} />)
-    // formatVariancePct(90) = '90.0%' — appears in both SVG ring text and footer span
-    const elements = screen.getAllByText(/90\.0%/)
-    expect(elements.length).toBeGreaterThanOrEqual(1)
+    // formatVariancePct(90) = '90.0%' — appears in footer label
+    expect(screen.getByText(/90\.0%/)).toBeInTheDocument()
   })
 
   it('renders target value in footer', () => {
     render(<KpiCard kpi={baseKpi} />)
-    // formatValue(300, 'COUNT') = '300'
+    // footer span: "المستهدف 300"
+    expect(screen.getByText(/المستهدف/)).toBeInTheDocument()
     expect(screen.getByText(/300/)).toBeInTheDocument()
-    expect(screen.getByText('المستهدف')).toBeInTheDocument()
   })
 
   it('uses neutral card background — no colored bg class', () => {
