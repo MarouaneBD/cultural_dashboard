@@ -29,11 +29,16 @@ export function PeriodControls() {
   }
 
   return (
-    <div className="flex items-center gap-4 text-sm">
+    <div className="flex items-center gap-2">
       <select
         value={year}
         onChange={e => update('year', e.target.value)}
-        className="border border-[--border] rounded-md px-3 py-1.5 bg-white text-[--text] text-sm"
+        className="font-jb text-[11px] rounded-full px-3 py-1 border transition-colors"
+        style={{
+          background: 'var(--hair)',
+          borderColor: 'var(--border)',
+          color: 'var(--ink-muted)',
+        }}
         aria-label="السنة"
       >
         {[2024, 2025, 2026].map(y => (
@@ -41,16 +46,17 @@ export function PeriodControls() {
         ))}
       </select>
 
-      <div className="flex border border-[--border] rounded-md overflow-hidden">
+      <div className="flex items-center gap-1">
         {QUARTERS.map(q => (
           <button
             key={q}
             onClick={() => update('period', q)}
-            className={`px-3 py-1.5 text-xs transition-colors ${
+            className="font-jb text-[11px] px-3 py-1 rounded-full border transition-colors"
+            style={
               period === q
-                ? 'bg-[#0f4024] text-white'
-                : 'bg-white hover:bg-slate-50 text-[--text]'
-            }`}
+                ? { background: 'var(--accent)', color: '#fdfcfa', borderColor: 'var(--accent)' }
+                : { background: 'var(--hair)', borderColor: 'var(--border)', color: 'var(--ink-muted)' }
+            }
           >
             {LABELS[q]}
           </button>
