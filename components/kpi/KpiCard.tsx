@@ -10,6 +10,12 @@ const RING_COLORS = {
   red:   { arc: '#ef4444', track: '#fee2e2', text: '#991b1b' },
 } as const
 
+const PCT_COLORS = {
+  green: '#16a34a',
+  amber: '#d97706',
+  red:   '#dc2626',
+} as const
+
 const CIRCUMFERENCE = 2 * Math.PI * 15 // r=15 → ≈94.25
 
 interface KpiCardProps {
@@ -19,17 +25,27 @@ interface KpiCardProps {
 
 export function KpiCard({ kpi, onClick }: KpiCardProps) {
   const { variance, unit } = kpi
-  const colorClass = COLOR_CLASSES[variance.color]
   const ring = RING_COLORS[variance.color]
   const arcLength = Math.max(0, Math.min(variance.pct / 100, 1)) * CIRCUMFERENCE
+  const topColor = COLOR_CLASSES[variance.color]
 
   return (
     <button
       onClick={onClick}
-      className={`w-full text-right rounded-xl border p-5 transition-shadow hover:shadow-md cursor-pointer ${colorClass}`}
+      data-variance={variance.color}
+      className="w-full text-right rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-0.5 flex flex-col gap-3 border"
+      style={{
+        background: 'var(--card-bg)',
+        borderColor: 'var(--border)',
+        borderTop: `3px solid ${topColor}`,
+        boxShadow: 'var(--card-shadow)',
+      }}
+      onMouseEnter={e => (e.currentTarget.style.boxShadow = 'var(--card-shadow-hover)')}
+      onMouseLeave={e => (e.currentTarget.style.boxShadow = 'var(--card-shadow)')}
     >
-      <div className="flex items-center justify-between mb-4">
-        <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" style={{ flexShrink: 0 }}>
+      {/* Header row: ring + name */}
+      <div className="flex items-center justify-between gap-2">
+        <svg width="44" height="44" viewBox="0 0 40 40" aria-hidden="true" style={{ flexShrink: 0 }}>
           <circle cx="20" cy="20" r="15" fill="none" stroke={ring.track} strokeWidth="6" />
           <circle
             cx="20" cy="20" r="15"
@@ -40,27 +56,49 @@ export function KpiCard({ kpi, onClick }: KpiCardProps) {
             strokeLinecap="round"
             transform="rotate(-90 20 20)"
           />
-          <text x="20" y="24" textAnchor="middle" fontSize="8.5" fontWeight="700" fill={ring.text}>
+          <text x="20" y="24" textAnchor="middle" fontSize="8.5" fontWeight="700" fill={ring.text}
+            fontFamily="JetBrains Mono, monospace">
             {formatVariancePct(variance.pct)}
           </text>
         </svg>
-        <p className="text-sm font-semibold leading-snug flex-1 ms-2">{kpi.nameAr}</p>
+        <p
+          className="text-sm leading-snug flex-1 ms-1"
+          style={{ color: 'var(--ink-soft)' }}
+        >
+          {kpi.nameAr}
+        </p>
       </div>
 
-      <div className="flex items-end justify-between">
+      {/* Body: sparkline + big number */}
+      <div className="flex items-end justify-between gap-2">
         <div className="w-24 h-12 flex-shrink-0">
           <SparklineChart data={kpi.sparkline} color={variance.color} />
         </div>
-        <p className="text-3xl font-bold tabular-nums">
+        <p
+          className="font-fraunces text-[38px] leading-none tracking-tight"
+          style={{ color: 'var(--ink)' }}
+        >
           {formatValue(variance.actual, unit)}
         </p>
       </div>
 
-      <div className="mt-3 pt-3 border-t border-current/20 flex justify-between items-center">
-        <span className="text-sm font-semibold tabular-nums">
-          {formatValue(variance.target, unit)}
+      {/* Footer: target + variance % */}
+      <div
+        className="flex justify-between items-center pt-3 border-t"
+        style={{ borderColor: 'var(--hair)' }}
+      >
+        <span
+          className="font-jb text-[11px] font-medium"
+          style={{ color: PCT_COLORS[variance.color] }}
+        >
+          {formatVariancePct(variance.pct)}
         </span>
-        <span className="text-xs opacity-70">المستهدف</span>
+        <div className="flex items-center gap-1.5">
+          <span className="font-jb text-[10px]" style={{ color: 'var(--ink-muted)' }}>
+            {formatValue(variance.target, unit)}
+          </span>
+          <span className="text-[10px]" style={{ color: 'var(--ink-muted)' }}>المستهدف</span>
+        </div>
       </div>
     </button>
   )

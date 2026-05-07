@@ -29,8 +29,9 @@ describe('KpiCard', () => {
 
   it('renders variance percentage in the ring', () => {
     render(<KpiCard kpi={baseKpi} />)
-    // formatVariancePct(90) = '90.0%' — now in SVG text inside the ring
-    expect(screen.getByText(/90\.0%/)).toBeInTheDocument()
+    // formatVariancePct(90) = '90.0%' — appears in both SVG ring text and footer span
+    const elements = screen.getAllByText(/90\.0%/)
+    expect(elements.length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders target value in footer', () => {
@@ -40,27 +41,34 @@ describe('KpiCard', () => {
     expect(screen.getByText('المستهدف')).toBeInTheDocument()
   })
 
-  it('applies amber styling for 90% variance', () => {
+  it('uses neutral card background — no colored bg class', () => {
     const { container } = render(<KpiCard kpi={baseKpi} />)
-    expect(container.querySelector('.bg-amber-50')).toBeInTheDocument()
+    expect(container.querySelector('.bg-amber-50')).not.toBeInTheDocument()
+    expect(container.querySelector('.bg-emerald-50')).not.toBeInTheDocument()
+    expect(container.querySelector('.bg-red-50')).not.toBeInTheDocument()
   })
 
-  it('applies green styling when >95%', () => {
+  it('sets data-variance="amber" for 90% variance', () => {
+    const { container } = render(<KpiCard kpi={baseKpi} />)
+    expect(container.querySelector('[data-variance="amber"]')).toBeInTheDocument()
+  })
+
+  it('sets data-variance="green" when >95%', () => {
     const greenKpi: KpiWithVariance = {
       ...baseKpi,
       variance: { actual: 98, target: 100, pct: 98, color: 'green' },
     }
     const { container } = render(<KpiCard kpi={greenKpi} />)
-    expect(container.querySelector('.bg-emerald-50')).toBeInTheDocument()
+    expect(container.querySelector('[data-variance="green"]')).toBeInTheDocument()
   })
 
-  it('applies red styling when <85%', () => {
+  it('sets data-variance="red" when <85%', () => {
     const redKpi: KpiWithVariance = {
       ...baseKpi,
       variance: { actual: 80, target: 100, pct: 80, color: 'red' },
     }
     const { container } = render(<KpiCard kpi={redKpi} />)
-    expect(container.querySelector('.bg-red-50')).toBeInTheDocument()
+    expect(container.querySelector('[data-variance="red"]')).toBeInTheDocument()
   })
 
   it('renders the sparkline chart', () => {

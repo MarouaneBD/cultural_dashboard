@@ -1,9 +1,9 @@
 import type { KpiVariance, VarianceColor } from '@/types'
 
 export const COLOR_CLASSES: Record<VarianceColor, string> = {
-  green: 'text-emerald-700 bg-emerald-50 border-emerald-200',
-  amber: 'text-amber-700 bg-amber-50 border-amber-200',
-  red: 'text-red-700 bg-red-50 border-red-200',
+  green: '#22c55e',
+  amber: '#f59e0b',
+  red:   '#ef4444',
 }
 
 
