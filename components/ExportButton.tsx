@@ -12,7 +12,20 @@ export function ExportButton() {
       href={`/api/export/pdf?year=${year}&period=${period}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-xs px-3 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors"
+      className="font-space font-medium text-xs px-3 py-1.5 rounded-md border transition-colors"
+      style={{
+        borderColor: 'var(--border)',
+        background: 'transparent',
+        color: 'var(--ink-soft)',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.background = 'var(--card-bg)'
+        e.currentTarget.style.borderColor = 'var(--ink)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.background = 'transparent'
+        e.currentTarget.style.borderColor = 'var(--border)'
+      }}
     >
       تصدير PDF
     </a>

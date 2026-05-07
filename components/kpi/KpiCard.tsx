@@ -75,7 +75,7 @@ export function KpiCard({ kpi, onClick }: KpiCardProps) {
           <SparklineChart data={kpi.sparkline} color={variance.color} />
         </div>
         <p
-          className="font-fraunces text-[38px] leading-none"
+          className="font-fraunces font-medium text-[38px] leading-none"
           style={{ color: 'var(--ink)', letterSpacing: '-.02em' }}
         >
           {formatValue(variance.actual, unit)}
