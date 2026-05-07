@@ -27,12 +27,15 @@ describe('Sidebar', () => {
     expect(screen.getByText('قطاع الثقافة')).toBeInTheDocument()
   })
 
-  it('renders all four pillar links when open', () => {
+  it('renders all seven department links when open', () => {
     render(<Sidebar open={true} />)
-    expect(screen.getByText('التعليم الإسلامي')).toBeInTheDocument()
-    expect(screen.getByText('القرآن الكريم')).toBeInTheDocument()
-    expect(screen.getByText('كفالة المعلمين')).toBeInTheDocument()
-    expect(screen.getByText('المنح الجامعية')).toBeInTheDocument()
+    expect(screen.getByText('ادارة التعليم')).toBeInTheDocument()
+    expect(screen.getByText('ادارة ثقافة الأسرة')).toBeInTheDocument()
+    expect(screen.getByText('مركز المعلومات الاسلامي')).toBeInTheDocument()
+    expect(screen.getByText('مشروع البر - ذكور')).toBeInTheDocument()
+    expect(screen.getByText('مشروع البر - اناث')).toBeInTheDocument()
+    expect(screen.getByText('قسم الأيتام')).toBeInTheDocument()
+    expect(screen.getByText('مكتب البرامج العلمية والأيتام')).toBeInTheDocument()
   })
 
   it('renders upload and audit links when open', () => {

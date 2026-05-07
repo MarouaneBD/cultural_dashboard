@@ -4,12 +4,13 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 
-const PILLARS = [
-  { href: '/dashboard?pillar=ISLAMIC_EDUCATION',      labelAr: 'التعليم الإسلامي', icon: '🕌' },
-  { href: '/dashboard?pillar=HOLY_QURAN',             labelAr: 'القرآن الكريم',    icon: '📖' },
-  { href: '/dashboard?pillar=TEACHER_SPONSORSHIP',    labelAr: 'كفالة المعلمين',   icon: '👨‍🏫' },
-  { href: '/dashboard?pillar=UNIVERSITY_SPONSORSHIP', labelAr: 'المنح الجامعية',   icon: '🎓' },
-] as const
+import { DEPARTMENTS } from '@/lib/departments'
+
+const PILLARS = DEPARTMENTS.map(d => ({
+  href: `/dashboard?pillar=${d.id}`,
+  labelAr: d.labelAr,
+  icon: d.icon,
+}))
 
 const FOOTER_LINKS = [
   { href: '/upload',      labelAr: 'رفع البيانات', icon: '⬆' },
@@ -95,7 +96,7 @@ export function Sidebar({ open }: SidebarProps) {
             href={p.href}
             icon={p.icon}
             label={p.labelAr}
-            active={pathname?.startsWith(p.href.split('?')[0]) ?? false}
+            active={!!pathname && pathname.startsWith(p.href.split('?')[0])}
           />
         ))}
       </nav>

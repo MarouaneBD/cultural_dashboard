@@ -5,33 +5,20 @@ import { useSearchParams } from 'next/navigation'
 import { KpiCard } from './KpiCard'
 import type { KpiWithVariance, PillarId } from '@/types'
 
-const PILLAR_LABELS: Record<PillarId, string> = {
-  ISLAMIC_EDUCATION: 'التعليم الإسلامي',
-  HOLY_QURAN: 'القرآن الكريم',
-  TEACHER_SPONSORSHIP: 'كفالة المعلمين',
-  UNIVERSITY_SPONSORSHIP: 'المنح الجامعية',
-}
-
-const PILLAR_ORDER: PillarId[] = [
-  'ISLAMIC_EDUCATION',
-  'HOLY_QURAN',
-  'TEACHER_SPONSORSHIP',
-  'UNIVERSITY_SPONSORSHIP',
-]
-
 interface KpiGridProps {
+  pillar: PillarId
   onKpiClick?: (kpi: KpiWithVariance) => void
 }
 
-export function KpiGrid({ onKpiClick }: KpiGridProps) {
+export function KpiGrid({ pillar, onKpiClick }: KpiGridProps) {
   const params = useSearchParams()
   const year = params.get('year') ?? '2026'
   const period = params.get('period') ?? 'ANNUAL'
 
   const { data: kpis, isLoading, error } = useQuery<KpiWithVariance[]>({
-    queryKey: ['kpis', year, period],
+    queryKey: ['kpis', year, period, pillar],
     queryFn: () =>
-      fetch(`/api/kpis?year=${year}&period=${period}`).then(r => {
+      fetch(`/api/kpis?year=${year}&period=${period}&pillar=${pillar}`).then(r => {
         if (!r.ok) throw new Error('Failed to fetch KPIs')
         return r.json()
       }),
@@ -39,7 +26,7 @@ export function KpiGrid({ onKpiClick }: KpiGridProps) {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+      <div className="rounded-2xl border p-5 text-sm" style={{ background: '#fff5f5', borderColor: '#fecaca', color: '#dc2626' }}>
         تعذّر تحميل بيانات المؤشرات. يرجى المحاولة مجدداً.
       </div>
     )
@@ -47,43 +34,42 @@ export function KpiGrid({ onKpiClick }: KpiGridProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-8">
-        {PILLAR_ORDER.map(pillar => (
-          <section key={pillar}>
-            <div className="h-4 w-32 bg-slate-100 rounded animate-pulse mb-3" />
-            <div className="grid grid-cols-2 gap-4">
-              {[0, 1].map(i => (
-                <div key={i} className="h-40 rounded-xl bg-slate-100 animate-pulse" />
-              ))}
-            </div>
-          </section>
+      <div className="grid grid-cols-2 gap-4">
+        {[0, 1, 2, 3].map(i => (
+          <div key={i} className="h-40 rounded-2xl animate-pulse" style={{ background: 'var(--bg-alt)' }} />
         ))}
       </div>
     )
   }
 
+  const list = kpis ?? []
+
+  if (!list.length) {
+    return (
+      <div
+        className="rounded-2xl border p-10 text-center"
+        style={{ background: 'var(--card-bg)', borderColor: 'var(--border)' }}
+      >
+        <p className="text-2xl mb-3">📋</p>
+        <p className="font-cairo text-[14px] font-semibold mb-1" style={{ color: 'var(--ink)' }}>
+          لا تتوفر مؤشرات بعد
+        </p>
+        <p className="font-cairo text-[12px]" style={{ color: 'var(--ink-muted)' }}>
+          يمكن إضافة المؤشرات عبر صفحة رفع البيانات
+        </p>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-8">
-      {PILLAR_ORDER.map(pillar => {
-        const pillarKpis = (kpis ?? []).filter(k => k.pillar === pillar)
-        if (!pillarKpis.length) return null
-        return (
-          <section key={pillar}>
-            <h3 className="text-sm font-semibold text-slate-500 mb-3 border-b border-[--border] pb-2">
-              {PILLAR_LABELS[pillar]}
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              {pillarKpis.map(kpi => (
-                <KpiCard
-                  key={kpi.id}
-                  kpi={kpi}
-                  onClick={() => onKpiClick?.(kpi)}
-                />
-              ))}
-            </div>
-          </section>
-        )
-      })}
+    <div className="grid grid-cols-2 gap-4">
+      {list.map(kpi => (
+        <KpiCard
+          key={kpi.id}
+          kpi={kpi}
+          onClick={() => onKpiClick?.(kpi)}
+        />
+      ))}
     </div>
   )
 }

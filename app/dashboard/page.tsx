@@ -1,31 +1,10 @@
-'use client'
-
-import { AppShell } from '@/components/layout/AppShell'
-import { KpiGrid } from '@/components/kpi/KpiGrid'
-import { DrillDownModal } from '@/components/kpi/DrillDownModal'
-import { ExecutiveSummary } from '@/components/narrative/ExecutiveSummary'
-import { ExportButton } from '@/components/ExportButton'
-import { useState, Suspense } from 'react'
-import type { KpiWithVariance } from '@/types'
+import { Suspense } from 'react'
+import { DashboardContent } from '@/components/DashboardContent'
 
 export default function DashboardPage() {
-  const [selectedKpi, setSelectedKpi] = useState<KpiWithVariance | null>(null)
-
   return (
-    <AppShell title="لوحة المتابعة التنفيذية" actions={<Suspense fallback={null}><ExportButton /></Suspense>}>
-      <div className="max-w-5xl mx-auto space-y-6">
-        <Suspense fallback={<div className="h-24 rounded-xl bg-slate-100 animate-pulse" />}>
-          <ExecutiveSummary />
-        </Suspense>
-        <Suspense fallback={<div className="h-40 rounded-xl bg-slate-100 animate-pulse" />}>
-          <KpiGrid onKpiClick={setSelectedKpi} />
-        </Suspense>
-        {selectedKpi && (
-          <Suspense fallback={null}>
-            <DrillDownModal kpi={selectedKpi} onClose={() => setSelectedKpi(null)} />
-          </Suspense>
-        )}
-      </div>
-    </AppShell>
+    <Suspense fallback={null}>
+      <DashboardContent />
+    </Suspense>
   )
 }

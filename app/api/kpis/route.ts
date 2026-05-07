@@ -7,9 +7,11 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
   const year = parseInt(searchParams.get('year') ?? '2026')
   const period = searchParams.get('period') ?? 'ANNUAL'
+  const pillar = searchParams.get('pillar') ?? undefined
 
   try {
     const kpis = await prisma.kpiRegistry.findMany({
+      where: pillar ? { pillar: pillar as any } : undefined,
       include: {
         targets: { where: { year } },
         actuals: { where: { year }, orderBy: { period: 'asc' } },

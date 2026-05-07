@@ -1,10 +1,13 @@
 export type VarianceColor = 'green' | 'amber' | 'red'
 
 export type PillarId =
-  | 'ISLAMIC_EDUCATION'
-  | 'HOLY_QURAN'
-  | 'TEACHER_SPONSORSHIP'
-  | 'UNIVERSITY_SPONSORSHIP'
+  | 'EDUCATION'
+  | 'FAMILY_CULTURE'
+  | 'ISLAMIC_INFO_CENTER'
+  | 'AL_BIRR_MALE'
+  | 'AL_BIRR_FEMALE'
+  | 'ORPHANS'
+  | 'SCIENTIFIC_PROGRAMS'
 
 export interface KpiVariance {
   actual: number

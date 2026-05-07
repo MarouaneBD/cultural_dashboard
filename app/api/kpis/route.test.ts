@@ -8,7 +8,7 @@ jest.mock('@/lib/prisma', () => ({
         {
           id: 'k1',
           nameAr: 'عدد المراكز',
-          pillar: 'ISLAMIC_EDUCATION',
+          pillar: 'EDUCATION',
           unit: 'COUNT',
           targets: [{ value: 120, period: 'ANNUAL', year: 2026 }],
           actuals: [

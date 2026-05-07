@@ -4,7 +4,7 @@ import type { KpiWithVariance } from '@/types'
 const makeKpi = (nameAr: string, pct: number): KpiWithVariance => ({
   id: nameAr,
   nameAr,
-  pillar: 'HOLY_QURAN',
+  pillar: 'EDUCATION',
   unit: 'COUNT',
   variance: {
     actual: pct,

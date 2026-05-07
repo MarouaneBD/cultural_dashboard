@@ -5,7 +5,7 @@ import type { KpiWithVariance } from '@/types'
 const kpi: KpiWithVariance = {
   id: 'k1',
   nameAr: 'عدد المراكز الإسلامية',
-  pillar: 'ISLAMIC_EDUCATION',
+  pillar: 'EDUCATION',
   unit: 'COUNT',
   variance: { actual: 100, target: 120, pct: 83.3, color: 'red' },
   sparkline: [80, 88, 95, 100],

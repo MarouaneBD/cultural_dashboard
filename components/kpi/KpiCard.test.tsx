@@ -10,7 +10,7 @@ jest.mock('@/components/charts/SparklineChart', () => ({
 const baseKpi: KpiWithVariance = {
   id: 'kpi-1',
   nameAr: 'كفالات المعلمين النشطة',
-  pillar: 'TEACHER_SPONSORSHIP',
+  pillar: 'EDUCATION',
   unit: 'COUNT',
   variance: { actual: 270, target: 300, pct: 90, color: 'amber' },
   sparkline: [240, 255, 263, 270],

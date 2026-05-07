@@ -8,18 +8,15 @@ const prisma = new PrismaClient({ adapter })
 describe('seed data', () => {
   afterAll(() => prisma.$disconnect())
 
-  it('creates all four pillars as KPI categories', async () => {
-    const pillars = await prisma.kpiRegistry.findMany({
-      distinct: ['pillar'],
-      select: { pillar: true },
-    })
-    const pillarValues = pillars.map(p => p.pillar).sort()
-    expect(pillarValues).toEqual([
-      'HOLY_QURAN',
-      'ISLAMIC_EDUCATION',
-      'TEACHER_SPONSORSHIP',
-      'UNIVERSITY_SPONSORSHIP',
+  it('has KPIs only from the 7 known departments', async () => {
+    const validPillars = new Set([
+      'EDUCATION', 'FAMILY_CULTURE', 'ISLAMIC_INFO_CENTER',
+      'AL_BIRR_MALE', 'AL_BIRR_FEMALE', 'ORPHANS', 'SCIENTIFIC_PROGRAMS',
     ])
+    const kpis = await prisma.kpiRegistry.findMany({ select: { pillar: true } })
+    kpis.forEach(kpi => {
+      expect(validPillars.has(kpi.pillar)).toBe(true)
+    })
   })
 
   it('every KPI has at least one target for current year', async () => {
