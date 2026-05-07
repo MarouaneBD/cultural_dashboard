@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 
 jest.mock('next/navigation', () => ({
   usePathname: () => '/dashboard',
@@ -22,37 +22,28 @@ jest.mock('next/image', () => ({
 import { Sidebar } from './Sidebar'
 
 describe('Sidebar', () => {
-  it('renders the app name', () => {
-    render(<Sidebar />)
+  it('renders the app name when open', () => {
+    render(<Sidebar open={true} />)
     expect(screen.getByText('قطاع الثقافة')).toBeInTheDocument()
   })
 
-  it('renders all four pillar links', () => {
-    render(<Sidebar />)
+  it('renders all four pillar links when open', () => {
+    render(<Sidebar open={true} />)
     expect(screen.getByText('التعليم الإسلامي')).toBeInTheDocument()
     expect(screen.getByText('القرآن الكريم')).toBeInTheDocument()
     expect(screen.getByText('كفالة المعلمين')).toBeInTheDocument()
     expect(screen.getByText('المنح الجامعية')).toBeInTheDocument()
   })
 
-  it('renders upload and audit links', () => {
-    render(<Sidebar />)
+  it('renders upload and audit links when open', () => {
+    render(<Sidebar open={true} />)
     expect(screen.getByText('رفع البيانات')).toBeInTheDocument()
     expect(screen.getByText('سجل المراجعة')).toBeInTheDocument()
   })
 
-  it('collapses and hides labels when toggle is clicked', () => {
-    render(<Sidebar />)
-    expect(screen.getByText('الرئيسية')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: /طي الشريط الجانبي/ }))
-    expect(screen.queryByText('الرئيسية')).not.toBeInTheDocument()
-  })
-
-  it('expands again after a second toggle click', () => {
-    render(<Sidebar />)
-    const btn = screen.getByRole('button', { name: /طي الشريط الجانبي/ })
-    fireEvent.click(btn)
-    fireEvent.click(screen.getByRole('button', { name: /توسيع الشريط الجانبي/ }))
-    expect(screen.getByText('الرئيسية')).toBeInTheDocument()
+  it('is visually hidden when open=false', () => {
+    const { container } = render(<Sidebar open={false} />)
+    const aside = container.querySelector('aside')!
+    expect(aside.style.width).toBe('0px')
   })
 })

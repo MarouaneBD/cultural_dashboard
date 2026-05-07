@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
 
 const PILLARS = [
   { href: '/dashboard?pillar=ISLAMIC_EDUCATION',      labelAr: 'التعليم الإسلامي', icon: '🕌' },
@@ -13,105 +12,82 @@ const PILLARS = [
 ] as const
 
 const FOOTER_LINKS = [
-  { href: '/upload',       labelAr: 'رفع البيانات', icon: '⬆' },
-  { href: '/admin/audit',  labelAr: 'سجل المراجعة', icon: '📋' },
+  { href: '/upload',      labelAr: 'رفع البيانات', icon: '⬆' },
+  { href: '/admin/audit', labelAr: 'سجل المراجعة', icon: '📋' },
 ] as const
 
-// Place your logo file at public/logo.png (or .svg)
-const LOGO_PATH = '/logo.png'
+// Place your logo at public/dabs-logo.png (or .svg)
+const LOGO_PATH = '/dabs-logo.png'
 
-function CollapseIcon({ collapsed }: { collapsed: boolean }) {
-  return (
-    <svg
-      width="14" height="14" viewBox="0 0 14 14" fill="none"
-      style={{ transition: 'transform .2s', transform: collapsed ? 'rotate(180deg)' : 'none' }}
-    >
-      {/* chevron pointing left (collapse direction) */}
-      <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
+interface SidebarProps {
+  open: boolean
 }
 
-export function Sidebar() {
+export function Sidebar({ open }: SidebarProps) {
   const pathname = usePathname()
-  const [collapsed, setCollapsed] = useState(false)
-
-  const logoExists = true // flip to false if no logo file yet
 
   return (
     <aside
       aria-label="الشريط الجانبي"
+      aria-hidden={!open}
       className="min-h-screen flex flex-col border-e border-white/[.06] flex-shrink-0"
       style={{
         background: 'var(--sidebar-bg)',
-        width: collapsed ? '56px' : '240px',
-        transition: 'width .2s ease',
+        width: open ? '240px' : '0px',
         overflow: 'hidden',
+        transition: 'width .25s cubic-bezier(.4,0,.2,1)',
       }}
     >
-      {/* Brand */}
-      <div
-        className="flex items-center border-b border-white/[.07] flex-shrink-0"
-        style={{ padding: collapsed ? '16px 12px' : '16px 16px', gap: '10px', minHeight: '64px' }}
-      >
-        {/* Logo / icon */}
+      {/* ── Brand / Logo ─────────────────────────────── */}
+      <div className="flex-shrink-0 border-b border-white/[.07]" style={{ padding: '20px 18px 16px' }}>
+        {/* Logo container — prominent white card */}
         <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border border-white/[.12]"
-          style={{ background: 'rgba(255,255,255,.08)' }}
+          className="w-full rounded-xl flex items-center justify-center mb-3 overflow-hidden"
+          style={{
+            background: 'rgba(255,255,255,.95)',
+            height: '72px',
+            boxShadow: '0 2px 12px rgba(0,0,0,.25)',
+          }}
         >
-          {logoExists ? (
-            <Image
-              src={LOGO_PATH}
-              alt="شعار المنظمة"
-              width={28}
-              height={28}
-              className="rounded-md object-contain"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-            />
-          ) : (
-            <span className="font-space font-bold text-[11px] text-white/90">ث</span>
-          )}
+          <Image
+            src={LOGO_PATH}
+            alt="شعار المنظمة"
+            width={160}
+            height={60}
+            className="object-contain"
+            style={{ maxHeight: '56px', width: 'auto' }}
+          />
         </div>
 
-        {/* Text — hidden when collapsed */}
-        {!collapsed && (
-          <div className="flex-1 min-w-0">
-            <div
-              className="font-space font-semibold text-[13px] text-white/90 flex items-center gap-1.5 truncate"
-            >
-              قطاع الثقافة
-              <span
-                className="w-1.5 h-1.5 rounded-full inline-block flex-shrink-0"
-                style={{ background: 'var(--gold)' }}
-              />
-            </div>
-            <div className="text-[10px] text-white/40 mt-0.5 truncate">
-              لوحة تحكم قطاع الثقافة
-            </div>
+        {/* App name + subtitle */}
+        <div className="text-center" style={{ minWidth: '204px' }}>
+          <div className="font-space font-semibold text-[13px] text-white/90 flex items-center justify-center gap-1.5">
+            قطاع الثقافة
+            <span
+              className="w-1.5 h-1.5 rounded-full inline-block flex-shrink-0"
+              style={{ background: 'var(--gold)' }}
+            />
           </div>
-        )}
+          <div className="text-[10px] text-white/40 mt-0.5">
+            لوحة تحكم قطاع الثقافة
+          </div>
+        </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 flex flex-col gap-0.5 overflow-y-auto" style={{ padding: collapsed ? '12px 8px' : '12px 10px' }} aria-label="القائمة الرئيسية">
-        <NavLink
-          href="/dashboard"
-          icon="◈"
-          label="الرئيسية"
-          active={pathname === '/dashboard'}
-          collapsed={collapsed}
-        />
+      {/* ── Nav ──────────────────────────────────────── */}
+      <nav
+        className="flex-1 flex flex-col gap-0.5 overflow-y-auto"
+        style={{ padding: '12px 10px' }}
+        aria-label="القائمة الرئيسية"
+      >
+        <NavLink href="/dashboard" icon="◈" label="الرئيسية" active={pathname === '/dashboard'} />
 
-        {!collapsed && (
-          <p
-            className="font-space font-semibold tracking-[.12em] uppercase text-[9.5px] px-2 pt-3 pb-1"
-            style={{ color: 'rgba(255,255,255,.25)' }}
-          >
-            المحاور
-          </p>
-        )}
-
-        {collapsed && <div className="my-1.5 border-t border-white/[.07]" />}
+        <p
+          className="font-space font-semibold tracking-[.12em] uppercase text-[9.5px] px-2 pt-3 pb-1"
+          style={{ color: 'rgba(255,255,255,.25)' }}
+        >
+          المحاور
+        </p>
 
         {PILLARS.map(p => (
           <NavLink
@@ -120,42 +96,18 @@ export function Sidebar() {
             icon={p.icon}
             label={p.labelAr}
             active={pathname?.startsWith(p.href.split('?')[0]) ?? false}
-            collapsed={collapsed}
           />
         ))}
       </nav>
 
-      {/* Footer links */}
+      {/* ── Footer ───────────────────────────────────── */}
       <div
         className="border-t border-white/[.06] flex flex-col gap-0.5 flex-shrink-0"
-        style={{ padding: collapsed ? '10px 8px' : '10px 10px' }}
+        style={{ padding: '10px 10px' }}
       >
         {FOOTER_LINKS.map(l => (
-          <NavLink
-            key={l.href}
-            href={l.href}
-            icon={l.icon}
-            label={l.labelAr}
-            active={false}
-            collapsed={collapsed}
-          />
+          <NavLink key={l.href} href={l.href} icon={l.icon} label={l.labelAr} active={false} />
         ))}
-
-        {/* Collapse toggle */}
-        <button
-          onClick={() => setCollapsed(c => !c)}
-          aria-label={collapsed ? 'توسيع الشريط الجانبي' : 'طي الشريط الجانبي'}
-          className="flex items-center justify-center mt-1 rounded-lg transition-colors"
-          style={{
-            height: '32px',
-            color: 'rgba(255,255,255,.35)',
-            background: 'transparent',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,.06)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-        >
-          <CollapseIcon collapsed={collapsed} />
-        </button>
       </div>
     </aside>
   )
@@ -166,35 +118,35 @@ interface NavLinkProps {
   icon: string
   label: string
   active: boolean
-  collapsed: boolean
 }
 
-function NavLink({ href, icon, label, active, collapsed }: NavLinkProps) {
+function NavLink({ href, icon, label, active }: NavLinkProps) {
   return (
     <Link
       href={href}
       aria-current={active ? 'page' : undefined}
-      title={collapsed ? label : undefined}
-      className="flex items-center rounded-lg text-[12.5px] transition-colors"
+      className="flex items-center gap-2.5 rounded-lg text-[12.5px] transition-colors whitespace-nowrap"
       style={{
-        gap: collapsed ? '0' : '10px',
-        padding: collapsed ? '8px 0' : '8px 10px',
-        justifyContent: collapsed ? 'center' : 'flex-start',
+        padding: '8px 10px',
         color: active ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.58)',
         background: active ? 'rgba(255,255,255,.10)' : 'transparent',
         fontWeight: active ? 600 : 400,
       }}
       onMouseEnter={e => {
-        if (!active) e.currentTarget.style.background = 'rgba(255,255,255,.06)'
-        if (!active) e.currentTarget.style.color = 'rgba(255,255,255,.85)'
+        if (!active) {
+          e.currentTarget.style.background = 'rgba(255,255,255,.06)'
+          e.currentTarget.style.color = 'rgba(255,255,255,.85)'
+        }
       }}
       onMouseLeave={e => {
-        if (!active) e.currentTarget.style.background = 'transparent'
-        if (!active) e.currentTarget.style.color = 'rgba(255,255,255,.58)'
+        if (!active) {
+          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.color = 'rgba(255,255,255,.58)'
+        }
       }}
     >
       <span style={{ fontSize: '14px', opacity: active ? 1 : 0.7, flexShrink: 0 }}>{icon}</span>
-      {!collapsed && <span className="truncate">{label}</span>}
+      <span>{label}</span>
     </Link>
   )
 }
