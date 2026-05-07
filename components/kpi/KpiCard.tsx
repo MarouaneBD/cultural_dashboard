@@ -33,7 +33,7 @@ export function KpiCard({ kpi, onClick }: KpiCardProps) {
     <button
       onClick={onClick}
       data-variance={variance.color}
-      className="w-full text-right rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-0.5 flex flex-col gap-3 border"
+      className="w-full text-right rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-[3px] flex flex-col gap-3 border"
       style={{
         background: 'var(--card-bg)',
         borderColor: 'var(--border)',
@@ -62,7 +62,7 @@ export function KpiCard({ kpi, onClick }: KpiCardProps) {
           </text>
         </svg>
         <p
-          className="text-sm leading-snug flex-1 ms-1"
+          className="text-[13px] leading-snug flex-1 ms-1"
           style={{ color: 'var(--ink-soft)' }}
         >
           {kpi.nameAr}
@@ -75,8 +75,8 @@ export function KpiCard({ kpi, onClick }: KpiCardProps) {
           <SparklineChart data={kpi.sparkline} color={variance.color} />
         </div>
         <p
-          className="font-fraunces text-[38px] leading-none tracking-tight"
-          style={{ color: 'var(--ink)' }}
+          className="font-fraunces text-[38px] leading-none"
+          style={{ color: 'var(--ink)', letterSpacing: '-.02em' }}
         >
           {formatValue(variance.actual, unit)}
         </p>

@@ -6,6 +6,12 @@ export const COLOR_CLASSES: Record<VarianceColor, string> = {
   red:   '#ef4444',
 }
 
+export const ROW_CLASSES: Record<VarianceColor, string> = {
+  green: 'text-emerald-700 bg-emerald-50',
+  amber: 'text-amber-700 bg-amber-50',
+  red:   'text-red-700 bg-red-50',
+}
+
 
 export function getVarianceColor(pct: number): VarianceColor {
   if (pct > 95) return 'green'
