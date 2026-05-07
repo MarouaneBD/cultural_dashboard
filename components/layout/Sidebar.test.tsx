@@ -1,20 +1,22 @@
+/**
+ * @jest-environment jsdom
+ */
 import { render, screen } from '@testing-library/react'
-import { Sidebar } from './Sidebar'
 
-// Mock next/link and next/navigation (used inside Sidebar)
-jest.mock('next/link', () => ({
-  __esModule: true,
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
-    <a href={href}>{children}</a>
-  ),
-}))
-
+// Mock next/navigation
 jest.mock('next/navigation', () => ({
   usePathname: () => '/dashboard',
 }))
 
+import { Sidebar } from './Sidebar'
+
 describe('Sidebar', () => {
-  it('renders all four pillar navigation links in Arabic', () => {
+  it('renders the ERS brand abbreviation', () => {
+    render(<Sidebar />)
+    expect(screen.getByText('ERS')).toBeInTheDocument()
+  })
+
+  it('renders all four pillar links', () => {
     render(<Sidebar />)
     expect(screen.getByText('التعليم الإسلامي')).toBeInTheDocument()
     expect(screen.getByText('القرآن الكريم')).toBeInTheDocument()
@@ -22,13 +24,9 @@ describe('Sidebar', () => {
     expect(screen.getByText('المنح الجامعية')).toBeInTheDocument()
   })
 
-  it('renders the division name in the header', () => {
+  it('renders upload and audit links', () => {
     render(<Sidebar />)
-    expect(screen.getByText('شؤون الإسلامية')).toBeInTheDocument()
-  })
-
-  it('renders dashboard home link', () => {
-    render(<Sidebar />)
-    expect(screen.getByText('الرئيسية')).toBeInTheDocument()
+    expect(screen.getByText('رفع البيانات')).toBeInTheDocument()
+    expect(screen.getByText('سجل المراجعة')).toBeInTheDocument()
   })
 })
