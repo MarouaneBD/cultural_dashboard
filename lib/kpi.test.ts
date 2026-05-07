@@ -1,4 +1,4 @@
-import { computeVariance, formatVariancePct, formatValue, COLOR_CLASSES, getVarianceColor } from '@/lib/kpi'
+import { computeVariance, formatVariancePct, formatValue, HEX_COLORS, getVarianceColor } from '@/lib/kpi'
 
 describe('computeVariance', () => {
   it('returns pct as (actual/target)*100', () => {
@@ -37,11 +37,11 @@ describe('computeVariance', () => {
   })
 })
 
-describe('COLOR_CLASSES', () => {
+describe('HEX_COLORS', () => {
   it('has entries for green, amber, red', () => {
-    expect(COLOR_CLASSES.green).toBeDefined()
-    expect(COLOR_CLASSES.amber).toBeDefined()
-    expect(COLOR_CLASSES.red).toBeDefined()
+    expect(HEX_COLORS.green).toBeDefined()
+    expect(HEX_COLORS.amber).toBeDefined()
+    expect(HEX_COLORS.red).toBeDefined()
   })
 })
 

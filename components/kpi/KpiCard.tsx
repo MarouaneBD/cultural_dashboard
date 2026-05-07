@@ -1,6 +1,6 @@
 'use client'
 
-import { COLOR_CLASSES, formatValue, formatVariancePct } from '@/lib/kpi'
+import { HEX_COLORS, formatValue, formatVariancePct } from '@/lib/kpi'
 import { SparklineChart } from '@/components/charts/SparklineChart'
 import type { KpiWithVariance } from '@/types'
 
@@ -27,7 +27,7 @@ export function KpiCard({ kpi, onClick }: KpiCardProps) {
   const { variance, unit } = kpi
   const ring = RING_COLORS[variance.color]
   const arcLength = Math.max(0, Math.min(variance.pct / 100, 1)) * CIRCUMFERENCE
-  const topColor = COLOR_CLASSES[variance.color]
+  const topColor = HEX_COLORS[variance.color]
 
   return (
     <button

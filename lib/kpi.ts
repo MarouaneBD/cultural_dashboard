@@ -1,6 +1,6 @@
 import type { KpiVariance, VarianceColor } from '@/types'
 
-export const COLOR_CLASSES: Record<VarianceColor, string> = {
+export const HEX_COLORS: Record<VarianceColor, string> = {
   green: '#22c55e',
   amber: '#f59e0b',
   red:   '#ef4444',
@@ -11,7 +11,6 @@ export const ROW_CLASSES: Record<VarianceColor, string> = {
   amber: 'text-amber-700 bg-amber-50',
   red:   'text-red-700 bg-red-50',
 }
-
 
 export function getVarianceColor(pct: number): VarianceColor {
   if (pct > 95) return 'green'
