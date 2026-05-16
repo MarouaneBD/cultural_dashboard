@@ -5,10 +5,13 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { KpiGrid } from '@/components/kpi/KpiGrid'
 import { DeptOverview } from '@/components/kpi/DeptOverview'
+import { DivisionStats } from '@/components/kpi/DivisionStats'
 import { DrillDownModal } from '@/components/kpi/DrillDownModal'
 import { ExecutiveSummary } from '@/components/narrative/ExecutiveSummary'
 import { ExportButton } from '@/components/ExportButton'
+import { DepartmentDashboard } from '@/components/department/DepartmentDashboard'
 import { DEPT_MAP } from '@/lib/departments'
+import { DEPT_DASHBOARDS } from '@/data/departments/registry'
 import type { KpiWithVariance, PillarId } from '@/types'
 
 function BackButton({ onClick }: { onClick: () => void }) {
@@ -54,19 +57,12 @@ export function DashboardContent() {
           /* ── Dept detail view ── */
           <>
             <BackButton onClick={goHome} />
-            <Suspense fallback={
-              <div className="grid grid-cols-2 gap-4">
-                {[0, 1, 2, 3].map(i => (
-                  <div key={i} className="h-40 rounded-2xl animate-pulse" style={{ background: 'var(--bg-alt)' }} />
-                ))}
-              </div>
-            }>
-              <KpiGrid pillar={pillarParam} onKpiClick={setSelectedKpi} />
-            </Suspense>
+            <DepartmentDashboard config={DEPT_DASHBOARDS[pillarParam]} pillarId={pillarParam} />
           </>
         ) : (
           /* ── Home overview ── */
           <>
+            <DivisionStats />
             <Suspense fallback={
               <div className="h-24 rounded-2xl animate-pulse" style={{ background: 'var(--bg-alt)' }} />
             }>
