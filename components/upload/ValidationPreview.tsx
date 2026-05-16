@@ -1,4 +1,5 @@
 import type { UploadValidationResult, ActivityUploadResult } from '@/types'
+import { DEPT_MAP } from '@/lib/departments'
 
 type Props =
   | { mode: 'legacy';   result: UploadValidationResult }
@@ -39,7 +40,7 @@ export function ValidationPreview(props: Props) {
             <tbody>
               {props.result.rows.map((row, i) => (
                 <tr key={i} className="border-b">
-                  <td className="p-2 border font-cairo">{row.pillar}</td>
+                  <td className="p-2 border font-cairo">{DEPT_MAP[row.pillar]?.labelAr ?? row.pillar}</td>
                   <td className="p-2 border font-cairo">{row.nameAr}</td>
                   <td className="p-2 border">{row.category ?? '—'}</td>
                   <td className="p-2 border tabular-nums">{row.actual2025?.toLocaleString('ar-AE') ?? '—'}</td>
