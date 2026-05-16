@@ -3,7 +3,11 @@ import { Period, Pillar } from '@prisma/client'
 import { isActivityFile, parseActivityFile, parseExcelFile } from '@/lib/excel'
 import { prisma } from '@/lib/prisma'
 
+// Derive the transaction client type from the (possibly extended) prisma instance
+type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0]
+
 export async function POST(req: NextRequest) {
+  // TODO(auth): enforce EDITOR/ADMIN role check once auth middleware is wired (Phase 2)
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File | null
@@ -30,21 +34,19 @@ export async function POST(req: NextRequest) {
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i]
         try {
-          await prisma.$transaction(async tx => {
-            const existing = await (tx as any).kpiRegistry.findUnique({
+          const delta = await prisma.$transaction(async (tx: TxClient) => {
+            const existing = await tx.kpiRegistry.findUnique({
               where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
             })
 
-            const kpi = await (tx as any).kpiRegistry.upsert({
+            const kpi = await tx.kpiRegistry.upsert({
               where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
               create: { nameAr: row.nameAr, pillar: row.pillar as Pillar, unit: 'COUNT', owner: row.category },
               update: row.category ? { owner: row.category } : {},
             })
 
-            existing ? updated++ : created++
-
             if (row.target2026 !== undefined) {
-              await (tx as any).target.upsert({
+              await tx.target.upsert({
                 where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: 2026 } },
                 create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: 2026, value: row.target2026 },
                 update: { value: row.target2026 },
@@ -52,7 +54,7 @@ export async function POST(req: NextRequest) {
             }
 
             if (row.actual2025 !== undefined) {
-              await (tx as any).actual.upsert({
+              await tx.actual.upsert({
                 where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: 2025 } },
                 create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: 2025, value: row.actual2025 },
                 update: { value: row.actual2025 },
@@ -61,15 +63,20 @@ export async function POST(req: NextRequest) {
 
             for (const [q, val] of Object.entries(row.actuals)) {
               if (val !== undefined) {
-                await (tx as any).actual.upsert({
+                await tx.actual.upsert({
                   where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: 2026 } },
                   create: { kpiId: kpi.id, period: q as Period, year: 2026, value: val },
                   update: { value: val },
                 })
               }
             }
+
+            return existing ? 'updated' : 'created'
           })
+
+          if (delta === 'updated') { updated++ } else { created++ }
         } catch (err) {
+          console.error('upload transaction failed row', i + 2, err)
           dbErrors.push({ row: i + 2, message: `خطأ في حفظ النشاط: ${row.nameAr}` })
         }
       }

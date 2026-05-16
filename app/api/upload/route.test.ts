@@ -5,7 +5,7 @@ import { NextRequest } from 'next/server'
 // Mock prisma
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    $transaction: jest.fn(async (fn: any) => fn({
+    $transaction: jest.fn(async (fn: (tx: unknown) => Promise<unknown>) => fn({
       kpiRegistry: {
         findUnique: jest.fn().mockResolvedValue(null), // null = new KPI → created++
         upsert: jest.fn().mockResolvedValue({ id: 'kpi-1' }),
@@ -55,6 +55,6 @@ it('returns created/updated counts on commit', async () => {
   const res = await POST(makeRequest(makeActivityBuffer(), false))
   const body = await res.json()
   expect(res.status).toBe(200)
-  expect(typeof body.created).toBe('number')
-  expect(typeof body.updated).toBe('number')
+  expect(body.created).toBe(1)
+  expect(body.updated).toBe(0)
 })
