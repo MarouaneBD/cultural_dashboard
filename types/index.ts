@@ -46,3 +46,23 @@ export interface UploadValidationResult {
   valid: UploadRow[]
   errors: Array<{ row: number; message: string }>
 }
+
+export interface ActivityRow {
+  nameAr: string
+  pillar: PillarId
+  category?: string
+  actual2025?: number
+  target2026?: number
+  actuals: Partial<Record<'Q1' | 'Q2' | 'Q3' | 'Q4', number>>
+}
+
+export interface ActivityUploadResult {
+  rows: ActivityRow[]
+  errors: Array<{ row: number; message: string }>
+}
+
+export interface ActivityUploadResponse {
+  created: number
+  updated: number
+  errors: Array<{ row: number; message: string }>
+}
