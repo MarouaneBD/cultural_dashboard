@@ -28,7 +28,8 @@ export function validateRow(row: UploadRow, rowIndex: number): string[] {
 
 export function parseExcelFile(buffer: ArrayBuffer): UploadValidationResult {
   try {
-    const workbook = XLSX.read(buffer, { type: 'array', cellDates: true, codepage: 65001 })
+    if (!buffer) throw new Error('buffer is required')
+    const workbook = XLSX.read(new Uint8Array(buffer), { cellDates: true, codepage: 65001 })
     const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
     if (!workbook.SheetNames.length || !sheet) {
@@ -84,7 +85,7 @@ const toNum = (v: unknown) => {
 
 export function isActivityFile(buffer: ArrayBuffer): boolean {
   try {
-    const wb = XLSX.read(buffer, { type: 'array' })
+    const wb = XLSX.read(new Uint8Array(buffer))
     const sheet = wb.Sheets[wb.SheetNames[0]]
     const [headers] = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 })
     return (headers ?? []).some(h => String(h).trim() === 'الأنشطة')
@@ -95,7 +96,7 @@ export function isActivityFile(buffer: ArrayBuffer): boolean {
 
 export function parseActivityFile(buffer: ArrayBuffer): ActivityUploadResult {
   try {
-    const wb = XLSX.read(buffer, { type: 'array', cellDates: true, codepage: 65001 })
+    const wb = XLSX.read(new Uint8Array(buffer), { cellDates: true, codepage: 65001 })
     const sheet = wb.Sheets[wb.SheetNames[0]]
     const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' })
 

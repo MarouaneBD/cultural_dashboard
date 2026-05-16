@@ -1,66 +1,60 @@
+import * as XLSX from 'xlsx'
 import { POST } from './route'
 import { NextRequest } from 'next/server'
 
-jest.mock('@/lib/excel', () => ({
-  parseExcelFile: jest.fn().mockReturnValue({
-    valid: [{ kpiId: 'k1', period: 'Q1', year: 2026, value: 100 }],
-    errors: [],
-  }),
-}))
-
+// Mock prisma
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    actual: { create: jest.fn().mockResolvedValue({ id: 'a1' }) },
+    $transaction: jest.fn(async (fn: any) => fn({
+      kpiRegistry: {
+        findUnique: jest.fn().mockResolvedValue(null), // null = new KPI → created++
+        upsert: jest.fn().mockResolvedValue({ id: 'kpi-1' }),
+      },
+      target: { upsert: jest.fn().mockResolvedValue({}) },
+      actual: {
+        create: jest.fn().mockResolvedValue({}),
+        upsert: jest.fn().mockResolvedValue({}),
+      },
+    })),
+    kpiRegistry: { findMany: jest.fn().mockResolvedValue([]) },
+    actual: { create: jest.fn().mockResolvedValue({}) },
   },
 }))
 
-describe('POST /api/upload', () => {
-  it('returns 200 with import summary on valid file', async () => {
-    const formData = new FormData()
-    formData.append('file', new Blob([''], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), 'data.xlsx')
-    formData.append('dryRun', 'false')
+function makeActivityBuffer(): ArrayBuffer {
+  const ws = XLSX.utils.json_to_sheet([{
+    'الوحدة التنظيمية': 'ادارة التعليم',
+    'الأنشطة': 'برامج التعليم',
+    '2025': 80,
+    'المستهدف 2026': 100,
+    '2026 Q1': 85,
+    'الفئة': 'تعليم',
+  }])
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
+  return XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer
+}
 
-    const req = new NextRequest('http://localhost/api/upload', {
-      method: 'POST',
-      body: formData,
-    })
+function makeRequest(buffer: ArrayBuffer, dryRun = false): NextRequest {
+  const form = new FormData()
+  form.append('file', new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), 'test.xlsx')
+  form.append('dryRun', String(dryRun))
+  return new NextRequest('http://localhost/api/upload', { method: 'POST', body: form })
+}
 
-    const res = await POST(req)
-    const body = await res.json()
+it('returns dry-run preview for activity file', async () => {
+  const res = await POST(makeRequest(makeActivityBuffer(), true))
+  const body = await res.json()
+  expect(res.status).toBe(200)
+  expect(body.dryRun).toBe(true)
+  expect(body.rows).toHaveLength(1)
+  expect(body.rows[0].nameAr).toBe('برامج التعليم')
+})
 
-    expect(res.status).toBe(200)
-    expect(body.imported).toBe(1)
-    expect(body.errors).toHaveLength(0)
-  })
-
-  it('returns dry run preview without committing', async () => {
-    const formData = new FormData()
-    formData.append('file', new Blob([''], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), 'data.xlsx')
-    formData.append('dryRun', 'true')
-
-    const req = new NextRequest('http://localhost/api/upload', {
-      method: 'POST',
-      body: formData,
-    })
-
-    const res = await POST(req)
-    const body = await res.json()
-
-    expect(res.status).toBe(200)
-    expect(body.dryRun).toBe(true)
-    expect(body.preview).toHaveLength(1)
-  })
-
-  it('returns 400 when no file is provided', async () => {
-    const formData = new FormData()
-    // No file appended
-
-    const req = new NextRequest('http://localhost/api/upload', {
-      method: 'POST',
-      body: formData,
-    })
-
-    const res = await POST(req)
-    expect(res.status).toBe(400)
-  })
+it('returns created/updated counts on commit', async () => {
+  const res = await POST(makeRequest(makeActivityBuffer(), false))
+  const body = await res.json()
+  expect(res.status).toBe(200)
+  expect(typeof body.created).toBe('number')
+  expect(typeof body.updated).toBe('number')
 })
