@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx'
-import type { UploadRow, UploadValidationResult } from '@/types'
+import type { UploadRow, UploadValidationResult, ActivityRow, ActivityUploadResult } from '@/types'
 
 const VALID_PERIODS = new Set(['Q1', 'Q2', 'Q3', 'Q4', 'ANNUAL'])
 
@@ -54,5 +54,84 @@ export function parseExcelFile(buffer: ArrayBuffer): UploadValidationResult {
     return { valid, errors }
   } catch {
     return { valid: [], errors: [{ row: 0, message: 'تعذّر قراءة الملف — تأكد من أنه ملف Excel صالح' }] }
+  }
+}
+
+const DEPT_NAME_TO_PILLAR: Record<string, string> = {
+  'ادارة التعليم':           'EDUCATION',
+  'ادارة ثقافة الأسرة':     'FAMILY_CULTURE',
+  'مركز المعلومات الاسلامي': 'ISLAMIC_INFO_CENTER',
+  'مشروع البر - ذكور':      'AL_BIRR_MALE',
+  'مشروع البر - اناث':      'AL_BIRR_FEMALE',
+  'قسم الأيتام':             'ORPHANS',
+  'مكتب البرامج العلمية':    'SCIENTIFIC_PROGRAMS',
+}
+
+const QUARTER_COL: Record<string, 'Q1' | 'Q2' | 'Q3' | 'Q4'> = {
+  '2026 Q1': 'Q1',
+  '2026 Q2': 'Q2',
+  '2026 Q3': 'Q3',
+  '2026 Q4': 'Q4',
+}
+
+export function isActivityFile(buffer: ArrayBuffer): boolean {
+  try {
+    const wb = XLSX.read(buffer, { type: 'array' })
+    const sheet = wb.Sheets[wb.SheetNames[0]]
+    const [headers] = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 })
+    return (headers ?? []).some(h => String(h).trim() === 'الأنشطة')
+  } catch {
+    return false
+  }
+}
+
+export function parseActivityFile(buffer: ArrayBuffer): ActivityUploadResult {
+  try {
+    const wb = XLSX.read(buffer, { type: 'array', cellDates: true, codepage: 65001 })
+    const sheet = wb.Sheets[wb.SheetNames[0]]
+    const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' })
+
+    const rows: ActivityRow[] = []
+    const errors: Array<{ row: number; message: string }> = []
+
+    rawRows.forEach((raw, index) => {
+      const rowNum = index + 2
+      const nameAr = String(raw['الأنشطة'] ?? '').trim()
+
+      // Skip blank activity rows silently
+      if (!nameAr) return
+
+      const deptRaw = String(raw['الوحدة التنظيمية'] ?? '').trim()
+      const pillar = DEPT_NAME_TO_PILLAR[deptRaw]
+
+      if (!pillar) {
+        errors.push({ row: rowNum, message: `الصف ${rowNum}: الوحدة التنظيمية غير معروفة "${deptRaw}"` })
+        return
+      }
+
+      const toNum = (v: unknown) => {
+        const n = Number(v)
+        return isNaN(n) || v === '' ? undefined : n
+      }
+
+      const actuals: Partial<Record<'Q1' | 'Q2' | 'Q3' | 'Q4', number>> = {}
+      for (const [col, q] of Object.entries(QUARTER_COL)) {
+        const val = toNum(raw[col])
+        if (val !== undefined) actuals[q] = val
+      }
+
+      rows.push({
+        nameAr,
+        pillar: pillar as ActivityRow['pillar'],
+        category: String(raw['الفئة'] ?? '').trim() || undefined,
+        actual2025: toNum(raw['2025']),
+        target2026: toNum(raw['المستهدف 2026']),
+        actuals,
+      })
+    })
+
+    return { rows, errors }
+  } catch {
+    return { rows: [], errors: [{ row: 0, message: 'تعذّر قراءة الملف — تأكد من أنه ملف Excel صالح' }] }
   }
 }
