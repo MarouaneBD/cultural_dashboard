@@ -67,11 +67,13 @@ export function FileUploader() {
     }
   }
 
-  const hasRows = preview?.mode === 'activity'
-    ? preview.result.rows.length > 0
-    : (preview as Exclude<PreviewState, { mode: 'activity' }>)?.result?.valid?.length > 0
+  const hasRows = preview
+    ? preview.mode === 'activity'
+      ? preview.result.rows.length > 0
+      : preview.result.valid.length > 0
+    : false
 
-  const hasNoErrors = (preview?.result.errors.length ?? 1) === 0
+  const hasNoErrors = preview ? preview.result.errors.length === 0 : false
 
   return (
     <div className="space-y-6">
@@ -115,7 +117,10 @@ export function FileUploader() {
                 onClick={handleCommit}
                 className="bg-[#0f4024] text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-[#0f4024]/90"
               >
-                تأكيد الاستيراد
+                {preview.mode === 'activity'
+                  ? `تأكيد الاستيراد (${preview.result.rows.length} نشاط)`
+                  : `تأكيد الاستيراد (${preview.result.valid.length} سجل)`
+                }
               </button>
             </div>
           )}
