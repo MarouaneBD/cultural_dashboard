@@ -2,12 +2,16 @@
 
 import { useState, useRef } from 'react'
 import { ValidationPreview } from './ValidationPreview'
-import type { UploadValidationResult } from '@/types'
+import type { UploadValidationResult, ActivityUploadResult } from '@/types'
+
+type PreviewState =
+  | { mode: 'activity'; result: ActivityUploadResult }
+  | { mode: 'legacy';   result: UploadValidationResult }
 
 export function FileUploader() {
   const inputRef = useRef<HTMLInputElement>(null)
   const [activeFile, setActiveFile] = useState<File | null>(null)
-  const [preview, setPreview] = useState<UploadValidationResult | null>(null)
+  const [preview, setPreview] = useState<PreviewState | null>(null)
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [message, setMessage] = useState('')
 
@@ -22,8 +26,14 @@ export function FileUploader() {
       formData.append('dryRun', 'true')
 
       const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      if (!res.ok) throw new Error(`API ${res.status}`)
       const body = await res.json()
-      setPreview(body)
+
+      if ('rows' in body) {
+        setPreview({ mode: 'activity', result: body })
+      } else {
+        setPreview({ mode: 'legacy', result: body })
+      }
       setStatus('idle')
     } catch {
       setMessage('خطأ في الاتصال بالخادم')
@@ -41,21 +51,27 @@ export function FileUploader() {
       formData.append('dryRun', 'false')
 
       const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      if (!res.ok) throw new Error(`API ${res.status}`)
       const body = await res.json()
 
-      if (res.ok) {
-        setMessage(`تم استيراد ${body.imported} سجل بنجاح`)
-        setStatus('done')
-        setPreview(null)
+      if ('created' in body) {
+        setMessage(`تم إنشاء ${body.created} مؤشر، تحديث ${body.updated} مؤشر`)
       } else {
-        setMessage('حدث خطأ أثناء الاستيراد')
-        setStatus('error')
+        setMessage(`تم استيراد ${body.imported} سجل بنجاح`)
       }
+      setStatus('done')
+      setPreview(null)
     } catch {
       setMessage('خطأ في الاتصال بالخادم')
       setStatus('error')
     }
   }
+
+  const hasRows = preview?.mode === 'activity'
+    ? preview.result.rows.length > 0
+    : (preview as Exclude<PreviewState, { mode: 'activity' }>)?.result?.valid?.length > 0
+
+  const hasNoErrors = (preview?.result.errors.length ?? 1) === 0
 
   return (
     <div className="space-y-6">
@@ -74,7 +90,9 @@ export function FileUploader() {
         }}
       >
         <p className="text-slate-500 text-sm">اسحب ملف Excel أو CSV هنا، أو انقر للاختيار</p>
-        <p className="text-xs text-slate-400 mt-1">يدعم UTF-8 للنص العربي</p>
+        <p className="text-xs text-slate-400 mt-1">
+          الأعمدة المتوقعة: الوحدة التنظيمية · الأنشطة · 2025 · المستهدف 2026 · 2026 Q1 · الفئة
+        </p>
         <input
           ref={inputRef}
           type="file"
@@ -85,19 +103,19 @@ export function FileUploader() {
       </div>
 
       {status === 'loading' && <p className="text-sm text-slate-500 text-center">جاري المعالجة...</p>}
-      {status === 'done' && <p className="text-sm text-emerald-700 font-medium text-center">{message}</p>}
-      {status === 'error' && <p className="text-sm text-red-700 font-medium text-center">{message}</p>}
+      {status === 'done'    && <p className="text-sm text-emerald-700 font-medium text-center">{message}</p>}
+      {status === 'error'   && <p className="text-sm text-red-700 font-medium text-center">{message}</p>}
 
       {preview && (
         <>
-          <ValidationPreview result={preview} />
-          {preview.valid.length > 0 && preview.errors.length === 0 && (
+          <ValidationPreview {...preview} />
+          {hasRows && hasNoErrors && (
             <div className="flex justify-end">
               <button
                 onClick={handleCommit}
                 className="bg-[#0f4024] text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-[#0f4024]/90"
               >
-                تأكيد الاستيراد ({preview.valid.length} سجل)
+                تأكيد الاستيراد
               </button>
             </div>
           )}
