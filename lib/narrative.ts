@@ -3,26 +3,24 @@ import type { KpiWithVariance } from '@/types'
 export function generateNarrative(kpis: KpiWithVariance[]): string {
   if (kpis.length === 0) return 'لا توجد بيانات كافية لإنشاء الملخص التنفيذي.'
 
-  const green = kpis.filter(k => k.variance.color === 'green')
-  const amber = kpis.filter(k => k.variance.color === 'amber')
-  const red = kpis.filter(k => k.variance.color === 'red')
+  const avg = Math.round(kpis.reduce((s, k) => s + k.variance.pct, 0) / kpis.length)
+  const green = kpis.filter(k => k.variance.color === 'green').length
+  const amber = kpis.filter(k => k.variance.color === 'amber').length
+  const red   = kpis.filter(k => k.variance.color === 'red').length
 
-  const parts: string[] = []
+  // Overall health sentence
+  const health = avg >= 95
+    ? `يُحقق القطاع نسبة إنجاز إجمالية ${avg}٪ مقارنةً بالمستهدف — أداء ممتاز.`
+    : avg >= 85
+    ? `يُحقق القطاع نسبة إنجاز إجمالية ${avg}٪ مقارنةً بالمستهدف — ضمن النطاق المقبول.`
+    : `نسبة الإنجاز الإجمالية ${avg}٪ دون المستهدف — يستدعي الوضع مراجعة عاجلة.`
 
-  if (green.length > 0) {
-    const names = green.map(k => k.nameAr).join(' و')
-    parts.push(`بلغت ${names} أهدافها بنسبة تجاوزت ٩٥٪، وهو مؤشر ممتاز.`)
-  }
+  // Risk sentence
+  const risk = red > 0
+    ? ` ${red} ${red === 1 ? 'إدارة تحتاج' : 'إدارات تحتاج'} تدخلاً فورياً، و${amber} تستدعي المتابعة.`
+    : amber > 0
+    ? ` ${green} ${green === 1 ? 'إدارة على المسار' : 'إدارات على المسار'}، و${amber} تستدعي المتابعة.`
+    : ` جميع الإدارات الـ${green} تسير على المسار الصحيح.`
 
-  if (amber.length > 0) {
-    const names = amber.map(k => k.nameAr).join(' و')
-    parts.push(`يسير كل من ${names} بوتيرة مقبولة تتراوح بين ٨٥ و٩٥٪، وتستدعي متابعة دقيقة.`)
-  }
-
-  if (red.length > 0) {
-    const names = red.map(k => k.nameAr).join(' و')
-    parts.push(`تستدعي ${names} تدخلاً عاجلاً؛ إذ لم تتجاوز نسبة الإنجاز ٨٥٪ المطلوبة.`)
-  }
-
-  return parts.join(' ')
+  return health + risk
 }
