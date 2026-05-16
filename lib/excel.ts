@@ -67,11 +67,19 @@ const DEPT_NAME_TO_PILLAR: Record<string, string> = {
   'مكتب البرامج العلمية':    'SCIENTIFIC_PROGRAMS',
 }
 
+// Quarter column names are hardcoded to 2026.
+// To support a different reporting year, update these keys to match
+// the column headers in the uploaded file (e.g. '2027 Q1').
 const QUARTER_COL: Record<string, 'Q1' | 'Q2' | 'Q3' | 'Q4'> = {
   '2026 Q1': 'Q1',
   '2026 Q2': 'Q2',
   '2026 Q3': 'Q3',
   '2026 Q4': 'Q4',
+}
+
+const toNum = (v: unknown) => {
+  const n = Number(v)
+  return isNaN(n) || v === '' ? undefined : n
 }
 
 export function isActivityFile(buffer: ArrayBuffer): boolean {
@@ -107,11 +115,6 @@ export function parseActivityFile(buffer: ArrayBuffer): ActivityUploadResult {
       if (!pillar) {
         errors.push({ row: rowNum, message: `الصف ${rowNum}: الوحدة التنظيمية غير معروفة "${deptRaw}"` })
         return
-      }
-
-      const toNum = (v: unknown) => {
-        const n = Number(v)
-        return isNaN(n) || v === '' ? undefined : n
       }
 
       const actuals: Partial<Record<'Q1' | 'Q2' | 'Q3' | 'Q4', number>> = {}
