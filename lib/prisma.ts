@@ -9,11 +9,9 @@ const WRITE_OPS = new Set(['create', 'update', 'delete', 'upsert', 'createMany',
 
 function createPrismaClient() {
   const adapter = new PrismaPg({ connectionString: url! })
+  const base = new PrismaClient({ adapter })
 
-  // Store the base client before extending so it can be used for prefetch lookups
-  const basePrisma = new PrismaClient({ adapter })
-
-  const extendedPrisma = basePrisma.$extends({
+  return base.$extends({
     query: {
       $allModels: {
         async $allOperations({ model, operation, args, query }: any) {
@@ -26,12 +24,12 @@ function createPrismaClient() {
           if (operation === 'update' && (args as any)?.where) {
             try {
               const modelKey = model.charAt(0).toLowerCase() + model.slice(1)
-              const before = await (basePrisma as any)[modelKey].findUnique({
+              const before = await (base as any)[modelKey].findUnique({
                 where: (args as any).where,
               })
               oldValue = before ? JSON.stringify(before) : null
             } catch {
-              // swallow prefetch errors — audit must not break the main operation
+              // swallow — audit must not break the main operation
             }
           }
 
@@ -39,7 +37,7 @@ function createPrismaClient() {
 
           try {
             const typedArgs = args as Record<string, unknown>
-            await basePrisma.auditLog.create({
+            await (base as any).auditLog.create({
               data: {
                 userId: 'system',
                 action: `${model}.${operation}`,
@@ -60,8 +58,6 @@ function createPrismaClient() {
       },
     },
   })
-
-  return extendedPrisma
 }
 
 type ExtendedPrismaClient = ReturnType<typeof createPrismaClient>

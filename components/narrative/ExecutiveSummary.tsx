@@ -12,7 +12,10 @@ export function ExecutiveSummary() {
 
   const { data: kpis, error, isLoading } = useQuery<KpiWithVariance[]>({
     queryKey: ['kpis', year, period],
-    queryFn: () => fetch(`/api/kpis?year=${year}&period=${period}`).then(r => r.json()),
+    queryFn: () => fetch(`/api/kpis?year=${year}&period=${period}`).then(r => {
+      if (!r.ok) throw new Error(`API ${r.status}`)
+      return r.json()
+    }),
   })
 
   if (error) {

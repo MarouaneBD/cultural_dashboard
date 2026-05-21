@@ -44,13 +44,15 @@ enum Period {
 
 model KpiRegistry {
   id        String    @id @default(cuid())
-  nameAr    String    @unique
+  nameAr    String
   pillar    Pillar
   unit      KpiUnit
   owner     String?
   targets   Target[]
   actuals   Actual[]
   createdAt DateTime  @default(now())
+
+  @@unique([nameAr, pillar])
 }
 
 model Target {

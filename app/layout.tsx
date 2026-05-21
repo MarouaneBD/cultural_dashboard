@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
-import { Cairo, Space_Grotesk, Fraunces, JetBrains_Mono, DM_Sans } from 'next/font/google'
+import { Cairo, Space_Grotesk } from 'next/font/google'
 import { Providers } from '@/components/providers'
+import { SplashScreen } from '@/components/layout/SplashScreen'
 import '@/app/globals.css'
 
 const cairo = Cairo({
@@ -17,27 +18,6 @@ const spaceGrotesk = Space_Grotesk({
   display: 'swap',
 })
 
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  weight: ['300', '400', '500'],
-  style: ['normal', 'italic'],
-  variable: '--nf-fraunces',
-  display: 'swap',
-})
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--nf-jb',
-  display: 'swap',
-})
-
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--nf-dm',
-  display: 'swap',
-})
 
 export const metadata: Metadata = {
   title: 'لوحة تحكم قطاع الثقافة',
@@ -49,16 +29,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="ar"
       dir="rtl"
-      className={[
-        cairo.variable,
-        spaceGrotesk.variable,
-        fraunces.variable,
-        jetbrainsMono.variable,
-        dmSans.variable,
-      ].join(' ')}
+      className={[cairo.variable, spaceGrotesk.variable].join(' ')}
     >
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <SplashScreen />
+          {children}
+        </Providers>
       </body>
     </html>
   )

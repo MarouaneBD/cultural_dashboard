@@ -5,7 +5,7 @@ export const DEPARTMENTS = [
   { id: 'AL_BIRR_MALE',        labelAr: 'مشروع البر - ذكور',               icon: '👦' },
   { id: 'AL_BIRR_FEMALE',      labelAr: 'مشروع البر - اناث',               icon: '👧' },
   { id: 'ORPHANS',             labelAr: 'قسم الأيتام',                      icon: '🤲' },
-  { id: 'SCIENTIFIC_PROGRAMS', labelAr: 'مكتب البرامج العلمية والأيتام',    icon: '📖' },
+  { id: 'SCIENTIFIC_PROGRAMS', labelAr: 'مكتب البرامج العلمية',             icon: '📖' },
 ] as const
 
 export type DeptId = typeof DEPARTMENTS[number]['id']

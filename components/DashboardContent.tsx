@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, Suspense } from 'react'
+import dynamic from 'next/dynamic'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { KpiGrid } from '@/components/kpi/KpiGrid'
@@ -9,10 +10,23 @@ import { DivisionStats } from '@/components/kpi/DivisionStats'
 import { DrillDownModal } from '@/components/kpi/DrillDownModal'
 import { ExecutiveSummary } from '@/components/narrative/ExecutiveSummary'
 import { ExportButton } from '@/components/ExportButton'
-import { DepartmentDashboard } from '@/components/department/DepartmentDashboard'
 import { DEPT_MAP } from '@/lib/departments'
-import { DEPT_DASHBOARDS } from '@/data/departments/registry'
 import type { KpiWithVariance, PillarId } from '@/types'
+
+// Lazy-loaded: keeps Recharts + all 7 dept data files out of the initial bundle
+const DepartmentDashboard = dynamic(
+  () => import('@/components/department/DepartmentDashboard').then(m => ({ default: m.DepartmentDashboard })),
+  {
+    loading: () => (
+      <div className="space-y-8 animate-pulse">
+        <div className="h-12 rounded-xl" style={{ background: 'var(--bg-alt)' }} />
+        <div className="h-64 rounded-2xl" style={{ background: 'var(--bg-alt)' }} />
+        <div className="h-64 rounded-2xl" style={{ background: 'var(--bg-alt)' }} />
+      </div>
+    ),
+    ssr: false,
+  }
+)
 
 function BackButton({ onClick }: { onClick: () => void }) {
   return (
@@ -57,7 +71,7 @@ export function DashboardContent() {
           /* ── Dept detail view ── */
           <>
             <BackButton onClick={goHome} />
-            <DepartmentDashboard config={DEPT_DASHBOARDS[pillarParam]} pillarId={pillarParam} />
+            <DepartmentDashboard pillarId={pillarParam} />
           </>
         ) : (
           /* ── Home overview ── */

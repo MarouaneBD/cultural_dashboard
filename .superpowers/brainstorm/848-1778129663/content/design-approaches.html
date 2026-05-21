@@ -1,0 +1,302 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&family=Fraunces:ital,wght@0,300;0,400;0,500;1,300;1,400&family=JetBrains+Mono:wght@400;500&family=Cairo:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #faf9f7; --bg-alt: #f4f2ed;
+    --ink: #23221f; --ink-soft: #555149; --ink-muted: #8a867d;
+    --card-bg: #fdfcfa;
+    --hair: rgba(35,34,31,.06); --border-c: rgba(35,34,31,.10);
+    --accent: #0f4024; --accent2: #14583a; --gold: #b8822a;
+    --card-shadow: 0 1px 2px rgba(35,34,31,.04), 0 16px 40px -16px rgba(35,34,31,.10);
+  }
+
+  h2 { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; color: var(--ink); margin: 0 0 6px; }
+  .subtitle { font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink-muted); margin: 0 0 28px; }
+
+  .approaches { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 8px; }
+
+  .approach-card {
+    border-radius: 16px; overflow: hidden;
+    border: 2px solid var(--border-c);
+    cursor: pointer;
+    transition: border-color .2s, transform .2s, box-shadow .2s;
+    background: #fff;
+  }
+  .approach-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 32px -8px rgba(15,64,36,.18); }
+  .approach-card.selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(15,64,36,.12); }
+
+  .approach-label {
+    padding: 12px 16px 8px;
+    font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--ink-muted);
+    border-bottom: 1px solid var(--hair);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .approach-label .tag {
+    font-size: 10px; padding: 2px 8px; border-radius: 999px;
+    background: rgba(15,64,36,.08); color: var(--accent); font-weight: 600;
+  }
+  .approach-label .tag.gold { background: rgba(184,130,42,.10); color: var(--gold); }
+
+  .mockup-shell { padding: 12px; background: var(--bg-alt); }
+
+  /* ── OPTION A: Current (for reference) ── */
+  .current-shell { display: flex; height: 220px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(0,0,0,.08); }
+  .current-sidebar { width: 90px; background: #0f4024; padding: 10px 8px; display: flex; flex-direction: column; gap: 4px; }
+  .current-sidebar .logo { font-size: 7px; color: rgba(255,255,255,.5); margin-bottom: 8px; font-family: 'Cairo', sans-serif; }
+  .current-sidebar .nav-item { font-size: 7px; color: rgba(255,255,255,.7); padding: 4px 6px; border-radius: 4px; font-family: 'Cairo', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .current-sidebar .nav-item.active { background: rgba(255,255,255,.15); color: #fff; }
+  .current-main { flex: 1; background: #faf9f7; display: flex; flex-direction: column; }
+  .current-header { height: 26px; background: #fff; border-bottom: 1px solid #e5e3df; padding: 0 10px; display: flex; align-items: center; }
+  .current-header span { font-size: 8px; font-family: 'Cairo', sans-serif; color: #23221f; font-weight: 600; }
+  .current-grid { flex: 1; padding: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .current-kpi { border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .current-kpi.green { background: #dcfce7; border: 1px solid #86efac; }
+  .current-kpi.amber { background: #fef3c7; border: 1px solid #fcd34d; }
+  .current-kpi-title { font-size: 7px; color: #166534; font-family: 'Cairo', sans-serif; text-align: right; }
+  .current-kpi-num { font-size: 14px; font-weight: 700; color: #166534; text-align: right; font-family: 'Cairo', sans-serif; }
+  .current-kpi.amber .current-kpi-title, .current-kpi.amber .current-kpi-num { color: #92400e; }
+
+  /* ── OPTION B: Full DEWA Reskin ── */
+  .dewa-shell { display: flex; height: 220px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(35,34,31,.10); }
+  .dewa-sidebar { width: 100px; background: var(--bg); border-left: 1px solid var(--border-c); padding: 10px 8px; display: flex; flex-direction: column; gap: 3px; }
+  .dewa-sidebar .logo-area { padding: 0 4px 8px; border-bottom: 1px solid var(--hair); margin-bottom: 6px; }
+  .dewa-sidebar .logo-name { font-size: 8px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; color: var(--ink); }
+  .dewa-sidebar .logo-sub { font-size: 6px; color: var(--ink-muted); font-family: 'Cairo', sans-serif; }
+  .dewa-sidebar .nav-item { font-size: 7px; color: var(--ink-soft); padding: 5px 6px; border-radius: 6px; font-family: 'Cairo', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dewa-sidebar .nav-item.active { background: rgba(15,64,36,.07); color: var(--accent); font-weight: 600; }
+  .dewa-sidebar .nav-item:hover { background: var(--hair); }
+  .dewa-main { flex: 1; background: var(--bg); display: flex; flex-direction: column; }
+  .dewa-header { height: 28px; background: var(--card-bg); border-bottom: 1px solid var(--border-c); padding: 0 10px; display: flex; align-items: center; justify-content: space-between; }
+  .dewa-header .title { font-size: 8px; font-family: 'Cairo', sans-serif; color: var(--ink); font-weight: 600; }
+  .dewa-header .badge { font-size: 6px; font-family: 'JetBrains Mono', monospace; color: var(--ink-muted); background: var(--hair); padding: 2px 5px; border-radius: 999px; }
+  .dewa-grid { flex: 1; padding: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .dewa-kpi { border-radius: 10px; padding: 8px; background: var(--card-bg); border: 1px solid var(--border-c); box-shadow: 0 1px 2px rgba(35,34,31,.04), 0 6px 16px -6px rgba(35,34,31,.08); display: flex; flex-direction: column; gap: 3px; }
+  .dewa-kpi-title { font-size: 7px; color: var(--ink-soft); font-family: 'Cairo', sans-serif; text-align: right; }
+  .dewa-kpi-num { font-size: 15px; font-family: 'Fraunces', serif; font-weight: 500; color: var(--ink); text-align: right; line-height: 1; }
+  .dewa-kpi-ring { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 2px; }
+  .dewa-kpi-ring .ring-green { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #22c55e; }
+  .dewa-kpi-ring .ring-amber { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #f59e0b; }
+  .dewa-kpi-ring span { font-size: 7px; font-family: 'JetBrains Mono', monospace; color: var(--ink-muted); }
+
+  /* ── OPTION C: Hybrid ── */
+  .hybrid-shell { display: flex; height: 220px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(35,34,31,.10); }
+  .hybrid-sidebar { width: 90px; background: #162b1e; padding: 10px 8px; display: flex; flex-direction: column; gap: 3px; }
+  .hybrid-sidebar .logo-area { padding: 0 4px 8px; border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: 6px; }
+  .hybrid-sidebar .logo-name { font-size: 8px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; color: rgba(255,255,255,.9); }
+  .hybrid-sidebar .logo-sub { font-size: 6px; color: rgba(255,255,255,.4); font-family: 'Cairo', sans-serif; }
+  .hybrid-sidebar .nav-item { font-size: 7px; color: rgba(255,255,255,.6); padding: 5px 6px; border-radius: 6px; font-family: 'Cairo', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hybrid-sidebar .nav-item.active { background: rgba(255,255,255,.12); color: rgba(255,255,255,.95); font-weight: 600; }
+  .hybrid-sidebar .gold-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); display: inline-block; margin-left: 4px; }
+  .hybrid-main { flex: 1; background: var(--bg); display: flex; flex-direction: column; }
+  .hybrid-header { height: 28px; background: var(--card-bg); border-bottom: 1px solid var(--border-c); padding: 0 10px; display: flex; align-items: center; justify-content: space-between; }
+  .hybrid-header .title { font-size: 8px; font-family: 'Cairo', sans-serif; color: var(--ink); font-weight: 600; }
+  .hybrid-header .controls { display: flex; gap: 3px; }
+  .hybrid-header .ctl { font-size: 6px; font-family: 'Space Grotesk', sans-serif; padding: 2px 5px; border-radius: 999px; border: 1px solid var(--border-c); color: var(--ink-muted); }
+  .hybrid-grid { flex: 1; padding: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .hybrid-kpi { border-radius: 10px; padding: 8px; background: var(--card-bg); border: 1px solid var(--border-c); box-shadow: 0 1px 2px rgba(35,34,31,.04), 0 6px 16px -6px rgba(35,34,31,.08); display: flex; flex-direction: column; gap: 2px; position: relative; overflow: hidden; }
+  .hybrid-kpi::before { content: ''; position: absolute; top: 0; right: 0; width: 3px; height: 100%; }
+  .hybrid-kpi.green::before { background: #22c55e; }
+  .hybrid-kpi.amber::before { background: #f59e0b; }
+  .hybrid-kpi-title { font-size: 7px; color: var(--ink-soft); font-family: 'Cairo', sans-serif; text-align: right; }
+  .hybrid-kpi-num { font-size: 15px; font-family: 'Fraunces', serif; font-weight: 500; color: var(--ink); text-align: right; line-height: 1; }
+  .hybrid-kpi-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 3px; padding-top: 3px; border-top: 1px solid var(--hair); }
+  .hybrid-kpi-footer span { font-size: 6px; font-family: 'JetBrains Mono', monospace; color: var(--ink-muted); }
+  .hybrid-kpi-footer .pct { font-size: 6.5px; font-weight: 600; }
+  .hybrid-kpi-footer .pct.green { color: #16a34a; }
+  .hybrid-kpi-footer .pct.amber { color: #d97706; }
+
+  /* Option labels below mockup */
+  .approach-desc { padding: 10px 14px 14px; }
+  .approach-name { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 14px; color: var(--ink); margin: 0 0 4px; }
+  .approach-text { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--ink-soft); line-height: 1.5; margin: 0; }
+</style>
+
+<h2>Which design direction fits the ERS dashboard?</h2>
+<p class="subtitle">All three options use the DEWA color palette. Choose the approach that best fits the Arabic-first executive reporting context.</p>
+
+<div class="approaches">
+
+  <!-- A: Current (status quo) -->
+  <div class="option approach-card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="approach-label">
+      Option A — Current
+      <span class="tag">status quo</span>
+    </div>
+    <div class="mockup-shell">
+      <div class="current-shell">
+        <div class="current-main">
+          <div class="current-header"><span>لوحة المتابعة التنفيذية</span></div>
+          <div class="current-grid">
+            <div class="current-kpi green">
+              <div class="current-kpi-title">عدد المراكز الإسلامية</div>
+              <div class="current-kpi-num">116</div>
+            </div>
+            <div class="current-kpi green">
+              <div class="current-kpi-title">معدل إتمام المناهج</div>
+              <div class="current-kpi-num">97%</div>
+            </div>
+            <div class="current-kpi amber">
+              <div class="current-kpi-title">المنح الجامعية النشطة</div>
+              <div class="current-kpi-num">47</div>
+            </div>
+            <div class="current-kpi green">
+              <div class="current-kpi-title">كفالات المعلمين</div>
+              <div class="current-kpi-num">284</div>
+            </div>
+          </div>
+        </div>
+        <div class="current-sidebar">
+          <div class="logo">شؤون الإسلامية</div>
+          <div class="nav-item active">📊 الرئيسية</div>
+          <div class="nav-item">🕌 التعليم</div>
+          <div class="nav-item">📖 القرآن</div>
+          <div class="nav-item">👨‍🏫 المعلمون</div>
+          <div class="nav-item">🎓 المنح</div>
+        </div>
+      </div>
+    </div>
+    <div class="approach-desc">
+      <p class="approach-name">Colored Variance Cards</p>
+      <p class="approach-text">KPI cards background = green/amber/red. Dark green sidebar. No typography upgrade.</p>
+    </div>
+  </div>
+
+  <!-- B: Full DEWA Reskin -->
+  <div class="option approach-card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="approach-label">
+      Option B — Full Reskin
+      <span class="tag">recommended</span>
+    </div>
+    <div class="mockup-shell">
+      <div class="dewa-shell">
+        <div class="dewa-main">
+          <div class="dewa-header">
+            <span class="title">لوحة المتابعة التنفيذية</span>
+            <span class="badge">Q1 · 2026</span>
+          </div>
+          <div class="dewa-grid">
+            <div class="dewa-kpi">
+              <div class="dewa-kpi-title">عدد المراكز الإسلامية</div>
+              <div class="dewa-kpi-num">116</div>
+              <div class="dewa-kpi-ring">
+                <span>97%</span>
+                <div class="ring-green"></div>
+              </div>
+            </div>
+            <div class="dewa-kpi">
+              <div class="dewa-kpi-title">معدل إتمام المناهج</div>
+              <div class="dewa-kpi-num">97%</div>
+              <div class="dewa-kpi-ring">
+                <span>97%</span>
+                <div class="ring-green"></div>
+              </div>
+            </div>
+            <div class="dewa-kpi">
+              <div class="dewa-kpi-title">المنح الجامعية النشطة</div>
+              <div class="dewa-kpi-num">47</div>
+              <div class="dewa-kpi-ring">
+                <span>88%</span>
+                <div class="ring-amber"></div>
+              </div>
+            </div>
+            <div class="dewa-kpi">
+              <div class="dewa-kpi-title">كفالات المعلمين</div>
+              <div class="dewa-kpi-num">284</div>
+              <div class="dewa-kpi-ring">
+                <span>97%</span>
+                <div class="ring-green"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dewa-sidebar">
+          <div class="logo-area">
+            <div class="logo-name">ERS</div>
+            <div class="logo-sub">شؤون الإسلامية</div>
+          </div>
+          <div class="nav-item active">الرئيسية</div>
+          <div class="nav-item">التعليم الإسلامي</div>
+          <div class="nav-item">القرآن الكريم</div>
+          <div class="nav-item">كفالة المعلمين</div>
+          <div class="nav-item">المنح الجامعية</div>
+        </div>
+      </div>
+    </div>
+    <div class="approach-desc">
+      <p class="approach-name">Warm Neutral Everything</p>
+      <p class="approach-text">Warm sidebar, neutral card-bg cards, Fraunces numbers, Space Grotesk labels, JetBrains Mono metrics.</p>
+    </div>
+  </div>
+
+  <!-- C: Hybrid -->
+  <div class="option approach-card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="approach-label">
+      Option C — Hybrid
+      <span class="tag gold">balanced</span>
+    </div>
+    <div class="mockup-shell">
+      <div class="hybrid-shell">
+        <div class="hybrid-main">
+          <div class="hybrid-header">
+            <span class="title">لوحة المتابعة التنفيذية</span>
+            <div class="controls">
+              <span class="ctl">Q1</span>
+              <span class="ctl">2026</span>
+            </div>
+          </div>
+          <div class="hybrid-grid">
+            <div class="hybrid-kpi green">
+              <div class="hybrid-kpi-title">عدد المراكز الإسلامية</div>
+              <div class="hybrid-kpi-num">116</div>
+              <div class="hybrid-kpi-footer">
+                <span class="pct green">97%</span>
+                <span>هدف 120</span>
+              </div>
+            </div>
+            <div class="hybrid-kpi green">
+              <div class="hybrid-kpi-title">معدل إتمام المناهج</div>
+              <div class="hybrid-kpi-num">97%</div>
+              <div class="hybrid-kpi-footer">
+                <span class="pct green">97%</span>
+                <span>هدف 100%</span>
+              </div>
+            </div>
+            <div class="hybrid-kpi amber">
+              <div class="hybrid-kpi-title">المنح الجامعية النشطة</div>
+              <div class="hybrid-kpi-num">47</div>
+              <div class="hybrid-kpi-footer">
+                <span class="pct amber">88%</span>
+                <span>هدف 54</span>
+              </div>
+            </div>
+            <div class="hybrid-kpi green">
+              <div class="hybrid-kpi-title">كفالات المعلمين</div>
+              <div class="hybrid-kpi-num">284</div>
+              <div class="hybrid-kpi-footer">
+                <span class="pct green">97%</span>
+                <span>هدف 293</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="hybrid-sidebar">
+          <div class="logo-area">
+            <div class="logo-name">ERS <span class="gold-dot"></span></div>
+            <div class="logo-sub">شؤون الإسلامية</div>
+          </div>
+          <div class="nav-item active">الرئيسية</div>
+          <div class="nav-item">التعليم الإسلامي</div>
+          <div class="nav-item">القرآن الكريم</div>
+          <div class="nav-item">كفالة المعلمين</div>
+          <div class="nav-item">المنح الجامعية</div>
+        </div>
+      </div>
+    </div>
+    <div class="approach-desc">
+      <p class="approach-name">Dark Sidebar + Warm Cards</p>
+      <p class="approach-text">Refined dark sidebar + warm neutral card-bg + Fraunces numbers + subtle color-edge indicator (not background).</p>
+    </div>
+  </div>
+
+</div>

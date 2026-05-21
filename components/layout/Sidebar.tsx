@@ -2,8 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
-
+import { usePathname, useSearchParams } from 'next/navigation'
 import { DEPARTMENTS } from '@/lib/departments'
 
 const PILLARS = DEPARTMENTS.map(d => ({
@@ -17,78 +16,110 @@ const FOOTER_LINKS = [
   { href: '/admin/audit', labelAr: 'سجل المراجعة', icon: '📋' },
 ] as const
 
-// Place your logo at public/dabs-logo.png (or .svg)
 const LOGO_PATH = '/dabs-logo.png'
 
+// Expanded width is sized to comfortably fit the longest dept name
+const WIDTH_EXPANDED = '210px'
+const WIDTH_COLLAPSED = '60px'
+
 interface SidebarProps {
-  open: boolean
+  expanded: boolean
 }
 
-export function Sidebar({ open }: SidebarProps) {
+export function Sidebar({ expanded }: SidebarProps) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const activePillar = searchParams.get('pillar')
 
   return (
     <aside
       aria-label="الشريط الجانبي"
-      aria-hidden={!open}
       className="min-h-screen flex flex-col border-e border-white/[.06] flex-shrink-0"
       style={{
         background: 'var(--sidebar-bg)',
-        width: open ? '240px' : '0px',
-        overflow: 'hidden',
+        width: expanded ? WIDTH_EXPANDED : WIDTH_COLLAPSED,
         transition: 'width .25s cubic-bezier(.4,0,.2,1)',
+        overflow: 'hidden',
       }}
     >
-      {/* ── Brand / Logo ─────────────────────────────── */}
-      <div className="flex-shrink-0 border-b border-white/[.07]" style={{ padding: '20px 18px 16px' }}>
-        {/* Logo container — prominent white card */}
-        <div
-          className="w-full rounded-xl flex items-center justify-center mb-3 overflow-hidden"
-          style={{
-            background: 'rgba(255,255,255,.95)',
-            height: '72px',
-            boxShadow: '0 2px 12px rgba(0,0,0,.25)',
-          }}
-        >
-          <Image
-            src={LOGO_PATH}
-            alt="شعار المنظمة"
-            width={160}
-            height={60}
-            className="object-contain"
-            style={{ maxHeight: '56px', width: 'auto' }}
-          />
-        </div>
-
-        {/* App name + subtitle */}
-        <div className="text-center" style={{ minWidth: '204px' }}>
-          <div className="font-space font-semibold text-[13px] text-white/90 flex items-center justify-center gap-1.5">
-            قطاع الثقافة
-            <span
-              className="w-1.5 h-1.5 rounded-full inline-block flex-shrink-0"
-              style={{ background: 'var(--gold)' }}
+      {/* ── Brand / Logo ─────────────────────────────────── */}
+      <div
+        className="flex-shrink-0 border-b border-white/[.07] flex items-center justify-center overflow-hidden"
+        style={{ padding: expanded ? '16px 14px 14px' : '14px 10px', minHeight: '80px' }}
+      >
+        {expanded ? (
+          /* Full logo + text when expanded */
+          <div className="w-full flex flex-col items-center gap-2">
+            <div
+              className="w-full rounded-xl flex items-center justify-center overflow-hidden"
+              style={{
+                background: 'rgba(255,255,255,.95)',
+                height: '56px',
+                boxShadow: '0 2px 10px rgba(0,0,0,.22)',
+              }}
+            >
+              <Image
+                src={LOGO_PATH}
+                alt="شعار المنظمة"
+                width={150}
+                height={48}
+                className="object-contain"
+                style={{ maxHeight: '44px', width: 'auto' }}
+              />
+            </div>
+            <div className="text-center">
+              <div className="font-space font-semibold text-[12px] text-white/88 flex items-center justify-center gap-1.5">
+                قطاع الثقافة
+                <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--gold)' }} />
+              </div>
+              <div className="text-[9.5px] text-white/38 mt-0.5">لوحة تحكم</div>
+            </div>
+          </div>
+        ) : (
+          /* Icon-only: small logo thumbnail */
+          <div
+            className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0"
+            style={{
+              background: 'rgba(255,255,255,.92)',
+              boxShadow: '0 1px 6px rgba(0,0,0,.20)',
+            }}
+          >
+            <Image
+              src={LOGO_PATH}
+              alt="شعار المنظمة"
+              width={32}
+              height={32}
+              className="object-contain"
+              style={{ maxHeight: '28px', width: 'auto' }}
             />
           </div>
-          <div className="text-[10px] text-white/40 mt-0.5">
-            لوحة تحكم قطاع الثقافة
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* ── Nav ──────────────────────────────────────── */}
+      {/* ── Nav ──────────────────────────────────────────── */}
       <nav
-        className="flex-1 flex flex-col gap-0.5 overflow-y-auto"
-        style={{ padding: '12px 10px' }}
+        className="flex-1 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden"
+        style={{ padding: expanded ? '10px 8px' : '10px 6px' }}
         aria-label="القائمة الرئيسية"
       >
-        <NavLink href="/dashboard" icon="◈" label="الرئيسية" active={pathname === '/dashboard'} />
+        <NavLink
+          href="/dashboard"
+          icon="◈"
+          label="الرئيسية"
+          active={pathname === '/dashboard' && !activePillar}
+          expanded={expanded}
+        />
 
-        <p
-          className="font-space font-semibold tracking-[.12em] uppercase text-[9.5px] px-2 pt-3 pb-1"
-          style={{ color: 'rgba(255,255,255,.25)' }}
-        >
-          المحاور
-        </p>
+        {expanded ? (
+          <p
+            className="font-space font-semibold tracking-[.12em] uppercase text-[9px] px-2 pt-2.5 pb-1"
+            style={{ color: 'rgba(255,255,255,.25)', whiteSpace: 'nowrap' }}
+          >
+            الإدارات
+          </p>
+        ) : (
+          <div className="my-1 mx-1 border-t border-white/[.08]" />
+        )}
 
         {PILLARS.map(p => (
           <NavLink
@@ -96,18 +127,26 @@ export function Sidebar({ open }: SidebarProps) {
             href={p.href}
             icon={p.icon}
             label={p.labelAr}
-            active={!!pathname && pathname.startsWith(p.href.split('?')[0])}
+            active={activePillar === p.href.split('=')[1]}
+            expanded={expanded}
           />
         ))}
       </nav>
 
-      {/* ── Footer ───────────────────────────────────── */}
+      {/* ── Footer ───────────────────────────────────────── */}
       <div
         className="border-t border-white/[.06] flex flex-col gap-0.5 flex-shrink-0"
-        style={{ padding: '10px 10px' }}
+        style={{ padding: expanded ? '8px 8px' : '8px 6px' }}
       >
         {FOOTER_LINKS.map(l => (
-          <NavLink key={l.href} href={l.href} icon={l.icon} label={l.labelAr} active={false} />
+          <NavLink
+            key={l.href}
+            href={l.href}
+            icon={l.icon}
+            label={l.labelAr}
+            active={false}
+            expanded={expanded}
+          />
         ))}
       </div>
     </aside>
@@ -119,19 +158,24 @@ interface NavLinkProps {
   icon: string
   label: string
   active: boolean
+  expanded: boolean
 }
 
-function NavLink({ href, icon, label, active }: NavLinkProps) {
+function NavLink({ href, icon, label, active, expanded }: NavLinkProps) {
   return (
     <Link
       href={href}
       aria-current={active ? 'page' : undefined}
-      className="flex items-center gap-2.5 rounded-lg text-[12.5px] transition-colors whitespace-nowrap"
+      title={!expanded ? label : undefined}
+      className="flex items-center rounded-lg text-[12.5px] transition-colors"
       style={{
-        padding: '8px 10px',
-        color: active ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.58)',
+        gap: expanded ? '9px' : '0',
+        padding: expanded ? '7px 10px' : '8px 0',
+        justifyContent: expanded ? 'flex-start' : 'center',
+        color: active ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.55)',
         background: active ? 'rgba(255,255,255,.10)' : 'transparent',
         fontWeight: active ? 600 : 400,
+        whiteSpace: 'nowrap',
       }}
       onMouseEnter={e => {
         if (!active) {
@@ -142,12 +186,12 @@ function NavLink({ href, icon, label, active }: NavLinkProps) {
       onMouseLeave={e => {
         if (!active) {
           e.currentTarget.style.background = 'transparent'
-          e.currentTarget.style.color = 'rgba(255,255,255,.58)'
+          e.currentTarget.style.color = 'rgba(255,255,255,.55)'
         }
       }}
     >
-      <span style={{ fontSize: '14px', opacity: active ? 1 : 0.7, flexShrink: 0 }}>{icon}</span>
-      <span>{label}</span>
+      <span style={{ fontSize: '15px', opacity: active ? 1 : 0.75, flexShrink: 0 }}>{icon}</span>
+      {expanded && <span className="truncate">{label}</span>}
     </Link>
   )
 }

@@ -6,6 +6,7 @@ import { LastYearReview } from './LastYearReview'
 import { CurrentYearTracker } from './CurrentYearTracker'
 import { InsightsPanel } from './InsightsPanel'
 import { generateInsights } from '@/lib/insights'
+import { DEPT_DASHBOARDS } from '@/data/departments/registry'
 import type { DeptData } from '@/types/department'
 import type { PillarId } from '@/types'
 
@@ -17,11 +18,12 @@ export interface DeptConfig {
 }
 
 interface Props {
-  config: DeptConfig
   pillarId: PillarId
 }
 
-export function DepartmentDashboard({ config, pillarId }: Props) {
+export function DepartmentDashboard({ pillarId }: Props) {
+  const config = DEPT_DASHBOARDS[pillarId]
+  if (!config) return null
   const { nameAr, icon, color, data: staticData } = config
 
   const { data: dbData } = useQuery<DeptData | null>({

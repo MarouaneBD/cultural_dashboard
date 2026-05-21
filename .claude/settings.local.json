@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash:*)",
+      "Bash(npx jest:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(node -e ':*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run:*)",
+      "Bash(npm test:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx next:*)",
+      "Bash(curl -s http://localhost:3000/api/kpis)",
+      "Bash(curl:*)",
+      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(f'KPIs: {len\\(data\\)}'\\); [print\\(f'  {k[\\\\\"nameAr\\\\\"]} | {k[\\\\\"pillar\\\\\"]} | {k[\\\\\"variance\\\\\"][\\\\\"color\\\\\"]} {k[\\\\\"variance\\\\\"][\\\\\"pct\\\\\"]}%'\\) for k in data]\")",
+      "Bash(C:\\\\Users\\\\marwa\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\5.0.7\\\\skills\\\\brainstorming\\\\scripts\\\\start-server.sh:*)",
+      "Bash(cat jest.config.ts)",
+      "Bash(cat jest.config.js)",
+      "Bash(cat jest.config.mjs)",
+      "Bash(cat jest.setup.ts)",
+      "Bash(cat jest.globals.ts)",
+      "Bash(ls __mocks__)",
+      "Bash(ls components/__mocks__)",
+      "Bash(lsof -iTCP:3000 -sTCP:LISTEN)",
+      "Bash(grep -n \"font-fraunces\" app/globals.css .next/dev/static/chunks/app_globals*.css)",
+      "Read(//c/Users/marwa/AppData/Local/Temp/claude/C--Users-marwa-OneDrive-Documents-Projects-Cultural-Dashboard/668c3db7-27d2-45f2-b314-81a2199ba391/tasks/**)",
+      "Bash(node:*)",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\" npx prisma db push --force-reset)"
+    ]
+  }
+}
