@@ -5,27 +5,31 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts'
 import type { DeptData, TargetProgress } from '@/types/department'
+import { getVarianceColor, HEX_COLORS } from '@/lib/kpi'
 
-const QUARTER_COLOR: Record<string, string> = {
+const QUARTER_COLOR: Record<'Q1' | 'Q2' | 'Q3' | 'Q4', string> = {
   Q1: '#6366f1',
   Q2: '#0891b2',
   Q3: '#d97706',
   Q4: '#16a34a',
 }
 
-function ActivityCard({ labelAr, target, current, unit, lowerIsBetter, lastYearValue, quarters }: TargetProgress) {
-  const safePct = (num: number, den: number) =>
-    den <= 0 ? 0 : Math.min((num / den) * 100, 100)
+function safePct(num: number, den: number): number {
+  return den <= 0 ? 0 : Math.min((num / den) * 100, 100)
+}
 
+function ActivityCard({ labelAr, target, current, unit, lowerIsBetter, lastYearValue, quarters, year }: TargetProgress & { year: number }) {
   const pct = lowerIsBetter
     ? safePct(target, Math.max(current, 1))
     : safePct(current, target)
 
-  const barColor = pct >= 95 ? '#16a34a' : pct >= 80 ? '#d97706' : '#dc2626'
+  const color = getVarianceColor(pct)
+  const barColor = HEX_COLORS[color]
 
   const fmt = (v: number | null) => {
     if (v == null) return '—'
     if (unit === '%') return `${v}%`
+    if (unit === 'AED') return `${v.toLocaleString('en')} د.إ`
     return v.toLocaleString('en')
   }
 
@@ -47,7 +51,7 @@ function ActivityCard({ labelAr, target, current, unit, lowerIsBetter, lastYearV
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <div className="rounded-xl p-2.5 text-center" style={{ background: 'var(--bg-alt)' }}>
             <p className="font-space text-[9px] tracking-[.08em] uppercase mb-1" style={{ color: 'var(--ink-muted)' }}>
-              2025
+              {year - 1}
             </p>
             <p className="font-fraunces font-medium leading-none" style={{ fontSize: 20, color: 'var(--ink-soft)', letterSpacing: '-.02em' }}>
               {fmt(lastYearValue)}
@@ -58,7 +62,7 @@ function ActivityCard({ labelAr, target, current, unit, lowerIsBetter, lastYearV
             border: `1px solid ${barColor}30`,
           }}>
             <p className="font-space text-[9px] tracking-[.08em] uppercase mb-1" style={{ color: barColor }}>
-              2026 حتى الآن
+              {year} حتى الآن
             </p>
             <p className="font-fraunces font-medium leading-none" style={{ fontSize: 20, color: 'var(--ink)', letterSpacing: '-.02em' }}>
               {fmt(current)}
@@ -151,7 +155,7 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
       {/* Activity cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {data.targets.map(t => (
-          <ActivityCard key={t.labelAr} {...t} />
+          <ActivityCard key={t.labelAr} {...t} year={data.year} />
         ))}
       </div>
 
@@ -165,7 +169,7 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
             <ComposedChart data={chartData} margin={{ top: 8, right: 16, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" vertical={false} />
               <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#94a3b8' }} />
-              <YAxis domain={[70, 100]} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+              <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10, fill: '#94a3b8' }} />
               <Tooltip
                 contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 }}
                 formatter={(v) => v != null ? [`${v}%`] : ['—']}
