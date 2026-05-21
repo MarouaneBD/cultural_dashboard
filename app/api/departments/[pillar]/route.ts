@@ -92,11 +92,6 @@ export async function GET(
       .map(k => {
         const annualTarget = k.targets.find(t => t.period === 'ANNUAL')
         if (!annualTarget) return null
-        // Use most recent available actual (prefer Q4>Q3>Q2>Q1)
-        const orderedPeriods = ['Q4','Q3','Q2','Q1'] as const
-        const latestActual = orderedPeriods
-          .map(p => k.actuals.find(a => a.year === 2026 && a.period === p))
-          .find(Boolean)
         const lastYearActual = k.actuals.find(a => a.year === 2025 && a.period === 'ANNUAL')
         const annualTargetVal = Math.round(Number(annualTarget.value))
         const isKpiPercent = k.unit === 'PERCENT'
@@ -110,10 +105,17 @@ export async function GET(
             target: qt ? Math.round(Number(qt.value)) : quarterlyTargetVal,
           }
         })
+        // current: cumulative sum for COUNT/CURRENCY; average rate for PERCENT
+        const nonNull = quarters.map(q => q.actual).filter((v): v is number => v !== null)
+        const current = nonNull.length === 0
+          ? 0
+          : isKpiPercent
+            ? Math.round(nonNull.reduce((s, v) => s + v, 0) / nonNull.length)
+            : nonNull.reduce((s, v) => s + v, 0)
         return {
           labelAr: k.nameAr,
           target: annualTargetVal,
-          current: Math.round(Number(latestActual?.value ?? 0)),
+          current,
           unit: unitDisplay(k.unit),
           lastYearValue: lastYearActual ? Math.round(Number(lastYearActual.value)) : null,
           quarters,
