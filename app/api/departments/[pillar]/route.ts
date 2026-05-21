@@ -99,7 +99,8 @@ export async function GET(
           .find(Boolean)
         const lastYearActual = k.actuals.find(a => a.year === 2025 && a.period === 'ANNUAL')
         const annualTargetVal = Math.round(Number(annualTarget.value))
-        const quarterlyTargetVal = isPercent ? annualTargetVal : Math.max(Math.round(annualTargetVal / 4), 1)
+        const isKpiPercent = k.unit === 'PERCENT'
+        const quarterlyTargetVal = isKpiPercent ? annualTargetVal : Math.max(Math.round(annualTargetVal / 4), 1)
         const quarters = QUARTERS.map(q => {
           const qa = k.actuals.find(a => a.year === 2026 && a.period === q)
           const qt = k.targets.find(t => t.period === q)
