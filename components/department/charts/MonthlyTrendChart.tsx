@@ -6,6 +6,10 @@ import {
 } from 'recharts'
 import type { MonthlyPoint, MonthlyProgressPoint } from '@/types/department'
 
+const BUDGET_KEY  = 'الميزانية'
+const LAST_KEY    = (label: string) => `${label} (فعلي)`
+const CURRENT_KEY = (label: string) => `${label} (فعلي)`
+
 interface Props {
   lastYear: MonthlyPoint[]
   currentYear: MonthlyProgressPoint[]
@@ -17,14 +21,17 @@ interface Props {
 export function MonthlyTrendChart({
   lastYear, currentYear, lastYearLabel, currentYearLabel, accentColor,
 }: Props) {
-  // Merge by month index so both series share the same X axis
+  const lyKey  = LAST_KEY(lastYearLabel)
+  const cyKey  = CURRENT_KEY(currentYearLabel)
+
+  // Merge by month index — all three series share the same X axis
   const data = lastYear.map((ly, i) => {
     const cy = currentYear[i]
     return {
-      month: ly.month,
-      [lastYearLabel]: ly.value,
-      [currentYearLabel]: cy?.actual ?? null,
-      target: cy?.target ?? null,
+      month:       ly.month,
+      [lyKey]:     ly.value,
+      [cyKey]:     cy?.actual ?? null,
+      [BUDGET_KEY]: cy?.target ?? null,
     }
   })
 
@@ -34,35 +41,41 @@ export function MonthlyTrendChart({
         <LineChart data={data} margin={{ top: 8, right: 16, left: -10, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
           <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#94a3b8' }} />
-          <YAxis domain={[60, 100]} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+          <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10, fill: '#94a3b8' }} />
           <Tooltip
             contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 }}
             labelStyle={{ fontWeight: 600 }}
           />
           <Legend wrapperStyle={{ fontSize: 11 }} />
+
+          {/* Budget / target line */}
           <Line
             type="monotone"
-            dataKey={lastYearLabel}
+            dataKey={BUDGET_KEY}
+            stroke="#f59e0b"
+            strokeWidth={1.5}
+            dot={false}
+            strokeDasharray="4 2"
+          />
+
+          {/* 2025 reference line */}
+          <Line
+            type="monotone"
+            dataKey={lyKey}
             stroke="#94a3b8"
-            strokeWidth={2}
+            strokeWidth={1.5}
             dot={false}
             strokeDasharray="5 3"
           />
+
+          {/* 2026 actual progress */}
           <Line
             type="monotone"
-            dataKey={currentYearLabel}
+            dataKey={cyKey}
             stroke={accentColor}
             strokeWidth={2.5}
             dot={{ r: 3, fill: accentColor }}
             connectNulls={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="target"
-            stroke="#f59e0b"
-            strokeWidth={1.5}
-            dot={false}
-            strokeDasharray="3 2"
           />
         </LineChart>
       </ResponsiveContainer>
