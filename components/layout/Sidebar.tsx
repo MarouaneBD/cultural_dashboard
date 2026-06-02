@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useSearchParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { DEPARTMENTS } from '@/lib/departments'
 
 const PILLARS = DEPARTMENTS.map(d => ({
@@ -11,14 +12,8 @@ const PILLARS = DEPARTMENTS.map(d => ({
   icon: d.icon,
 }))
 
-const FOOTER_LINKS = [
-  { href: '/upload',      labelAr: 'رفع البيانات', icon: '⬆' },
-  { href: '/admin/audit', labelAr: 'سجل المراجعة', icon: '📋' },
-] as const
-
 const LOGO_PATH = '/dabs-logo.png'
 
-// Expanded width is sized to comfortably fit the longest dept name
 const WIDTH_EXPANDED = '210px'
 const WIDTH_COLLAPSED = '60px'
 
@@ -30,11 +25,18 @@ export function Sidebar({ expanded }: SidebarProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const activePillar = searchParams.get('pillar')
+  const { data: session } = useSession()
+  const role = session?.user?.role
 
   return (
     <aside
       aria-label="الشريط الجانبي"
-      className="min-h-screen flex flex-col border-e border-white/[.06] flex-shrink-0"
+      className={[
+        'min-h-screen flex flex-col border-e border-white/[.06] flex-shrink-0',
+        'fixed inset-y-0 start-0 z-40',
+        'md:relative md:inset-auto md:z-auto',
+        !expanded ? 'hidden md:flex' : 'flex',
+      ].join(' ')}
       style={{
         background: 'var(--sidebar-bg)',
         width: expanded ? WIDTH_EXPANDED : WIDTH_COLLAPSED,
@@ -48,7 +50,6 @@ export function Sidebar({ expanded }: SidebarProps) {
         style={{ padding: expanded ? '16px 14px 14px' : '14px 10px', minHeight: '80px' }}
       >
         {expanded ? (
-          /* Full logo + text when expanded */
           <div className="w-full flex flex-col items-center gap-2">
             <div
               className="w-full rounded-xl flex items-center justify-center overflow-hidden"
@@ -76,7 +77,6 @@ export function Sidebar({ expanded }: SidebarProps) {
             </div>
           </div>
         ) : (
-          /* Icon-only: small logo thumbnail */
           <div
             className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0"
             style={{
@@ -133,21 +133,38 @@ export function Sidebar({ expanded }: SidebarProps) {
         ))}
       </nav>
 
-      {/* ── Footer ───────────────────────────────────────── */}
+      {/* ── Footer (role-gated) ───────────────────────────── */}
       <div
         className="border-t border-white/[.06] flex flex-col gap-0.5 flex-shrink-0"
         style={{ padding: expanded ? '8px 8px' : '8px 6px' }}
       >
-        {FOOTER_LINKS.map(l => (
+        {(role === 'ADMIN' || role === 'EDITOR') && (
           <NavLink
-            key={l.href}
-            href={l.href}
-            icon={l.icon}
-            label={l.labelAr}
-            active={false}
+            href="/upload"
+            icon="⬆"
+            label="رفع البيانات"
+            active={pathname === '/upload'}
             expanded={expanded}
           />
-        ))}
+        )}
+        {role === 'ADMIN' && (
+          <>
+            <NavLink
+              href="/admin/audit"
+              icon="📋"
+              label="سجل المراجعة"
+              active={pathname === '/admin/audit'}
+              expanded={expanded}
+            />
+            <NavLink
+              href="/admin/users"
+              icon="👥"
+              label="إدارة المستخدمين"
+              active={pathname === '/admin/users'}
+              expanded={expanded}
+            />
+          </>
+        )}
       </div>
     </aside>
   )
