@@ -20,6 +20,10 @@ jest.mock('next/image', () => ({
   default: ({ alt }: { alt: string }) => <img alt={alt} />,
 }))
 
+jest.mock('next-auth/react', () => ({
+  useSession: () => ({ data: { user: { role: 'ADMIN' } } }),
+}))
+
 import { Sidebar } from './Sidebar'
 
 describe('Sidebar', () => {
