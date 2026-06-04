@@ -31,8 +31,8 @@ export default async function AuditPage() {
             </tr>
           </thead>
           <tbody className="divide-y">
-            {logs.map(log => (
-              <tr key={log.id} className="hover:bg-slate-50">
+{logs.map((log: any) => (
+                <tr key={log.id} className="hover:bg-slate-50">
                 <td className="p-3 text-xs text-slate-400 tabular-nums whitespace-nowrap">
                   {formatDate(log.timestamp)}
                 </td>
