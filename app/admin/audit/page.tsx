@@ -1,5 +1,6 @@
 import { AppShell } from '@/components/layout/AppShell'
 import { prisma } from '@/lib/prisma'
+import type { AuditLog } from '@prisma/client'
 
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat('ar-AE', {
@@ -31,7 +32,7 @@ export default async function AuditPage() {
             </tr>
           </thead>
           <tbody className="divide-y">
-{logs.map((log: any) => (
+{logs.map((log: AuditLog) => (
                 <tr key={log.id} className="hover:bg-slate-50">
                 <td className="p-3 text-xs text-slate-400 tabular-nums whitespace-nowrap">
                   {formatDate(log.timestamp)}
