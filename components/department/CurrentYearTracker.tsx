@@ -152,14 +152,7 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
         متابعة التقدم · {data.year}
       </p>
 
-      {/* Activity cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {data.targets.map(t => (
-          <ActivityCard key={t.labelAr} {...t} year={data.year} />
-        ))}
-      </div>
-
-      {/* Monthly progress vs target chart */}
+      {/* Monthly progress vs target chart — shown first */}
       <div className="rounded-2xl border p-4" style={{ background: 'var(--card-bg)', borderColor: 'var(--border)', boxShadow: 'var(--card-shadow)' }}>
         <p className="font-cairo text-[12px] font-semibold mb-3 text-right" style={{ color: 'var(--ink-soft)' }}>
           التقدم الشهري — الفعلي مقابل المستهدف
@@ -180,6 +173,13 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
             </ComposedChart>
           </ResponsiveContainer>
         </div>
+      </div>
+
+      {/* Activity cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {data.targets.map(t => (
+          <ActivityCard key={t.labelAr} {...t} year={data.year} />
+        ))}
       </div>
     </section>
   )

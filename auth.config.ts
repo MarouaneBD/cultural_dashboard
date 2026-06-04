@@ -6,7 +6,10 @@ export const authConfig = {
   pages: { signIn: '/login' },
   providers: [],
   callbacks: {
-    authorized({ auth }) {
+    authorized({ auth, request }) {
+      const { pathname } = request.nextUrl
+      const isAuthPage = pathname === '/login' || pathname === '/change-password'
+      if (isAuthPage) return true
       return !!auth
     },
   },

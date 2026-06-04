@@ -8,17 +8,16 @@ import { HEX_COLORS } from '@/lib/kpi'
 import { SparklineChart } from '@/components/charts/SparklineChart'
 import type { KpiWithVariance, VarianceColor } from '@/types'
 
-// Dummy quarterly sparkline per dept — replaced once real data flows in.
-// Values represent quarterly performance %; last value drives the card color.
-// EDUCATION and FAMILY_CULTURE are green (>95), rest vary.
+// Dummy monthly sparkline per dept (Jan–Mar, Q1) — replaced once real data flows in.
+// Values represent monthly performance %; last value drives the card color.
 const DUMMY_SPARKLINES: Record<string, number[]> = {
-  EDUCATION:           [85, 89, 93, 97],  // green
-  FAMILY_CULTURE:      [83, 88, 92, 96],  // green
-  ISLAMIC_INFO_CENTER: [75, 80, 84, 85],  // amber
-  AL_BIRR_MALE:        [55, 65, 72, 78],  // red
-  AL_BIRR_FEMALE:      [62, 72, 79, 85],  // amber
-  ORPHANS:             [88, 90, 92, 95],  // amber/green boundary
-  SCIENTIFIC_PROGRAMS: [50, 62, 70, 79],  // red
+  EDUCATION:           [89, 93, 97],  // green
+  FAMILY_CULTURE:      [88, 92, 96],  // green
+  ISLAMIC_INFO_CENTER: [80, 84, 85],  // amber
+  AL_BIRR_MALE:        [65, 72, 78],  // red
+  AL_BIRR_FEMALE:      [72, 79, 85],  // amber
+  ORPHANS:             [90, 92, 95],  // amber/green boundary
+  SCIENTIFIC_PROGRAMS: [62, 70, 79],  // red
 }
 
 const PCT_COLORS = {
@@ -52,9 +51,9 @@ function DeptCard({
   const topColor = HEX_COLORS[color]
   const fillPct = Math.min(Math.max(avgPct, 0), 100)
 
-  // Use real sparkline when available, else dummy
+  // Use real sparkline when available, else dummy (3 values = Jan/Feb/Mar of Q1)
   const sparklineData = hasKpis
-    ? kpis.slice(-4).map(k => k.variance.pct)
+    ? kpis.slice(-3).map(k => k.variance.pct)
     : dummySparkline
 
   return (
@@ -164,7 +163,7 @@ export function DeptOverview() {
       >
         الإدارات
       </p>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {DEPARTMENTS.map(dept => (
           <DeptCard
             key={dept.id}

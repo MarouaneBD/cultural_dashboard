@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import { signOutAction } from '@/app/actions/auth'
 import { DEPARTMENTS } from '@/lib/departments'
 
 const PILLARS = DEPARTMENTS.map(d => ({
@@ -165,6 +166,28 @@ export function Sidebar({ expanded }: SidebarProps) {
             />
           </>
         )}
+        <button
+          onClick={() => signOutAction()}
+          title={!expanded ? 'تسجيل الخروج' : undefined}
+          className="flex items-center rounded-lg text-[12.5px] transition-colors w-full mt-1"
+          style={{
+            gap: expanded ? '9px' : '0',
+            padding: expanded ? '7px 10px' : '8px 0',
+            justifyContent: expanded ? 'flex-start' : 'center',
+            color: 'rgba(255,255,255,.45)',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'rgba(255,80,80,.12)'
+            e.currentTarget.style.color = 'rgba(255,120,120,.9)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.color = 'rgba(255,255,255,.45)'
+          }}
+        >
+          <span style={{ fontSize: '15px', opacity: 0.75, flexShrink: 0 }}>⏻</span>
+          {expanded && <span className="truncate">تسجيل الخروج</span>}
+        </button>
       </div>
     </aside>
   )

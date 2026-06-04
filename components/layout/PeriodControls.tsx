@@ -47,7 +47,8 @@ export function PeriodControls() {
         ))}
       </select>
 
-      <div className="flex items-center gap-1">
+      {/* Desktop: pill buttons */}
+      <div className="hidden sm:flex items-center gap-1">
         {QUARTERS.map(q => (
           <button
             key={q}
@@ -63,6 +64,24 @@ export function PeriodControls() {
           </button>
         ))}
       </div>
+
+      {/* Mobile: compact select */}
+      <select
+        value={period}
+        onChange={e => update('period', e.target.value)}
+        dir="ltr"
+        className="sm:hidden font-jb text-[11px] rounded-full px-3 py-1 border transition-colors"
+        style={{
+          background: 'var(--accent)',
+          borderColor: 'var(--accent)',
+          color: '#fdfcfa',
+        }}
+        aria-label="الفترة"
+      >
+        {QUARTERS.map(q => (
+          <option key={q} value={q}>{LABELS[q]}</option>
+        ))}
+      </select>
     </div>
   )
 }

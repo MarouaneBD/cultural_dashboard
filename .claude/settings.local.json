@@ -28,7 +28,26 @@
       "Bash(grep -n \"font-fraunces\" app/globals.css .next/dev/static/chunks/app_globals*.css)",
       "Read(//c/Users/marwa/AppData/Local/Temp/claude/C--Users-marwa-OneDrive-Documents-Projects-Cultural-Dashboard/668c3db7-27d2-45f2-b314-81a2199ba391/tasks/**)",
       "Bash(node:*)",
-      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\" npx prisma db push --force-reset)"
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\" npx prisma db push --force-reset)",
+      "Bash(cat .env)",
+      "Bash(cat .env.local)",
+      "Bash(docker compose:*)",
+      "Bash(npm install:*)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(taskkill /PID 21992 /F)",
+      "Bash(cmd.exe:*)",
+      "Bash(powershell:*)",
+      "Bash(cat next.config.ts)",
+      "Bash(cat next.config.js)",
+      "Bash(cat next.config.mjs)",
+      "Bash(cat lib/prisma.ts)",
+      "Bash(cat lib/prisma/index.ts)",
+      "Bash(cat components/providers.tsx)",
+      "Bash(cat components/Providers.tsx)",
+      "Bash(grep -v \"^$\")",
+      "Bash(cat scripts/seed-admin.ts)",
+      "Bash(ls scripts/)"
     ]
   }
 }

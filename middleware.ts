@@ -8,12 +8,17 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   const session = req.auth
 
-  // Not logged in → login page
+  const isAuthPage = pathname === '/login' || pathname === '/change-password'
+
+  // Not logged in → allow auth pages, redirect everything else to login
   if (!session) {
+    if (isAuthPage) return NextResponse.next()
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  // Already logged in + visiting /login → dashboard
+  // From here session is guaranteed non-null
+
+  // Already logged in → skip login page
   if (pathname === '/login') {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
