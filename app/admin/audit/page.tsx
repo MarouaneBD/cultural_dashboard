@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { AppShell } from '@/components/layout/AppShell'
 import { prisma } from '@/lib/prisma'
 import type { AuditLog } from '@prisma/client'

@@ -33,7 +33,9 @@ export function AppShell({ children, title, actions }: AppShellProps) {
         />
       )}
 
-      <Sidebar expanded={sidebarOpen} />
+      <Suspense fallback={<aside style={{ width: '60px', minHeight: '100vh', background: 'var(--sidebar-bg)' }} />}>
+        <Sidebar expanded={sidebarOpen} />
+      </Suspense>
 
       <div className="flex-1 flex flex-col min-w-0">
         <header
