@@ -1,14 +1,13 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 
-const url = process.env.DATABASE_URL
-if (!url) throw new Error('DATABASE_URL environment variable is not set')
-
 const AUDITED_MODELS = new Set(['Actual', 'KpiRegistry'])
 const WRITE_OPS = new Set(['create', 'update', 'delete', 'upsert', 'createMany', 'updateMany', 'deleteMany'])
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({ connectionString: url! })
+  const url = process.env.DATABASE_URL
+  if (!url) throw new Error('DATABASE_URL environment variable is not set')
+  const adapter = new PrismaPg({ connectionString: url })
   const base = new PrismaClient({ adapter })
 
   return base.$extends({
