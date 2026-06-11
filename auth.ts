@@ -16,10 +16,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         try {
+          console.error('[auth] authorize called, keys:', Object.keys(credentials ?? {}))
           const username = credentials?.username as string | undefined
           const password = credentials?.password as string | undefined
           if (!username || !password) {
-            console.error('[auth] missing credentials')
+            console.error('[auth] missing credentials — username:', !!username, 'password:', !!password)
             return null
           }
 
