@@ -1,11 +1,9 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
-import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { signInAction } from '@/app/actions/auth'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -15,19 +13,19 @@ export default function LoginPage() {
     setLoading(true)
 
     const form = new FormData(e.currentTarget)
-    const result = await signIn('credentials', {
-      username: form.get('username') as string,
-      password: form.get('password') as string,
-      redirect: false,
-    })
+    const username = form.get('username') as string
+    const password = form.get('password') as string
 
-    setLoading(false)
-
-    if (result?.error) {
+    try {
+      const result = await signInAction(username, password)
+      if (result === 'invalid') {
+        setError('اسم المستخدم أو كلمة المرور غير صحيحة')
+        setLoading(false)
+      }
+      // on success, signInAction redirects — no further action needed
+    } catch {
       setError('اسم المستخدم أو كلمة المرور غير صحيحة')
-    } else {
-      router.push('/dashboard')
-      router.refresh()
+      setLoading(false)
     }
   }
 
