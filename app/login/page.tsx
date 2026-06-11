@@ -16,16 +16,12 @@ export default function LoginPage() {
     const username = form.get('username') as string
     const password = form.get('password') as string
 
-    try {
-      const result = await signInAction(username, password)
-      if (result) {
-        setError(result) // show raw diagnostic for now
-        setLoading(false)
-      }
-    } catch {
+    const result = await signInAction(username, password)
+    if (result) {
       setError('اسم المستخدم أو كلمة المرور غير صحيحة')
       setLoading(false)
     }
+    // no result = redirect in progress — do nothing
   }
 
   return (
