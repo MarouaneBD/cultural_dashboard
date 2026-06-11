@@ -18,11 +18,10 @@ export default function LoginPage() {
 
     try {
       const result = await signInAction(username, password)
-      if (result === 'invalid') {
-        setError('اسم المستخدم أو كلمة المرور غير صحيحة')
+      if (result) {
+        setError(result) // show raw diagnostic for now
         setLoading(false)
       }
-      // on success, signInAction redirects — no further action needed
     } catch {
       setError('اسم المستخدم أو كلمة المرور غير صحيحة')
       setLoading(false)

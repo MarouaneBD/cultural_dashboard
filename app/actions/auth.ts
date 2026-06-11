@@ -4,18 +4,16 @@ import { signIn, signOut } from '@/auth'
 import { AuthError } from 'next-auth'
 
 export async function signInAction(username: string, password: string) {
-  // Direct DB probe — bypasses NextAuth to isolate the failure point
+  // Diagnostic mode — returns error details instead of generic 'invalid'
   try {
     const { prisma } = await import('@/lib/prisma')
     const { verifyPassword } = await import('@/lib/auth-utils')
     const user = await prisma.user.findUnique({ where: { username } })
-    console.error('[probe] user_found:', !!user)
-    if (user) {
-      const ok = await verifyPassword(password, user.passwordHash)
-      console.error('[probe] password_ok:', ok)
-    }
+    if (!user) return `diag:user_not_found:${username}`
+    const ok = await verifyPassword(password, user.passwordHash)
+    if (!ok) return 'diag:password_mismatch'
   } catch (e) {
-    console.error('[probe] error:', String(e))
+    return `diag:db_error:${String(e).slice(0, 200)}`
   }
 
   try {
