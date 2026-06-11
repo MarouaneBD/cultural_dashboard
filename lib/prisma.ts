@@ -61,7 +61,20 @@ function createPrismaClient() {
 
 type ExtendedPrismaClient = ReturnType<typeof createPrismaClient>
 
-const globalForPrisma = globalThis as unknown as { prisma: ExtendedPrismaClient }
-export const prisma = globalForPrisma.prisma ?? createPrismaClient()
+// Lazy singleton — client is NOT created at import time.
+// This prevents build-time failures when DATABASE_URL isn't available
+// during Next.js static analysis (Vercel build phase).
+const g = globalThis as unknown as { _prisma?: ExtendedPrismaClient }
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+function getClient(): ExtendedPrismaClient {
+  if (!g._prisma) g._prisma = createPrismaClient()
+  return g._prisma
+}
+
+export const prisma = new Proxy({} as ExtendedPrismaClient, {
+  get(_target, prop: string | symbol) {
+    const client = getClient()
+    const value = (client as any)[prop]
+    return typeof value === 'function' ? value.bind(client) : value
+  },
+})
