@@ -57,9 +57,9 @@ export default function LoginPage() {
             />
           </div>
 
-          {error === 'invalid' && (
+          {error && (
             <p className="text-sm text-red-600 text-center">
-              اسم المستخدم أو كلمة المرور غير صحيحة
+              {error === 'invalid' ? 'اسم المستخدم أو كلمة المرور غير صحيحة' : error}
             </p>
           )}
 
