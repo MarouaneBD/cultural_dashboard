@@ -16,25 +16,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         try {
-          console.error('[auth] authorize called, keys:', Object.keys(credentials ?? {}))
           const username = credentials?.username as string | undefined
           const password = credentials?.password as string | undefined
-          if (!username || !password) {
-            console.error('[auth] missing credentials — username:', !!username, 'password:', !!password)
-            return null
-          }
+          if (!username || !password) return null
 
           const user = await prisma.user.findUnique({ where: { username } })
-          if (!user) {
-            console.error('[auth] user not found:', username)
-            return null
-          }
+          if (!user) return null
 
           const valid = await verifyPassword(password, user.passwordHash)
-          if (!valid) {
-            console.error('[auth] password mismatch for:', username)
-            return null
-          }
+          if (!valid) return null
 
           return {
             id: user.id,
@@ -43,8 +33,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             role: user.role,
             mustChangePassword: user.mustChangePassword,
           }
-        } catch (err) {
-          console.error('[auth] authorize threw:', err)
+        } catch {
           return null
         }
       },
