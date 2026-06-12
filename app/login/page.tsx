@@ -18,10 +18,9 @@ export default function LoginPage() {
 
     const result = await signInAction(username, password)
     if (result) {
-      setError('اسم المستخدم أو كلمة المرور غير صحيحة')
+      setError(result)
       setLoading(false)
     }
-    // no result = redirect in progress — do nothing
   }
 
   return (
