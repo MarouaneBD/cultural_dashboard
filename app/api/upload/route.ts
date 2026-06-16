@@ -2,12 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Period, Pillar } from '@prisma/client'
 import { isActivityFile, parseActivityFile, parseExcelFile } from '@/lib/excel'
 import { prisma } from '@/lib/prisma'
+import { auth } from '@/auth'
 
-// Derive the transaction client type from the (possibly extended) prisma instance
+export const maxDuration = 60
+
 type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0]
 
 export async function POST(req: NextRequest) {
-  // TODO(auth): enforce EDITOR/ADMIN role check once auth middleware is wired (Phase 2)
+  const session = await auth()
+  if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'EDITOR')) {
+    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
+  }
+
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File | null
@@ -31,54 +37,58 @@ export async function POST(req: NextRequest) {
       let updated = 0
       const dbErrors: Array<{ row: number; message: string }> = []
 
-      for (let i = 0; i < rows.length; i++) {
-        const row = rows[i]
-        try {
-          const delta = await prisma.$transaction(async (tx: TxClient) => {
-            const existing = await tx.kpiRegistry.findUnique({
-              where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
-            })
-
-            const kpi = await tx.kpiRegistry.upsert({
-              where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
-              create: { nameAr: row.nameAr, pillar: row.pillar as Pillar, unit: 'COUNT', owner: row.category },
-              update: row.category ? { owner: row.category } : {},
-            })
-
-            if (row.target2026 !== undefined) {
-              await tx.target.upsert({
-                where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: 2026 } },
-                create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: 2026, value: row.target2026 },
-                update: { value: row.target2026 },
+      // Process all rows in a single transaction to avoid per-row roundtrip overhead
+      try {
+        await prisma.$transaction(async (tx: TxClient) => {
+          for (let i = 0; i < rows.length; i++) {
+            const row = rows[i]
+            try {
+              const existing = await tx.kpiRegistry.findUnique({
+                where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
               })
-            }
 
-            if (row.actual2025 !== undefined) {
-              await tx.actual.upsert({
-                where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: 2025 } },
-                create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: 2025, value: row.actual2025 },
-                update: { value: row.actual2025 },
+              const kpi = await tx.kpiRegistry.upsert({
+                where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
+                create: { nameAr: row.nameAr, pillar: row.pillar as Pillar, unit: 'COUNT', owner: row.category },
+                update: row.category ? { owner: row.category } : {},
               })
-            }
 
-            for (const [q, val] of Object.entries(row.actuals)) {
-              if (val !== undefined) {
-                await tx.actual.upsert({
-                  where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: 2026 } },
-                  create: { kpiId: kpi.id, period: q as Period, year: 2026, value: val },
-                  update: { value: val },
+              if (row.target2026 !== undefined) {
+                await tx.target.upsert({
+                  where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: 2026 } },
+                  create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: 2026, value: row.target2026 },
+                  update: { value: row.target2026 },
                 })
               }
+
+              if (row.actual2025 !== undefined) {
+                await tx.actual.upsert({
+                  where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: 2025 } },
+                  create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: 2025, value: row.actual2025 },
+                  update: { value: row.actual2025 },
+                })
+              }
+
+              for (const [q, val] of Object.entries(row.actuals)) {
+                if (val !== undefined) {
+                  await tx.actual.upsert({
+                    where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: 2026 } },
+                    create: { kpiId: kpi.id, period: q as Period, year: 2026, value: val },
+                    update: { value: val },
+                  })
+                }
+              }
+
+              if (existing) { updated++ } else { created++ }
+            } catch (err) {
+              console.error('upload row failed', i + 2, err)
+              dbErrors.push({ row: i + 2, message: `خطأ في حفظ النشاط: ${row.nameAr}` })
             }
-
-            return existing ? 'updated' : 'created'
-          })
-
-          if (delta === 'updated') { updated++ } else { created++ }
-        } catch (err) {
-          console.error('upload transaction failed row', i + 2, err)
-          dbErrors.push({ row: i + 2, message: `خطأ في حفظ النشاط: ${row.nameAr}` })
-        }
+          }
+        }, { timeout: 50000 })
+      } catch (err) {
+        console.error('upload transaction failed', err)
+        return NextResponse.json({ error: 'فشل حفظ البيانات' }, { status: 500 })
       }
 
       return NextResponse.json({ created, updated, errors: [...errors, ...dbErrors] })
@@ -94,23 +104,30 @@ export async function POST(req: NextRequest) {
     const dbErrors: Array<{ row: number; message: string }> = []
     let imported = 0
 
-    for (let i = 0; i < valid.length; i++) {
-      const row = valid[i]
-      try {
-        await prisma.actual.create({
-          data: {
-            kpiId: row.kpiId,
-            period: row.period as Period,
-            year: row.year,
-            value: row.value,
-            region: row.region,
-            facility: row.facility,
-          },
-        })
-        imported++
-      } catch {
-        dbErrors.push({ row: i + 2, message: `خطأ في حفظ البيانات: ${row.kpiId}` })
-      }
+    try {
+      await prisma.$transaction(async (tx: TxClient) => {
+        for (let i = 0; i < valid.length; i++) {
+          const row = valid[i]
+          try {
+            await tx.actual.create({
+              data: {
+                kpiId: row.kpiId,
+                period: row.period as Period,
+                year: row.year,
+                value: row.value,
+                region: row.region,
+                facility: row.facility,
+              },
+            })
+            imported++
+          } catch {
+            dbErrors.push({ row: i + 2, message: `خطأ في حفظ البيانات: ${row.kpiId}` })
+          }
+        }
+      }, { timeout: 50000 })
+    } catch (err) {
+      console.error('legacy upload transaction failed', err)
+      return NextResponse.json({ error: 'فشل حفظ البيانات' }, { status: 500 })
     }
 
     return NextResponse.json({ imported, errors: [...errors, ...dbErrors] })
