@@ -47,7 +47,12 @@
       "Bash(cat components/Providers.tsx)",
       "Bash(grep -v \"^$\")",
       "Bash(cat scripts/seed-admin.ts)",
-      "Bash(ls scripts/)"
+      "Bash(ls scripts/)",
+      "Bash(ls /c/Users/marwa/OneDrive/Documents/Projects/Cultural_Dashboard/.env*)",
+      "Bash(ls .env*)",
+      "Bash(ls *.ts *.tsx)",
+      "Bash(xargs cat:*)",
+      "Bash(git push:*)"
     ]
   }
 }
