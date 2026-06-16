@@ -26,8 +26,12 @@ export function FileUploader() {
       formData.append('dryRun', 'true')
 
       const res = await fetch('/api/upload', { method: 'POST', body: formData })
-      if (!res.ok) throw new Error(`API ${res.status}`)
       const body = await res.json()
+      if (!res.ok) {
+        setMessage(`خطأ ${res.status}: ${body?.error ?? 'خطأ في الخادم'}`)
+        setStatus('error')
+        return
+      }
 
       if ('rows' in body) {
         setPreview({ mode: 'activity', result: body })
@@ -35,8 +39,8 @@ export function FileUploader() {
         setPreview({ mode: 'legacy', result: body })
       }
       setStatus('idle')
-    } catch {
-      setMessage('خطأ في الاتصال بالخادم')
+    } catch (e) {
+      setMessage(`خطأ في الاتصال بالخادم: ${String(e)}`)
       setStatus('error')
     }
   }
@@ -51,8 +55,12 @@ export function FileUploader() {
       formData.append('dryRun', 'false')
 
       const res = await fetch('/api/upload', { method: 'POST', body: formData })
-      if (!res.ok) throw new Error(`API ${res.status}`)
       const body = await res.json()
+      if (!res.ok) {
+        setMessage(`خطأ ${res.status}: ${body?.error ?? 'خطأ في الخادم'}`)
+        setStatus('error')
+        return
+      }
 
       if ('created' in body) {
         setMessage(`تم إنشاء ${body.created} مؤشر، تحديث ${body.updated} مؤشر`)
@@ -61,8 +69,8 @@ export function FileUploader() {
       }
       setStatus('done')
       setPreview(null)
-    } catch {
-      setMessage('خطأ في الاتصال بالخادم')
+    } catch (e) {
+      setMessage(`خطأ في الاتصال بالخادم: ${String(e)}`)
       setStatus('error')
     }
   }
