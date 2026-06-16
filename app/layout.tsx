@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Cairo, Space_Grotesk } from 'next/font/google'
 import { Providers } from '@/components/providers'
 import { SplashScreen } from '@/components/layout/SplashScreen'
-import { auth } from '@/auth'
 import '@/app/globals.css'
 
 const cairo = Cairo({
@@ -25,9 +24,7 @@ export const metadata: Metadata = {
   description: 'لوحة متابعة مؤشرات الأداء التنفيذية — قطاع الثقافة',
 }
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth()
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="ar"
@@ -35,7 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       className={[cairo.variable, spaceGrotesk.variable].join(' ')}
     >
       <body>
-        <Providers session={session}>
+        <Providers>
           <SplashScreen />
           {children}
         </Providers>

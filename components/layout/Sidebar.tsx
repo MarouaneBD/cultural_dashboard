@@ -26,8 +26,8 @@ export function Sidebar({ expanded }: SidebarProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const activePillar = searchParams.get('pillar')
-  const { data: session } = useSession()
-  const role = session?.user?.role
+  const { data: session, status } = useSession()
+  const role = status === 'loading' ? undefined : session?.user?.role
 
   return (
     <aside
