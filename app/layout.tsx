@@ -21,6 +21,10 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: 'لوحة تحكم قطاع الثقافة',
   description: 'لوحة متابعة مؤشرات الأداء التنفيذية — قطاع الثقافة',
+  icons: {
+    icon: '/icon.png',
+    apple: '/icon.png',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
