@@ -1,10 +1,37 @@
 'use client'
 
-import { useActionState } from 'react'
-import { signInAction } from '@/app/actions/auth'
+import { useState, FormEvent } from 'react'
+import { signIn } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
-  const [error, formAction, isPending] = useActionState(signInAction, null)
+  const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
+  const [isPending, setIsPending] = useState(false)
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
+    setIsPending(true)
+
+    const form = new FormData(e.currentTarget)
+    const result = await signIn('credentials', {
+      username: form.get('username') as string,
+      password: form.get('password') as string,
+      redirect: false,
+    })
+
+    setIsPending(false)
+
+    if (!result || result.error) {
+      setError('اسم المستخدم أو كلمة المرور غير صحيحة')
+      return
+    }
+
+    // Session is now updated in SessionProvider — navigate to dashboard
+    router.push('/dashboard')
+    router.refresh()
+  }
 
   return (
     <div
@@ -19,8 +46,7 @@ export default function LoginPage() {
           تسجيل الدخول
         </h1>
 
-        {/* Native form action — FormData goes directly to signIn(), no JS intermediary */}
-        <form action={formAction} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm" style={{ color: 'var(--ink-muted)' }}>
               اسم المستخدم
@@ -58,9 +84,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 text-center">
-              {error === 'invalid' ? 'اسم المستخدم أو كلمة المرور غير صحيحة' : error}
-            </p>
+            <p className="text-sm text-red-600 text-center">{error}</p>
           )}
 
           <button
