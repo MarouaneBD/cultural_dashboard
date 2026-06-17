@@ -23,8 +23,8 @@ export default auth((req) => {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
-  // Must change password → force redirect (unless already there)
-  if (session.user.mustChangePassword && pathname !== '/change-password') {
+  // Must change password → force redirect (unless already there or calling an API)
+  if (session.user.mustChangePassword && pathname !== '/change-password' && !pathname.startsWith('/api/')) {
     return NextResponse.redirect(new URL('/change-password', req.url))
   }
 
