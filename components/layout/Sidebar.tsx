@@ -97,6 +97,31 @@ export function Sidebar({ expanded }: SidebarProps) {
         )}
       </div>
 
+      {/* ── User info ────────────────────────────────────── */}
+      {session?.user && (
+        <div
+          className="flex-shrink-0 border-b border-white/[.06] flex items-center overflow-hidden"
+          style={{ padding: expanded ? '10px 12px' : '10px 6px', gap: expanded ? '10px' : '0', justifyContent: expanded ? 'flex-start' : 'center' }}
+        >
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
+            style={{ background: 'var(--accent)', color: '#fff' }}
+          >
+            {(session.user as any).username?.[0]?.toUpperCase() ?? '؟'}
+          </div>
+          {expanded && (
+            <div className="flex flex-col min-w-0">
+              <span className="text-[12.5px] font-semibold truncate" style={{ color: 'rgba(255,255,255,.92)' }}>
+                {(session.user as any).username}
+              </span>
+              <span className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,.45)' }}>
+                {(session.user as any).role === 'ADMIN' ? 'مدير' : (session.user as any).role === 'EDITOR' ? 'محرر' : 'مشاهد'}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Nav ──────────────────────────────────────────── */}
       <nav
         className="flex-1 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden"
@@ -166,29 +191,6 @@ export function Sidebar({ expanded }: SidebarProps) {
             />
           </>
         )}
-        {/* ── User info ── */}
-        {expanded && session?.user && (
-          <div
-            className="flex items-center gap-2 px-3 py-2 rounded-lg mb-0.5"
-            style={{ background: 'rgba(255,255,255,.06)' }}
-          >
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
-              style={{ background: 'var(--accent)', color: '#fff' }}
-            >
-              {(session.user as any).username?.[0]?.toUpperCase() ?? '؟'}
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-[12px] font-medium truncate" style={{ color: 'rgba(255,255,255,.90)' }}>
-                {(session.user as any).username}
-              </span>
-              <span className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,.45)' }}>
-                {session.user.role === 'ADMIN' ? 'مدير' : session.user.role === 'EDITOR' ? 'محرر' : 'مشاهد'}
-              </span>
-            </div>
-          </div>
-        )}
-
         <button
           onClick={() => signOutAction()}
           title={!expanded ? 'تسجيل الخروج' : undefined}
