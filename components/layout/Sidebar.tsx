@@ -174,18 +174,18 @@ export function Sidebar({ expanded }: SidebarProps) {
             gap: expanded ? '9px' : '0',
             padding: expanded ? '7px 10px' : '8px 0',
             justifyContent: expanded ? 'flex-start' : 'center',
-            color: 'rgba(255,255,255,.45)',
+            color: 'rgba(255,255,255,.78)',
           }}
           onMouseEnter={e => {
             e.currentTarget.style.background = 'rgba(255,80,80,.12)'
-            e.currentTarget.style.color = 'rgba(255,120,120,.9)'
+            e.currentTarget.style.color = 'rgba(255,120,120,.95)'
           }}
           onMouseLeave={e => {
             e.currentTarget.style.background = 'transparent'
-            e.currentTarget.style.color = 'rgba(255,255,255,.45)'
+            e.currentTarget.style.color = 'rgba(255,255,255,.78)'
           }}
         >
-          <span style={{ fontSize: '15px', opacity: 0.75, flexShrink: 0 }}>⏻</span>
+          <span style={{ fontSize: '15px', width: '20px', textAlign: 'center', flexShrink: 0, lineHeight: 1 }}>⏻</span>
           {expanded && <span className="truncate">تسجيل الخروج</span>}
         </button>
       </div>
@@ -212,7 +212,7 @@ function NavLink({ href, icon, label, active, expanded }: NavLinkProps) {
         gap: expanded ? '9px' : '0',
         padding: expanded ? '7px 10px' : '8px 0',
         justifyContent: expanded ? 'flex-start' : 'center',
-        color: active ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.55)',
+        color: active ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.78)',
         background: active ? 'rgba(255,255,255,.10)' : 'transparent',
         fontWeight: active ? 600 : 400,
         whiteSpace: 'nowrap',
@@ -220,17 +220,17 @@ function NavLink({ href, icon, label, active, expanded }: NavLinkProps) {
       onMouseEnter={e => {
         if (!active) {
           e.currentTarget.style.background = 'rgba(255,255,255,.06)'
-          e.currentTarget.style.color = 'rgba(255,255,255,.85)'
+          e.currentTarget.style.color = 'rgba(255,255,255,.95)'
         }
       }}
       onMouseLeave={e => {
         if (!active) {
           e.currentTarget.style.background = 'transparent'
-          e.currentTarget.style.color = 'rgba(255,255,255,.55)'
+          e.currentTarget.style.color = 'rgba(255,255,255,.78)'
         }
       }}
     >
-      <span style={{ fontSize: '15px', opacity: active ? 1 : 0.75, flexShrink: 0 }}>{icon}</span>
+      <span style={{ fontSize: '15px', width: '20px', textAlign: 'center', flexShrink: 0, lineHeight: 1 }}>{icon}</span>
       {expanded && <span className="truncate">{label}</span>}
     </Link>
   )
