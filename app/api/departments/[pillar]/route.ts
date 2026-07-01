@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Pillar } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { getActivityType } from '@/lib/activity-config'
+import { computeYtd } from '@/lib/kpi'
 import type { DeptData } from '@/types/department'
 
 const UNIT_DISPLAY: Record<string, string> = {
@@ -105,13 +107,14 @@ export async function GET(
             target: qt ? Math.round(Number(qt.value)) : quarterlyTargetVal,
           }
         })
-        // current: cumulative sum for COUNT/CURRENCY; average rate for PERCENT
-        const nonNull = quarters.map(q => q.actual).filter((v): v is number => v !== null)
-        const current = nonNull.length === 0
-          ? 0
-          : isKpiPercent
-            ? Math.round(nonNull.reduce((s, v) => s + v, 0) / nonNull.length)
-            : nonNull.reduce((s, v) => s + v, 0)
+        // current: use activity type to decide cumulative sum vs latest snapshot
+        const actType = k.slug ? getActivityType(k.pillar, k.slug) : 'monthly_variance'
+        const quarterMap: Partial<Record<'Q1'|'Q2'|'Q3'|'Q4', number>> = {}
+        for (const qp of quarters) {
+          if (qp.actual !== null) quarterMap[qp.q] = qp.actual
+        }
+        const ytd = computeYtd(quarterMap, actType)
+        const current = ytd !== null ? Math.round(ytd) : 0
         return {
           labelAr: k.nameAr,
           target: annualTargetVal,
