@@ -1,4 +1,5 @@
 import type { KpiVariance, VarianceColor } from '@/types'
+import type { ActivityType } from '@/lib/activity-config'
 
 export const HEX_COLORS: Record<VarianceColor, string> = {
   green: '#22c55e',
@@ -32,4 +33,27 @@ export function formatValue(value: number, unit: 'PERCENT' | 'COUNT' | 'CURRENCY
   if (unit === 'PERCENT') return `${value.toFixed(1)}%`
   if (unit === 'CURRENCY') return value.toLocaleString('en') + ' د.إ'
   return value.toLocaleString('en')
+}
+
+/**
+ * Computes the YTD value from available quarterly actuals.
+ *
+ * cumulative    → sum of all quarters present
+ * monthly_variance → value of the last quarter present (in Q1–Q4 order)
+ *
+ * Returns null if no quarters have data.
+ */
+export function computeYtd(
+  quarters: Partial<Record<'Q1' | 'Q2' | 'Q3' | 'Q4', number>>,
+  type: ActivityType
+): number | null {
+  const ordered = (['Q1', 'Q2', 'Q3', 'Q4'] as const)
+    .map(q => quarters[q])
+    .filter((v): v is number => v != null)
+
+  if (ordered.length === 0) return null
+
+  return type === 'cumulative'
+    ? ordered.reduce((a, b) => a + b, 0)
+    : ordered[ordered.length - 1]
 }
