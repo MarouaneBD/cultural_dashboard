@@ -126,25 +126,50 @@ export async function GET(
       })
       .filter((x): x is NonNullable<typeof x> => x !== null)
 
-    // Monthly progress 2026: Q1 actual spread across Jan-Mar, null for future months
-    const q1Vals = kpis
-      .map(k => k.actuals.find(a => a.year === 2026 && a.period === 'Q1')?.value ?? null)
-      .filter((v): v is number => v !== null)
-    const q1Avg = q1Vals.length ? q1Vals.reduce((s, v) => s + v, 0) / q1Vals.length : null
+    // Monthly progress 2026: spread all available quarters across their months.
+    // Cumulative KPIs show a running total; snapshot KPIs show that quarter's value.
+    // We compute per-KPI monthly values then average across KPIs.
+    const perKpiMonthly: (number | null)[][] = kpis.map(k => {
+      const actType = k.slug ? getActivityType(k.pillar, k.slug) : 'monthly_variance'
+      const qVals: Partial<Record<string, number>> = {}
+      for (const q of QUARTERS) {
+        const a = k.actuals.find(x => x.year === 2026 && x.period === q)
+        if (a) qVals[q] = Number(a.value)
+      }
+      return MONTHS.map((_, i) => {
+        const qIdx = Math.floor(i / 3)       // 0=Q1, 1=Q2, 2=Q3, 3=Q4
+        const qKey = QUARTERS[qIdx]
+        if (!(qKey in qVals)) return null    // quarter not yet available
+        if (actType === 'cumulative') {
+          // Running total: sum all quarters up to and including this one
+          let total = 0
+          for (let j = 0; j <= qIdx; j++) {
+            const v = qVals[QUARTERS[j]]
+            if (v === undefined) return null // gap in data — can't compute running total
+            total += v
+          }
+          return total
+        } else {
+          return qVals[qKey] ?? null
+        }
+      })
+    })
+
     const annualTargetAvg = currentTargets.length
       ? currentTargets.reduce((s, t) => s + t.target, 0) / currentTargets.length
       : 0
-    // For PERCENT KPIs, monthly target = annual target (rate doesn't divide by month)
-    // For COUNT/CURRENCY, divide by 12
     const monthlyTarget = isPercent
       ? Math.max(Math.round(annualTargetAvg), 1)
       : Math.max(Math.round(annualTargetAvg / 12), 1)
 
-    const monthlyProgress = MONTHS.map((month, i) => ({
-      month,
-      actual: i < 3 && q1Avg !== null ? Math.round(q1Avg) : null,
-      target: monthlyTarget,
-    }))
+    const monthlyProgress = MONTHS.map((month, i) => {
+      const vals = perKpiMonthly.map(kpiMonths => kpiMonths[i]).filter((v): v is number => v !== null)
+      return {
+        month,
+        actual: vals.length ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length) : null,
+        target: monthlyTarget,
+      }
+    })
 
     const data: DeptData = {
       lastYear: { year: 2025, kpis: lastYearKpis, monthlyActivity, categoryBreakdown, quarterlyComparison },
