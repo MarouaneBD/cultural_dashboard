@@ -1,6 +1,6 @@
-import { ActivityType } from '@prisma/client'
+import type { ActivityType } from '@prisma/client'
 
-export { ActivityType }
+export type { ActivityType }
 
 /**
  * Maps "pillar.slug" → ActivityType.
@@ -14,7 +14,7 @@ export { ActivityType }
  */
 export const ACTIVITY_TYPES: Record<string, ActivityType> = {
   // ── Add entries here if needed for programmatic seeding ─────────────────
-  // 'education.total_students_enrolled': ActivityType.CUMULATIVE,
+  // 'education.total_students_enrolled': 'CUMULATIVE',
 }
 
 /**
@@ -22,5 +22,5 @@ export const ACTIVITY_TYPES: Record<string, ActivityType> = {
  * Falls back to MONTHLY_VARIANCE for unknown combinations.
  */
 export function getActivityType(pillar: string, slug: string): ActivityType {
-  return ACTIVITY_TYPES[`${pillar.toLowerCase()}.${slug}`] ?? ActivityType.MONTHLY_VARIANCE
+  return ACTIVITY_TYPES[`${pillar.toLowerCase()}.${slug}`] ?? 'MONTHLY_VARIANCE'
 }

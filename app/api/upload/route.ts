@@ -49,8 +49,8 @@ export async function POST(req: NextRequest) {
 
               const kpi = await tx.kpiRegistry.upsert({
                 where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
-                create: { nameAr: row.nameAr, pillar: row.pillar as Pillar, unit: 'COUNT', owner: row.category },
-                update: row.category ? { owner: row.category } : {},
+                create: { nameAr: row.nameAr, pillar: row.pillar as Pillar, unit: 'COUNT', owner: row.category, activityType: row.activityType },
+                update: { activityType: row.activityType, ...(row.category ? { owner: row.category } : {}) },
               })
 
               if (row.target2026 !== undefined) {

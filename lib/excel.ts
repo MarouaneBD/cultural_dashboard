@@ -1,5 +1,11 @@
 import * as XLSX from 'xlsx'
+import type { ActivityType } from '@prisma/client'
 import type { UploadRow, UploadValidationResult, ActivityRow, ActivityUploadResult } from '@/types'
+
+const ACTIVITY_TYPE_MAP: Record<string, ActivityType> = {
+  'تراكمي': 'CUMULATIVE',
+  'شهري':   'MONTHLY_VARIANCE',
+}
 
 const VALID_PERIODS = new Set(['Q1', 'Q2', 'Q3', 'Q4', 'ANNUAL'])
 
@@ -124,6 +130,9 @@ export function parseActivityFile(buffer: ArrayBuffer): ActivityUploadResult {
         if (val !== undefined) actuals[q] = val
       }
 
+      const activityTypeRaw = String(raw['نوع النشاط'] ?? '').trim()
+      const activityType: ActivityType = ACTIVITY_TYPE_MAP[activityTypeRaw] ?? 'MONTHLY_VARIANCE'
+
       rows.push({
         nameAr,
         pillar: pillar as ActivityRow['pillar'],
@@ -131,6 +140,7 @@ export function parseActivityFile(buffer: ArrayBuffer): ActivityUploadResult {
         actual2025: toNum(raw['2025']),
         target2026: toNum(raw['المستهدف 2026']),
         actuals,
+        activityType,
       })
     })
 

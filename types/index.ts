@@ -54,6 +54,7 @@ export interface ActivityRow {
   actual2025?: number
   target2026?: number
   actuals: Partial<Record<'Q1' | 'Q2' | 'Q3' | 'Q4', number>>
+  activityType: import('@prisma/client').ActivityType
 }
 
 export interface ActivityUploadResult {
