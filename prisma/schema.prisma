@@ -22,6 +22,11 @@ enum KpiUnit {
   CURRENCY
 }
 
+enum ActivityType {
+  CUMULATIVE
+  MONTHLY_VARIANCE
+}
+
 enum ProgramStatus {
   ON_TRACK
   AT_RISK
@@ -47,8 +52,9 @@ model KpiRegistry {
   nameAr    String
   pillar    Pillar
   unit      KpiUnit
-  owner     String?
-  slug      String?
+  owner        String?
+  slug         String?
+  activityType ActivityType @default(MONTHLY_VARIANCE)
   targets   Target[]
   actuals   Actual[]
   createdAt DateTime  @default(now())
