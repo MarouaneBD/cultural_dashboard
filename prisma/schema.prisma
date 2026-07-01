@@ -48,6 +48,7 @@ model KpiRegistry {
   pillar    Pillar
   unit      KpiUnit
   owner     String?
+  slug      String?
   targets   Target[]
   actuals   Actual[]
   createdAt DateTime  @default(now())
