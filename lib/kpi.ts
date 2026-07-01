@@ -1,5 +1,5 @@
 import type { KpiVariance, VarianceColor } from '@/types'
-import type { ActivityType } from '@/lib/activity-config'
+import type { ActivityType } from '@prisma/client'
 
 export const HEX_COLORS: Record<VarianceColor, string> = {
   green: '#22c55e',
@@ -53,7 +53,7 @@ export function computeYtd(
 
   if (ordered.length === 0) return null
 
-  return type === 'cumulative'
+  return type === 'CUMULATIVE'
     ? ordered.reduce((a, b) => a + b, 0)
     : ordered[ordered.length - 1]
 }

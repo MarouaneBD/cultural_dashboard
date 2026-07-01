@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Pillar } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { getActivityType } from '@/lib/activity-config'
 import { computeYtd } from '@/lib/kpi'
 import type { DeptData } from '@/types/department'
 
@@ -108,7 +107,7 @@ export async function GET(
           }
         })
         // current: use activity type to decide cumulative sum vs latest snapshot
-        const actType = k.slug ? getActivityType(k.pillar, k.slug) : 'monthly_variance'
+        const actType = k.activityType
         const quarterMap: Partial<Record<'Q1'|'Q2'|'Q3'|'Q4', number>> = {}
         for (const qp of quarters) {
           if (qp.actual !== null) quarterMap[qp.q] = qp.actual
@@ -130,7 +129,7 @@ export async function GET(
     // Cumulative KPIs show a running total; snapshot KPIs show that quarter's value.
     // We compute per-KPI monthly values then average across KPIs.
     const perKpiMonthly: (number | null)[][] = kpis.map(k => {
-      const actType = k.slug ? getActivityType(k.pillar, k.slug) : 'monthly_variance'
+      const actType = k.activityType
       const qVals: Partial<Record<string, number>> = {}
       for (const q of QUARTERS) {
         const a = k.actuals.find(x => x.year === 2026 && x.period === q)
@@ -140,7 +139,7 @@ export async function GET(
         const qIdx = Math.floor(i / 3)       // 0=Q1, 1=Q2, 2=Q3, 3=Q4
         const qKey = QUARTERS[qIdx]
         if (!(qKey in qVals)) return null    // quarter not yet available
-        if (actType === 'cumulative') {
+        if (actType === 'CUMULATIVE') {
           // Running total: sum all quarters up to and including this one
           let total = 0
           for (let j = 0; j <= qIdx; j++) {

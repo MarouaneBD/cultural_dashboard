@@ -1,4 +1,6 @@
-export type ActivityType = 'cumulative' | 'monthly_variance'
+import { ActivityType } from '@prisma/client'
+
+export { ActivityType }
 
 /**
  * Maps "pillar.slug" → ActivityType.
@@ -6,25 +8,19 @@ export type ActivityType = 'cumulative' | 'monthly_variance'
  * Key format: lowercase pillar enum value + "." + KpiRegistry.slug
  * Example: "education.total_students_enrolled"
  *
- * To add an activity:
- *   1. Set KpiRegistry.slug for the record (via Prisma Studio or a seed script)
- *   2. Add an entry here
- *
- * Unknown activities fall back to 'monthly_variance' (the safer default —
- * it never incorrectly inflates a snapshot value by summing it).
+ * This map is a fallback for programmatic use only.
+ * For uploaded data, the activityType is stored directly on KpiRegistry
+ * and set via the نوع النشاط column in the Excel upload format.
  */
 export const ACTIVITY_TYPES: Record<string, ActivityType> = {
-  // ── Add entries here as slugs are assigned ──────────────────────────────
-  // 'education.total_students_enrolled': 'cumulative',
-  // 'education.active_students':         'monthly_variance',
+  // ── Add entries here if needed for programmatic seeding ─────────────────
+  // 'education.total_students_enrolled': ActivityType.CUMULATIVE,
 }
 
 /**
- * Returns the ActivityType for a KPI.
- *
- * @param pillar - The Pillar enum value in lowercase, e.g. "education"
- * @param slug   - The KpiRegistry.slug value, e.g. "total_students_enrolled"
+ * Returns the ActivityType for a KPI by pillar + slug.
+ * Falls back to MONTHLY_VARIANCE for unknown combinations.
  */
 export function getActivityType(pillar: string, slug: string): ActivityType {
-  return ACTIVITY_TYPES[`${pillar.toLowerCase()}.${slug}`] ?? 'monthly_variance'
+  return ACTIVITY_TYPES[`${pillar.toLowerCase()}.${slug}`] ?? ActivityType.MONTHLY_VARIANCE
 }

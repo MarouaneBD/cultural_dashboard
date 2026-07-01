@@ -77,28 +77,28 @@ import { computeYtd } from '@/lib/kpi'
 
 describe('computeYtd', () => {
   it('returns null when no quarters have values', () => {
-    expect(computeYtd({}, 'cumulative')).toBeNull()
-    expect(computeYtd({}, 'monthly_variance')).toBeNull()
+    expect(computeYtd({}, 'CUMULATIVE')).toBeNull()
+    expect(computeYtd({}, 'MONTHLY_VARIANCE')).toBeNull()
   })
 
   it('cumulative: sums all available quarters', () => {
-    expect(computeYtd({ Q1: 100, Q2: 150, Q3: 60 }, 'cumulative')).toBe(310)
+    expect(computeYtd({ Q1: 100, Q2: 150, Q3: 60 }, 'CUMULATIVE')).toBe(310)
   })
 
   it('cumulative: returns single quarter value when only Q1 available', () => {
-    expect(computeYtd({ Q1: 100 }, 'cumulative')).toBe(100)
+    expect(computeYtd({ Q1: 100 }, 'CUMULATIVE')).toBe(100)
   })
 
   it('monthly_variance: returns the last available quarter value', () => {
-    expect(computeYtd({ Q1: 82, Q2: 84, Q3: 81 }, 'monthly_variance')).toBe(81)
+    expect(computeYtd({ Q1: 82, Q2: 84, Q3: 81 }, 'MONTHLY_VARIANCE')).toBe(81)
   })
 
   it('monthly_variance: returns Q1 when only Q1 available', () => {
-    expect(computeYtd({ Q1: 250 }, 'monthly_variance')).toBe(250)
+    expect(computeYtd({ Q1: 250 }, 'MONTHLY_VARIANCE')).toBe(250)
   })
 
   it('monthly_variance: handles non-sequential quarters (uses last defined)', () => {
     // Q1 present, Q2 missing, Q3 present — last defined in order is Q3
-    expect(computeYtd({ Q1: 100, Q3: 110 }, 'monthly_variance')).toBe(110)
+    expect(computeYtd({ Q1: 100, Q3: 110 }, 'MONTHLY_VARIANCE')).toBe(110)
   })
 })
