@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { Trash2 } from 'lucide-react'
 import { ValidationPreview } from './ValidationPreview'
 import type { UploadValidationResult, ActivityUploadResult } from '@/types'
 
@@ -14,6 +15,7 @@ export function FileUploader() {
   const [preview, setPreview] = useState<PreviewState | null>(null)
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [message, setMessage] = useState('')
+  const [clearing, setClearing] = useState(false)
 
   async function handleFile(file: File) {
     setActiveFile(file)
@@ -75,6 +77,29 @@ export function FileUploader() {
     }
   }
 
+  async function handleClearData() {
+    if (!confirm('سيتم حذف جميع الأنشطة والبيانات المخزنة. هل أنت متأكد؟')) return
+    setClearing(true)
+    try {
+      const res = await fetch('/api/admin/clear-data', { method: 'DELETE' })
+      const body = await res.json()
+      if (!res.ok) {
+        setMessage(body?.error ?? 'فشل مسح البيانات')
+        setStatus('error')
+      } else {
+        setMessage(`تم مسح ${body.kpis} نشاط و${body.actuals} قيمة فعلية`)
+        setStatus('done')
+        setPreview(null)
+        setActiveFile(null)
+      }
+    } catch (e) {
+      setMessage(`خطأ في الاتصال بالخادم: ${String(e)}`)
+      setStatus('error')
+    } finally {
+      setClearing(false)
+    }
+  }
+
   const hasRows = preview
     ? preview.mode === 'activity'
       ? preview.result.rows.length > 0
@@ -85,6 +110,18 @@ export function FileUploader() {
 
   return (
     <div className="space-y-6">
+      {/* Clear database */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleClearData}
+          disabled={clearing}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border text-red-600 border-red-200 hover:bg-red-50 disabled:opacity-50 transition-colors"
+        >
+          <Trash2 size={14} />
+          {clearing ? 'جاري المسح…' : 'مسح جميع البيانات'}
+        </button>
+      </div>
+
       <div
         role="button"
         tabIndex={0}

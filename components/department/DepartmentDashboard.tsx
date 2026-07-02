@@ -2,7 +2,6 @@
 
 import { Upload } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { LastYearReview } from './LastYearReview'
 import { CurrentYearTracker } from './CurrentYearTracker'
 import { InsightsPanel } from './InsightsPanel'
 import { generateInsights } from '@/lib/insights'
@@ -70,16 +69,6 @@ export function DepartmentDashboard({ pillarId }: Props) {
           <span>رفع ملف البيانات</span>
         </button>
       </div>
-
-      {/* ── Last year review ─────────────────────────────────────────────── */}
-      <LastYearReview
-        data={data.lastYear}
-        currentYear={data.currentYear}
-        accentColor={color}
-      />
-
-      {/* ── Divider ──────────────────────────────────────────────────────── */}
-      <div className="border-t" style={{ borderColor: 'var(--border)' }} />
 
       {/* ── Current year tracker ─────────────────────────────────────────── */}
       <CurrentYearTracker data={data.currentYear} accentColor={color} />

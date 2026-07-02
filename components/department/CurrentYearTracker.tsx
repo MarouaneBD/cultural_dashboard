@@ -1,8 +1,8 @@
 'use client'
 
 import {
-  ResponsiveContainer, ComposedChart, Bar, Line,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, LineChart, Line,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine,
 } from 'recharts'
 import type { DeptData, TargetProgress } from '@/types/department'
 import { getVarianceColor, HEX_COLORS } from '@/lib/kpi'
@@ -139,12 +139,34 @@ interface Props {
   accentColor: string
 }
 
+function buildTrendChart(targets: TargetProgress[], year: number) {
+  const prevYear = year - 1
+  const has2025 = targets.some(t => t.lastYearValue != null)
+  const total2025 = has2025
+    ? targets.reduce((s, t) => s + (t.lastYearValue ?? 0), 0)
+    : null
+
+  const quarters = (['Q1', 'Q2', 'Q3', 'Q4'] as const).map(q => {
+    const hasData = targets.some(t => t.quarters.find(x => x.q === q)?.actual != null)
+    const totalActual = targets.reduce((s, t) => {
+      const qd = t.quarters.find(x => x.q === q)
+      return qd?.actual != null ? s + qd.actual : s
+    }, 0)
+    const totalTarget = targets.reduce((s, t) => {
+      const qd = t.quarters.find(x => x.q === q)
+      return s + (qd?.target ?? 0)
+    }, 0)
+    return { label: q, actual: hasData ? totalActual : null, target: totalTarget || null }
+  })
+
+  return [
+    { label: String(prevYear), actual: total2025, target: null },
+    ...quarters,
+  ]
+}
+
 export function CurrentYearTracker({ data, accentColor }: Props) {
-  const chartData = data.monthlyProgress.map(m => ({
-    month: m.month,
-    actual: m.actual,
-    target: m.target,
-  }))
+  const chartData = buildTrendChart(data.targets, data.year)
 
   return (
     <section className="space-y-5">
@@ -152,25 +174,47 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
         متابعة التقدم · {data.year}
       </p>
 
-      {/* Monthly progress vs target chart — shown first */}
+      {/* Quarterly trend chart */}
       <div className="rounded-2xl border p-4" style={{ background: 'var(--card-bg)', borderColor: 'var(--border)', boxShadow: 'var(--card-shadow)' }}>
         <p className="font-cairo text-[12px] font-semibold mb-3 text-right" style={{ color: 'var(--ink-soft)' }}>
-          التقدم الشهري — الفعلي مقابل المستهدف
+          المسار الفصلي — {data.year - 1} والتقدم الفصلي {data.year}
         </p>
         <div dir="ltr" style={{ width: '100%', height: 220 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 8, right: 16, left: -10, bottom: 0 }}>
+            <LineChart data={chartData} margin={{ top: 8, right: 20, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#94a3b8' }} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} />
               <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10, fill: '#94a3b8' }} />
               <Tooltip
                 contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 }}
-                formatter={(v) => v != null ? [`${v}%`] : ['—']}
+                formatter={(v: unknown, name) => [
+                  v != null ? Number(v).toLocaleString('en') : '—',
+                  name ?? '',
+                ]}
               />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="actual" name="الفعلي" fill={accentColor} opacity={0.85} radius={[3,3,0,0]} />
-              <Line type="monotone" dataKey="target" name="المستهدف" stroke="#f59e0b" strokeWidth={2} dot={false} strokeDasharray="4 2" />
-            </ComposedChart>
+              {/* 2025 baseline as a reference segment — rendered via the actual line */}
+              <ReferenceLine x={String(data.year - 1)} stroke="rgba(0,0,0,.08)" />
+              <Line
+                type="monotone"
+                dataKey="actual"
+                name="الفعلي"
+                stroke={accentColor}
+                strokeWidth={2.5}
+                dot={{ r: 4, fill: accentColor, strokeWidth: 0 }}
+                connectNulls={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="target"
+                name="المستهدف الفصلي"
+                stroke="#f59e0b"
+                strokeWidth={2}
+                strokeDasharray="5 3"
+                dot={{ r: 3, fill: '#f59e0b', strokeWidth: 0 }}
+                connectNulls={false}
+              />
+            </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
