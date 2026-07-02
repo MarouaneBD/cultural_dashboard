@@ -65,13 +65,14 @@ export function parseExcelFile(buffer: ArrayBuffer): UploadValidationResult {
 }
 
 const DEPT_NAME_TO_PILLAR: Record<string, string> = {
-  'ادارة التعليم':           'EDUCATION',
-  'ادارة ثقافة الأسرة':     'FAMILY_CULTURE',
-  'مركز المعلومات الاسلامي': 'ISLAMIC_INFO_CENTER',
-  'مشروع البر - ذكور':      'AL_BIRR_MALE',
-  'مشروع البر - اناث':      'AL_BIRR_FEMALE',
-  'قسم الأيتام':             'ORPHANS',
-  'مكتب البرامج العلمية':    'SCIENTIFIC_PROGRAMS',
+  'ادارة التعليم':              'EDUCATION',
+  'ادارة ثقافة الأسرة':        'FAMILY_CULTURE',
+  'مركز المعلومات الاسلامي':   'ISLAMIC_INFO_CENTER',
+  'مشروع البر - ذكور':         'AL_BIRR_MALE',
+  'مشروع البر - اناث':         'AL_BIRR_FEMALE',
+  'قسم الأيتام':                'ORPHANS',
+  'مكتب البرامج العلمية':       'SCIENTIFIC_PROGRAMS',
+  'وحدة البحوث والمطبوعات':    'RESEARCH_PUBLICATIONS',
 }
 
 // Quarter column names are hardcoded to 2026.

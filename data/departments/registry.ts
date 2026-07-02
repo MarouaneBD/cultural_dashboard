@@ -9,7 +9,8 @@ import { islamicInfoCenterData }  from './islamic-info-center'
 import { alBirrMaleData }         from './al-birr-male'
 import { alBirrFemaleData }       from './al-birr-female'
 import { orphansData }            from './orphans'
-import { scientificProgramsData } from './scientific-programs'
+import { scientificProgramsData }      from './scientific-programs'
+import { researchPublicationsData }    from './research-publications'
 
 export const DEPT_DASHBOARDS: Record<PillarId, DeptConfig> = {
   EDUCATION: {
@@ -53,5 +54,11 @@ export const DEPT_DASHBOARDS: Record<PillarId, DeptConfig> = {
     icon: '📖',
     color: '#6d28d9',
     data: scientificProgramsData,
+  },
+  RESEARCH_PUBLICATIONS: {
+    nameAr: 'وحدة البحوث والمطبوعات',
+    icon: '📝',
+    color: '#0369a1',
+    data: researchPublicationsData,
   },
 }

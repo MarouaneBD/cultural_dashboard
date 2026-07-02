@@ -8,6 +8,7 @@ export type PillarId =
   | 'AL_BIRR_FEMALE'
   | 'ORPHANS'
   | 'SCIENTIFIC_PROGRAMS'
+  | 'RESEARCH_PUBLICATIONS'
 
 export interface KpiVariance {
   actual: number
