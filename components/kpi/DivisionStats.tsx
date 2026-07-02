@@ -35,7 +35,7 @@ function buildStats(kpis: KpiWithVariance[]): StatItem[] {
   return [
     {
       labelAr: 'الإدارات',
-      value: '7',
+      value: '8',
       Icon: Building2,
       note: 'departments',
     },
@@ -80,7 +80,7 @@ function buildStats(kpis: KpiWithVariance[]): StatItem[] {
 }
 
 const SKELETON_STATS: StatItem[] = [
-  { labelAr: 'الإدارات', value: '7', Icon: Building2, note: 'departments' },
+  { labelAr: 'الإدارات', value: '8', Icon: Building2, note: 'departments' },
   { labelAr: 'المؤشرات', value: '—', Icon: BarChart3, note: 'kpis' },
   { labelAr: 'على المسار', value: '—', Icon: CheckCircle2, note: 'on-track' },
   { labelAr: 'تحتاج متابعة', value: '—', Icon: AlertCircle, note: 'at-risk' },

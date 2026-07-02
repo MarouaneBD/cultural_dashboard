@@ -10,6 +10,7 @@ import { DivisionStats } from '@/components/kpi/DivisionStats'
 import { DrillDownModal } from '@/components/kpi/DrillDownModal'
 import { ExecutiveSummary } from '@/components/narrative/ExecutiveSummary'
 import { ExportButton } from '@/components/ExportButton'
+import { BeneficiaryChart } from '@/components/kpi/BeneficiaryChart'
 import { DEPT_MAP } from '@/lib/departments'
 import type { KpiWithVariance, PillarId } from '@/types'
 
@@ -82,9 +83,12 @@ export function DashboardContent() {
             }>
               <ExecutiveSummary />
             </Suspense>
+            <Suspense fallback={null}>
+              <BeneficiaryChart />
+            </Suspense>
             <Suspense fallback={
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {Array.from({ length: 7 }).map((_, i) => (
+                {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="h-36 rounded-2xl animate-pulse" style={{ background: 'var(--bg-alt)' }} />
                 ))}
               </div>

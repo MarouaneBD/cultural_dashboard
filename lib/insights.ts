@@ -14,24 +14,26 @@ export function generateInsights(data: DeptData): Insight[] {
   const { lastYear, currentYear } = data
 
   // ── 1. Best quarter last year ────────────────────────────────────────────
-  const sorted = [...lastYear.quarterlyComparison].sort(
-    (a, b) => b.achieved / b.target - a.achieved / a.target
-  )
-  const best = sorted[0]
-  const bestPct = Math.round((best.achieved / best.target) * 100)
-  insights.push({
-    text: `أفضل أداء فصلي في ${lastYear.year} كان ${best.quarter} بنسبة إنجاز ${bestPct}%`,
-    color: bestPct >= 100 ? 'green' : bestPct >= 90 ? 'green' : 'amber',
-  })
-
-  // ── 2. Worst quarter last year ───────────────────────────────────────────
-  const worst = sorted[sorted.length - 1]
-  const worstPct = Math.round((worst.achieved / worst.target) * 100)
-  if (worstPct < 95) {
+  if (lastYear.quarterlyComparison.length > 0) {
+    const sorted = [...lastYear.quarterlyComparison].sort(
+      (a, b) => b.achieved / b.target - a.achieved / a.target
+    )
+    const best = sorted[0]
+    const bestPct = Math.round((best.achieved / best.target) * 100)
     insights.push({
-      text: `${worst.quarter} كان الأضعف بنسبة ${worstPct}% — يُنصح بمراجعة أسباب التراجع`,
-      color: worstPct < 85 ? 'red' : 'amber',
+      text: `أفضل أداء فصلي في ${lastYear.year} كان ${best.quarter} بنسبة إنجاز ${bestPct}%`,
+      color: bestPct >= 90 ? 'green' : 'amber',
     })
+
+    // ── 2. Worst quarter last year ───────────────────────────────────────────
+    const worst = sorted[sorted.length - 1]
+    const worstPct = Math.round((worst.achieved / worst.target) * 100)
+    if (worstPct < 95) {
+      insights.push({
+        text: `${worst.quarter} كان الأضعف بنسبة ${worstPct}% — يُنصح بمراجعة أسباب التراجع`,
+        color: worstPct < 85 ? 'red' : 'amber',
+      })
+    }
   }
 
   // ── 3. Current year target progress per KPI ──────────────────────────────

@@ -92,10 +92,21 @@ export async function GET(
     const currentTargets = kpis
       .map(k => {
         const annualTarget = k.targets.find(t => t.period === 'ANNUAL')
-        if (!annualTarget) return null
         const lastYearActual = k.actuals.find(a => a.year === 2025 && a.period === 'ANNUAL')
-        const annualTargetVal = Math.round(Number(annualTarget.value))
         const isKpiPercent = k.unit === 'PERCENT'
+
+        // Derive annual target: explicit ANNUAL row → sum of quarterly rows → 0
+        let annualTargetVal: number
+        if (annualTarget) {
+          annualTargetVal = Math.round(Number(annualTarget.value))
+        } else {
+          const qSum = QUARTERS.reduce((s, q) => {
+            const qt = k.targets.find(t => t.period === q)
+            return s + (qt ? Math.round(Number(qt.value)) : 0)
+          }, 0)
+          annualTargetVal = qSum
+        }
+
         const quarterlyTargetVal = isKpiPercent ? annualTargetVal : Math.max(Math.round(annualTargetVal / 4), 1)
         const quarters = QUARTERS.map(q => {
           const qa = k.actuals.find(a => a.year === 2026 && a.period === q)
@@ -123,7 +134,6 @@ export async function GET(
           quarters,
         }
       })
-      .filter((x): x is NonNullable<typeof x> => x !== null)
 
     // Monthly progress 2026: spread all available quarters across their months.
     // Cumulative KPIs show a running total; snapshot KPIs show that quarter's value.
