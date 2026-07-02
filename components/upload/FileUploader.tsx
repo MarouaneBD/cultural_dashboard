@@ -81,7 +81,7 @@ export function FileUploader() {
     if (!confirm('سيتم حذف جميع الأنشطة والبيانات المخزنة. هل أنت متأكد؟')) return
     setClearing(true)
     try {
-      const res = await fetch('/api/admin/clear-data', { method: 'DELETE' })
+      const res = await fetch('/api/admin/clear-data', { method: 'POST' })
       const body = await res.json()
       if (!res.ok) {
         setMessage(body?.error ?? 'فشل مسح البيانات')

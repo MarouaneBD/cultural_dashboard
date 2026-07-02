@@ -2,27 +2,26 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/auth'
 
-export async function DELETE() {
+export const dynamic = 'force-dynamic'
+
+export async function POST() {
   const session = await auth()
-  if (!session || session.user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'غير مصرح — مطلوب دور المدير' }, { status: 403 })
+  if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'EDITOR')) {
+    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
   }
 
   try {
-    // Delete dependents before parent to respect FK constraints
-    const [deletedActuals, deletedTargets, deletedKpis] = await prisma.$transaction([
-      prisma.actual.deleteMany(),
-      prisma.target.deleteMany(),
-      prisma.kpiRegistry.deleteMany(),
-    ])
-
-    return NextResponse.json({
-      actuals: deletedActuals.count,
-      targets: deletedTargets.count,
-      kpis: deletedKpis.count,
+    // Use interactive transaction to guarantee FK-safe delete order
+    const result = await prisma.$transaction(async (tx) => {
+      const actuals = await tx.actual.deleteMany()
+      const targets = await tx.target.deleteMany()
+      const kpis    = await tx.kpiRegistry.deleteMany()
+      return { actuals: actuals.count, targets: targets.count, kpis: kpis.count }
     })
+
+    return NextResponse.json(result)
   } catch (err) {
-    console.error('DELETE /api/admin/clear-data failed', err)
+    console.error('POST /api/admin/clear-data failed', err)
     return NextResponse.json({ error: 'فشل مسح البيانات' }, { status: 500 })
   }
 }
