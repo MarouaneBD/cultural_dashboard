@@ -5,7 +5,6 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine,
 } from 'recharts'
 import type { DeptData, TargetProgress } from '@/types/department'
-import { getVarianceColor, HEX_COLORS } from '@/lib/kpi'
 
 const QUARTER_COLOR: Record<'Q1' | 'Q2' | 'Q3' | 'Q4', string> = {
   Q1: '#6366f1',
@@ -18,13 +17,12 @@ function safePct(num: number, den: number): number {
   return den <= 0 ? 0 : Math.min((num / den) * 100, 100)
 }
 
-function ActivityCard({ labelAr, target, current, unit, lowerIsBetter, lastYearValue, quarters, year }: TargetProgress & { year: number }) {
+function ActivityCard({ labelAr, target, current, unit, lowerIsBetter, lastYearValue, quarters, year, accentColor }: TargetProgress & { year: number; accentColor: string }) {
   const pct = lowerIsBetter
     ? safePct(target, Math.max(current, 1))
     : safePct(current, target)
 
-  const color = getVarianceColor(pct)
-  const barColor = HEX_COLORS[color]
+  const barColor = accentColor
 
   const fmt = (v: number | null) => {
     if (v == null) return '—'
@@ -222,7 +220,7 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
       {/* Activity cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {data.targets.map(t => (
-          <ActivityCard key={t.labelAr} {...t} year={data.year} />
+          <ActivityCard key={t.labelAr} {...t} year={data.year} accentColor={accentColor} />
         ))}
       </div>
     </section>
