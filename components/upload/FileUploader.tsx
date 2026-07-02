@@ -28,9 +28,10 @@ export function FileUploader() {
       formData.append('dryRun', 'true')
 
       const res = await fetch('/api/upload', { method: 'POST', body: formData })
-      const body = await res.json()
+      let body: any = null
+      try { body = await res.json() } catch { /* non-JSON response */ }
       if (!res.ok) {
-        setMessage(`خطأ ${res.status}: ${body?.error ?? 'خطأ في الخادم'}`)
+        setMessage(`خطأ ${res.status}: ${body?.error ?? res.statusText ?? 'خطأ في الخادم'}`)
         setStatus('error')
         return
       }
@@ -57,9 +58,10 @@ export function FileUploader() {
       formData.append('dryRun', 'false')
 
       const res = await fetch('/api/upload', { method: 'POST', body: formData })
-      const body = await res.json()
+      let body: any = null
+      try { body = await res.json() } catch { /* non-JSON response */ }
       if (!res.ok) {
-        setMessage(`خطأ ${res.status}: ${body?.error ?? 'خطأ في الخادم'}`)
+        setMessage(`خطأ ${res.status}: ${body?.error ?? res.statusText ?? 'خطأ في الخادم'}`)
         setStatus('error')
         return
       }

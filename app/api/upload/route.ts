@@ -4,28 +4,53 @@ import { isActivityFile, parseActivityFile, parseExcelFile } from '@/lib/excel'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/auth'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
 type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0]
 
 export async function POST(req: NextRequest) {
-  const session = await auth()
+  // ── Auth ─────────────────────────────────────────────────────────────────────
+  let session: { user: { role: string } } | null = null
+  try {
+    session = await auth() as any
+  } catch (err) {
+    console.error('[upload] auth() threw', err)
+    return NextResponse.json({ error: 'خطأ في التحقق من الجلسة' }, { status: 500 })
+  }
+
   if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'EDITOR')) {
     return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
   }
 
+  // ── Parse form data ──────────────────────────────────────────────────────────
+  let formData: FormData
   try {
-    const formData = await req.formData()
-    const file = formData.get('file') as File | null
-    const dryRun = formData.get('dryRun') === 'true'
+    formData = await req.formData()
+  } catch (err) {
+    console.error('[upload] formData() threw', err)
+    return NextResponse.json({ error: 'تعذّر قراءة بيانات النموذج' }, { status: 400 })
+  }
 
-    if (!file) {
-      return NextResponse.json({ error: 'الملف مطلوب' }, { status: 400 })
-    }
+  const file = formData.get('file') as File | null
+  const dryRun = formData.get('dryRun') === 'true'
 
-    const buffer = await file.arrayBuffer()
+  if (!file) {
+    return NextResponse.json({ error: 'الملف مطلوب' }, { status: 400 })
+  }
 
-    // ── Activity format ──────────────────────────────────────────────────────
+  // ── Read buffer ──────────────────────────────────────────────────────────────
+  let buffer: ArrayBuffer
+  try {
+    buffer = await file.arrayBuffer()
+  } catch (err) {
+    console.error('[upload] arrayBuffer() threw', err)
+    return NextResponse.json({ error: 'تعذّر قراءة الملف' }, { status: 400 })
+  }
+
+  try {
+    // ── Activity format ────────────────────────────────────────────────────────
     if (isActivityFile(buffer)) {
       const { rows, errors } = parseActivityFile(buffer)
 
@@ -37,7 +62,6 @@ export async function POST(req: NextRequest) {
       let updated = 0
       const dbErrors: Array<{ row: number; message: string }> = []
 
-      // Process all rows in a single transaction to avoid per-row roundtrip overhead
       try {
         await prisma.$transaction(async (tx: TxClient) => {
           for (let i = 0; i < rows.length; i++) {
@@ -81,20 +105,20 @@ export async function POST(req: NextRequest) {
 
               if (existing) { updated++ } else { created++ }
             } catch (err) {
-              console.error('upload row failed', i + 2, err)
+              console.error('[upload] row failed', i + 2, err)
               dbErrors.push({ row: i + 2, message: `خطأ في حفظ النشاط: ${row.nameAr}` })
             }
           }
         }, { timeout: 50000 })
       } catch (err) {
-        console.error('upload transaction failed', err)
+        console.error('[upload] transaction failed', err)
         return NextResponse.json({ error: 'فشل حفظ البيانات' }, { status: 500 })
       }
 
       return NextResponse.json({ created, updated, errors: [...errors, ...dbErrors] })
     }
 
-    // ── Legacy format ────────────────────────────────────────────────────────
+    // ── Legacy format ──────────────────────────────────────────────────────────
     const { valid, errors } = parseExcelFile(buffer)
 
     if (dryRun) {
@@ -126,13 +150,13 @@ export async function POST(req: NextRequest) {
         }
       }, { timeout: 50000 })
     } catch (err) {
-      console.error('legacy upload transaction failed', err)
+      console.error('[upload] legacy transaction failed', err)
       return NextResponse.json({ error: 'فشل حفظ البيانات' }, { status: 500 })
     }
 
     return NextResponse.json({ imported, errors: [...errors, ...dbErrors] })
   } catch (err) {
-    console.error('POST /api/upload failed', err)
-    return NextResponse.json({ error: 'خطأ في معالجة الملف' }, { status: 500 })
+    console.error('[upload] unhandled error', err)
+    return NextResponse.json({ error: `خطأ في معالجة الملف: ${String(err)}` }, { status: 500 })
   }
 }
