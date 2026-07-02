@@ -33,7 +33,8 @@ export async function GET(req: NextRequest) {
     const targetMap = new Map<string, number>()
 
     for (const kpi of kpis) {
-      const category = kpi.owner?.trim() || 'أخرى'
+      const category = kpi.owner?.trim()
+      if (!category) continue   // skip KPIs with no category
 
       // YTD actual
       const quarterMap: Partial<Record<'Q1' | 'Q2' | 'Q3' | 'Q4', number>> = {}
@@ -66,7 +67,7 @@ export async function GET(req: NextRequest) {
         total:  actualMap.get(category)  ?? 0,
         target: targetMap.get(category)  ?? 0,
       }))
-      .filter(d => d.total > 0 || d.target > 0)
+      .filter(d => (d.total > 0 || d.target > 0) && d.category !== 'أخرى')
       .sort((a, b) => b.total - a.total)
       .map((d, i) => ({ ...d, color: CATEGORY_COLORS[i % CATEGORY_COLORS.length] }))
 
