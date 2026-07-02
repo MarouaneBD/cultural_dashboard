@@ -42,7 +42,10 @@ export default auth((req) => {
 })
 
 export const config = {
+  // Only run middleware on page routes — API routes handle their own auth.
+  // NextAuth v5 middleware can interfere with FormData/multipart POST bodies
+  // when it wraps requests on the Edge runtime before they reach Node.js handlers.
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|dabs-logo.png|api/auth|api/debug-auth).*)',
+    '/((?!_next/static|_next/image|favicon.ico|dabs-logo.png|api/).*)',
   ],
 }
