@@ -4,17 +4,17 @@ import { computeYtd } from '@/lib/kpi'
 
 export const dynamic = 'force-dynamic'
 
-const CATEGORY_COLORS = [
-  '#0891b2', '#7c3aed', '#059669', '#d97706',
-  '#be185d', '#0369a1', '#6d28d9', '#dc2626',
-  '#0f766e', '#92400e',
-]
-
 export interface CategoryTotal {
   category: string
-  total: number
+  total: number    // YTD actual
+  target: number   // annual target (sum across all KPIs in this category)
   color: string
 }
+
+const CATEGORY_COLORS = [
+  '#0f4024', '#b8822a', '#0891b2', '#7c3aed',
+  '#be185d', '#059669', '#0369a1', '#d97706',
+]
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
@@ -24,15 +24,18 @@ export async function GET(req: NextRequest) {
     const kpis = await prisma.kpiRegistry.findMany({
       where: { unit: 'COUNT' },
       include: {
-        actuals: { where: { year } },
+        actuals:  { where: { year } },
+        targets:  { where: { year } },
       },
     })
 
-    // Group by owner (category), sum YTD per KPI
-    const map = new Map<string, number>()
+    const actualMap = new Map<string, number>()
+    const targetMap = new Map<string, number>()
 
     for (const kpi of kpis) {
       const category = kpi.owner?.trim() || 'أخرى'
+
+      // YTD actual
       const quarterMap: Partial<Record<'Q1' | 'Q2' | 'Q3' | 'Q4', number>> = {}
       for (const a of kpi.actuals) {
         if (['Q1', 'Q2', 'Q3', 'Q4'].includes(a.period)) {
@@ -40,19 +43,32 @@ export async function GET(req: NextRequest) {
         }
       }
       const ytd = computeYtd(quarterMap, kpi.activityType)
-      if (ytd !== null && ytd > 0) {
-        map.set(category, (map.get(category) ?? 0) + Math.round(ytd))
+      if (ytd !== null) {
+        actualMap.set(category, (actualMap.get(category) ?? 0) + Math.round(ytd))
+      }
+
+      // Annual target (prefer ANNUAL row; fall back to sum of quarterly)
+      const annual = kpi.targets.find(t => t.period === 'ANNUAL')
+      const targetVal = annual
+        ? Math.round(Number(annual.value))
+        : kpi.targets.reduce((s, t) => s + Math.round(Number(t.value)), 0)
+      if (targetVal > 0) {
+        targetMap.set(category, (targetMap.get(category) ?? 0) + targetVal)
       }
     }
 
-    // Sort by total desc, assign colors
-    const result: CategoryTotal[] = Array.from(map.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([category, total], i) => ({
+    // Union of all categories seen in actuals or targets
+    const allCategories = new Set([...actualMap.keys(), ...targetMap.keys()])
+
+    const result: CategoryTotal[] = Array.from(allCategories)
+      .map(category => ({
         category,
-        total,
-        color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+        total:  actualMap.get(category)  ?? 0,
+        target: targetMap.get(category)  ?? 0,
       }))
+      .filter(d => d.total > 0 || d.target > 0)
+      .sort((a, b) => b.total - a.total)
+      .map((d, i) => ({ ...d, color: CATEGORY_COLORS[i % CATEGORY_COLORS.length] }))
 
     return NextResponse.json(result)
   } catch (err) {
