@@ -1,23 +1,16 @@
 'use client'
 
-import type { VarianceColor } from '@/types'
-
-const BAR_COLORS: Record<VarianceColor, { fill: string; track: string }> = {
-  green: { fill: '#22c55e', track: '#bbf7d0' },
-  amber: { fill: '#f59e0b', track: '#fde68a' },
-  red:   { fill: '#ef4444', track: '#fecaca' },
-}
-
 interface SparklineChartProps {
   data: number[]
-  color: VarianceColor
+  color: string   // hex color — always fixed, never variance-based
 }
 
 export function SparklineChart({ data, color }: SparklineChartProps) {
   if (!data.length) return null
 
   const max = Math.max(...data)
-  const { fill, track } = BAR_COLORS[color]
+  // Track is the same hue at 25% opacity
+  const track = `${color}40`
 
   return (
     <div className="flex items-end gap-[2px] w-full h-full">
@@ -30,7 +23,7 @@ export function SparklineChart({ data, color }: SparklineChartProps) {
             className="flex-1 rounded-t-[3px] min-h-[4px]"
             style={{
               height: `${heightPct}%`,
-              background: isLast ? fill : track,
+              background: isLast ? color : track,
             }}
           />
         )
