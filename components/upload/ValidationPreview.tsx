@@ -31,6 +31,7 @@ export function ValidationPreview(props: Props) {
               <tr className="bg-slate-50 text-slate-500">
                 <th className="text-right p-2 border">الوحدة التنظيمية</th>
                 <th className="text-right p-2 border">الأنشطة</th>
+                <th className="text-right p-2 border">نوع النشاط</th>
                 <th className="text-right p-2 border">الفئة</th>
                 <th className="text-right p-2 border">2025</th>
                 <th className="text-right p-2 border">المستهدف 2026</th>
@@ -42,6 +43,9 @@ export function ValidationPreview(props: Props) {
                 <tr key={i} className="border-b">
                   <td className="p-2 border font-cairo">{DEPT_MAP[row.pillar]?.labelAr ?? row.pillar}</td>
                   <td className="p-2 border font-cairo">{row.nameAr}</td>
+                  <td className="p-2 border font-cairo">
+                    {row.activityType === 'CUMULATIVE' ? 'تراكمي' : 'شهري'}
+                  </td>
                   <td className="p-2 border">{row.category ?? '—'}</td>
                   <td className="p-2 border tabular-nums">{row.actual2025?.toLocaleString('ar-AE') ?? '—'}</td>
                   <td className="p-2 border tabular-nums">{row.target2026?.toLocaleString('ar-AE') ?? '—'}</td>

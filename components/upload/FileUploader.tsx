@@ -101,7 +101,7 @@ export function FileUploader() {
       >
         <p className="text-slate-500 text-sm">اسحب ملف Excel أو CSV هنا، أو انقر للاختيار</p>
         <p className="text-xs text-slate-400 mt-1">
-          الأعمدة المتوقعة: الوحدة التنظيمية · الأنشطة · 2025 · المستهدف 2026 · 2026 Q1 · الفئة
+          الأعمدة المتوقعة: الوحدة التنظيمية · الأنشطة · نوع النشاط · 2025 · المستهدف 2026 · 2026 Q1 · الفئة
         </p>
         <input
           ref={inputRef}

@@ -89,12 +89,29 @@ const toNum = (v: unknown) => {
   return isNaN(n) || v === '' ? undefined : n
 }
 
+/** Strip invisible Unicode chars Excel adds to Arabic text (RTL marks, ZWNBSP, NBSP, etc.) */
+function normalizeAr(s: string): string {
+  return s.replace(/[\u200b-\u200f\u202a-\u202e\u2060\ufeff\u00a0]/g, '').trim()
+}
+
+/** Find a value in a raw Excel row by column name, tolerating invisible Unicode in headers */
+function getCol(raw: Record<string, unknown>, name: string): unknown {
+  // Try exact match first
+  if (name in raw) return raw[name]
+  // Fall back to normalized match
+  const normalName = normalizeAr(name)
+  for (const key of Object.keys(raw)) {
+    if (normalizeAr(key) === normalName) return raw[key]
+  }
+  return undefined
+}
+
 export function isActivityFile(buffer: ArrayBuffer): boolean {
   try {
     const wb = XLSX.read(new Uint8Array(buffer))
     const sheet = wb.Sheets[wb.SheetNames[0]]
     const [headers] = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 })
-    return (headers ?? []).some(h => String(h).trim() === 'الأنشطة')
+    return (headers ?? []).some(h => normalizeAr(String(h)) === 'الأنشطة')
   } catch {
     return false
   }
@@ -111,12 +128,12 @@ export function parseActivityFile(buffer: ArrayBuffer): ActivityUploadResult {
 
     rawRows.forEach((raw, index) => {
       const rowNum = index + 2
-      const nameAr = String(raw['الأنشطة'] ?? '').trim()
+      const nameAr = normalizeAr(String(getCol(raw, 'الأنشطة') ?? ''))
 
       // Skip blank activity rows silently
       if (!nameAr) return
 
-      const deptRaw = String(raw['الوحدة التنظيمية'] ?? '').trim()
+      const deptRaw = normalizeAr(String(getCol(raw, 'الوحدة التنظيمية') ?? ''))
       const pillar = DEPT_NAME_TO_PILLAR[deptRaw]
 
       if (!pillar) {
@@ -126,19 +143,19 @@ export function parseActivityFile(buffer: ArrayBuffer): ActivityUploadResult {
 
       const actuals: Partial<Record<'Q1' | 'Q2' | 'Q3' | 'Q4', number>> = {}
       for (const [col, q] of Object.entries(QUARTER_COL)) {
-        const val = toNum(raw[col])
+        const val = toNum(getCol(raw, col))
         if (val !== undefined) actuals[q] = val
       }
 
-      const activityTypeRaw = String(raw['نوع النشاط'] ?? '').trim()
+      const activityTypeRaw = normalizeAr(String(getCol(raw, 'نوع النشاط') ?? ''))
       const activityType: ActivityType = ACTIVITY_TYPE_MAP[activityTypeRaw] ?? 'MONTHLY_VARIANCE'
 
       rows.push({
         nameAr,
         pillar: pillar as ActivityRow['pillar'],
-        category: String(raw['الفئة'] ?? '').trim() || undefined,
-        actual2025: toNum(raw['2025']),
-        target2026: toNum(raw['المستهدف 2026']),
+        category: normalizeAr(String(getCol(raw, 'الفئة') ?? '')) || undefined,
+        actual2025: toNum(getCol(raw, '2025')),
+        target2026: toNum(getCol(raw, 'المستهدف 2026')),
         actuals,
         activityType,
       })

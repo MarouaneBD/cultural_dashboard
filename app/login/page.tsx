@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
-import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
@@ -14,23 +13,37 @@ export default function LoginPage() {
     setError(null)
     setIsPending(true)
 
-    const form = new FormData(e.currentTarget)
-    const result = await signIn('credentials', {
-      username: form.get('username') as string,
-      password: form.get('password') as string,
-      redirect: false,
-    })
+    const form = e.currentTarget
+    const username = (form.elements.namedItem('username') as HTMLInputElement).value
+    const password = (form.elements.namedItem('password') as HTMLInputElement).value
 
-    setIsPending(false)
+    try {
+      // Step 1: get CSRF token — browser stores the cookie automatically
+      const csrfRes = await fetch('/api/auth/csrf')
+      const { csrfToken } = await csrfRes.json()
 
-    if (!result || result.error) {
+      // Step 2: POST credentials + CSRF token to NextAuth callback
+      const res = await fetch('/api/auth/callback/credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ username, password, csrfToken, callbackUrl: '/dashboard' }).toString(),
+      })
+
+      // On success NextAuth redirects → fetch follows → final URL is /dashboard
+      // On failure NextAuth redirects → final URL contains /login?error=
+      if (res.redirected && !res.url.includes('error=')) {
+        router.push('/dashboard')
+        router.refresh()
+        return
+      }
+
       setError('اسم المستخدم أو كلمة المرور غير صحيحة')
-      return
+    } catch (err) {
+      console.error('[login]', err)
+      setError('حدث خطأ، يرجى المحاولة مرة أخرى')
+    } finally {
+      setIsPending(false)
     }
-
-    // Session is now updated in SessionProvider — navigate to dashboard
-    router.push('/dashboard')
-    router.refresh()
   }
 
   return (
@@ -57,11 +70,7 @@ export default function LoginPage() {
               required
               autoComplete="username"
               className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2"
-              style={{
-                background: 'var(--bg-alt)',
-                borderColor: 'var(--border)',
-                color: 'var(--ink)',
-              }}
+              style={{ background: 'var(--bg-alt)', borderColor: 'var(--border)', color: 'var(--ink)' }}
             />
           </div>
 
@@ -75,11 +84,7 @@ export default function LoginPage() {
               required
               autoComplete="current-password"
               className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2"
-              style={{
-                background: 'var(--bg-alt)',
-                borderColor: 'var(--border)',
-                color: 'var(--ink)',
-              }}
+              style={{ background: 'var(--bg-alt)', borderColor: 'var(--border)', color: 'var(--ink)' }}
             />
           </div>
 

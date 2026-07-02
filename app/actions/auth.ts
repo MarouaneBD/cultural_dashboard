@@ -7,10 +7,16 @@ export async function signInAction(
   _prev: string | null,
   formData: FormData,
 ): Promise<string | null> {
+  const username = formData.get('username') as string
+  const password = formData.get('password') as string
   try {
-    await signIn('credentials', formData)
+    await signIn('credentials', {
+      username,
+      password,
+      redirectTo: '/dashboard',
+    })
     return null
-  } catch (err) {
+  } catch (err: any) {
     if (err instanceof AuthError) return 'invalid'
     throw err   // re-throws NEXT_REDIRECT → 303 full-page reload
   }

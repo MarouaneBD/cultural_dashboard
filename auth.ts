@@ -33,7 +33,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             role: user.role,
             mustChangePassword: user.mustChangePassword,
           }
-        } catch {
+        } catch (err) {
+          console.error('[authorize] error:', err)
           return null
         }
       },
