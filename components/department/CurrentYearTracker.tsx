@@ -1,7 +1,7 @@
 'use client'
 
 import {
-  ResponsiveContainer, LineChart, Line,
+  ResponsiveContainer, ComposedChart, Bar, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine,
 } from 'recharts'
 import type { DeptData, TargetProgress } from '@/types/department'
@@ -154,11 +154,16 @@ function buildTrendChart(targets: TargetProgress[], year: number) {
       const qd = t.quarters.find(x => x.q === q)
       return s + (qd?.target ?? 0)
     }, 0)
-    return { label: q, actual: hasData ? totalActual : null, target: totalTarget || null }
+    return {
+      label: q,
+      prevYear: null as number | null,
+      quarterly: hasData ? totalActual : null,
+      target: totalTarget || null,
+    }
   })
 
   return [
-    { label: String(prevYear), actual: total2025, target: null },
+    { label: String(prevYear), prevYear: total2025, quarterly: null, target: null },
     ...quarters,
   ]
 }
@@ -179,7 +184,7 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
         </p>
         <div dir="ltr" style={{ width: '100%', height: 220 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 8, right: 20, left: -10, bottom: 0 }}>
+            <ComposedChart data={chartData} margin={{ top: 8, right: 20, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} />
               <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10, fill: '#94a3b8' }} />
@@ -191,17 +196,27 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
                 ]}
               />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              {/* 2025 baseline as a reference segment — rendered via the actual line */}
-              <ReferenceLine x={String(data.year - 1)} stroke="rgba(0,0,0,.08)" />
+              <ReferenceLine x={String(data.year - 1)} stroke="rgba(0,0,0,.10)" strokeDasharray="4 3" />
+              {/* Previous year — single dot rendered as a line */}
               <Line
                 type="monotone"
-                dataKey="actual"
-                name="الفعلي"
-                stroke={accentColor}
-                strokeWidth={2.5}
-                dot={{ r: 4, fill: accentColor, strokeWidth: 0 }}
+                dataKey="prevYear"
+                name={String(data.year - 1)}
+                stroke="#94a3b8"
+                strokeWidth={0}
+                dot={{ r: 6, fill: '#94a3b8', strokeWidth: 2, stroke: '#fff' }}
                 connectNulls={false}
               />
+              {/* Current year quarterly actuals — bars */}
+              <Bar
+                dataKey="quarterly"
+                name={`أرباع ${data.year}`}
+                fill={accentColor}
+                radius={[4, 4, 0, 0]}
+                maxBarSize={48}
+                fillOpacity={0.85}
+              />
+              {/* Quarterly target — dashed line */}
               <Line
                 type="monotone"
                 dataKey="target"
@@ -212,7 +227,7 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
                 dot={{ r: 3, fill: '#f59e0b', strokeWidth: 0 }}
                 connectNulls={false}
               />
-            </LineChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       </div>
