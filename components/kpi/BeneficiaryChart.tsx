@@ -57,7 +57,7 @@ function ConcentricRings({
   const maxR  = cx - SW / 2 - 6   // leave a small outer margin
 
   return (
-    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+    <div style={{ width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         {segments.map((seg, i) => {
           const r    = maxR - i * STEP
@@ -90,39 +90,6 @@ function ConcentricRings({
           )
         })}
       </svg>
-
-      {/* Centre: total */}
-      <div
-        style={{
-          position: 'absolute', inset: 0,
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          pointerEvents: 'none',
-        }}
-      >
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-          background: 'var(--card-bg)',
-          borderRadius: 12,
-          padding: '8px 14px',
-          boxShadow: '0 1px 6px rgba(0,0,0,.08)',
-          border: '1px solid var(--border)',
-          gap: 2,
-        }}>
-          <span
-            className="font-fraunces font-semibold leading-none"
-            style={{ fontSize: 26, color: 'var(--ink)', letterSpacing: '-.03em' }}
-          >
-            {fmt(total)}
-          </span>
-          <span
-            className="font-cairo text-[10px]"
-            style={{ color: 'var(--ink-muted)' }}
-          >
-            إجمالي
-          </span>
-        </div>
-      </div>
     </div>
   )
 }
@@ -166,41 +133,59 @@ function StakeholdersCard({
         <ConcentricRings segments={segments} total={total} size={220} />
 
         {/* Legend */}
-        <ul className="flex-1 flex flex-col gap-3 min-w-0">
-          {items.map((d, i) => {
-            const pct = total > 0 ? Math.round((d.total / total) * 100) : 0
-            return (
-              <li key={i} className="flex items-center gap-2.5 min-w-0">
-                {/* Ring indicator dot */}
-                <span
-                  className="flex-shrink-0 rounded-full"
-                  style={{ width: 9, height: 9, background: d.segColor, boxShadow: `0 0 0 2px ${d.segColor}30` }}
-                />
-                {/* Name */}
-                <span
-                  className="font-cairo text-[12.5px] leading-snug flex-1 truncate text-right"
-                  style={{ color: 'var(--ink)' }}
-                >
-                  {d.category}
-                </span>
-                {/* Number */}
-                <span
-                  className="font-jb text-[11px] font-semibold flex-shrink-0"
-                  style={{ color: d.segColor }}
-                >
-                  {fmt(d.total)}
-                </span>
-                {/* Pct badge */}
-                <span
-                  className="font-jb text-[10px] flex-shrink-0 rounded-md px-1.5 py-0.5"
-                  style={{ background: `${d.segColor}15`, color: d.segColor, minWidth: 36, textAlign: 'center' }}
-                >
-                  {pct}%
-                </span>
-              </li>
-            )
-          })}
-        </ul>
+        <div className="flex-1 flex flex-col min-w-0">
+          <ul className="flex flex-col gap-3">
+            {items.map((d, i) => {
+              const pct = total > 0 ? Math.round((d.total / total) * 100) : 0
+              return (
+                <li key={i} className="flex items-center gap-2.5 min-w-0">
+                  {/* Ring indicator dot */}
+                  <span
+                    className="flex-shrink-0 rounded-full"
+                    style={{ width: 9, height: 9, background: d.segColor, boxShadow: `0 0 0 2px ${d.segColor}30` }}
+                  />
+                  {/* Name */}
+                  <span
+                    className="font-cairo text-[12.5px] leading-snug flex-1 truncate text-right"
+                    style={{ color: 'var(--ink)' }}
+                  >
+                    {d.category}
+                  </span>
+                  {/* Number */}
+                  <span
+                    className="font-jb text-[11px] font-semibold flex-shrink-0"
+                    style={{ color: d.segColor }}
+                  >
+                    {fmt(d.total)}
+                  </span>
+                  {/* Pct badge */}
+                  <span
+                    className="font-jb text-[10px] flex-shrink-0 rounded-md px-1.5 py-0.5"
+                    style={{ background: `${d.segColor}15`, color: d.segColor, minWidth: 36, textAlign: 'center' }}
+                  >
+                    {pct}%
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
+
+          {/* Total row */}
+          <div
+            className="flex items-center justify-between mt-4 pt-3"
+            style={{ borderTop: '1px solid var(--hair)' }}
+          >
+            <span className="font-cairo text-[11px]" style={{ color: 'var(--ink-muted)' }}>
+              الإجمالي
+            </span>
+            <span
+              className="font-fraunces font-semibold leading-none"
+              style={{ fontSize: 20, color: 'var(--ink)', letterSpacing: '-.02em' }}
+            >
+              {fmt(total)}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   )
