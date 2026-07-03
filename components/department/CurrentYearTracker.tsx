@@ -17,6 +17,13 @@ function safePct(num: number, den: number): number {
   return den <= 0 ? 0 : Math.min((num / den) * 100, 100)
 }
 
+/** Compact number for chart labels/axis — no thousand comma */
+function fmtAxis(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}م`
+  if (n >= 1_000)     return `${Math.round(n / 1_000)} الف`
+  return String(Math.round(n))
+}
+
 function ActivityCard({ labelAr, target, current, unit, lowerIsBetter, lastYearValue, quarters, year, accentColor }: TargetProgress & { year: number; accentColor: string }) {
   const pct = lowerIsBetter
     ? safePct(target, Math.max(current, 1))
@@ -28,7 +35,7 @@ function ActivityCard({ labelAr, target, current, unit, lowerIsBetter, lastYearV
     if (v == null) return '—'
     if (unit === '%') return `${Math.round(v)}%`
     if (unit === 'AED') return `${Math.round(v).toLocaleString('en')} د.إ`
-    return Math.round(v).toLocaleString('en')
+    return String(Math.round(v))
   }
 
   return (
@@ -179,7 +186,14 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
             <ComposedChart data={chartData} margin={{ top: 8, right: 20, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} />
-              <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+              <YAxis
+                domain={[
+                  0,
+                  (dataMax: number) =>
+                    Math.ceil(Math.max(dataMax, prevYearTotal ?? 0) * 1.12),
+                ]}
+                tick={{ fontSize: 10, fill: '#94a3b8' }}
+              />
               <Tooltip
                 contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 }}
                 formatter={(v: unknown, name) => [
@@ -196,7 +210,7 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
                   strokeWidth={2}
                   strokeDasharray="6 3"
                   label={{
-                    value: `${data.year - 1}  ${prevYearTotal.toLocaleString('en')}`,
+                    value: `${data.year - 1}  ${fmtAxis(prevYearTotal)}`,
                     position: 'insideTopRight',
                     fontSize: 10,
                     fill: '#94a3b8',
