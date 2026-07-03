@@ -106,10 +106,7 @@ function ActivityCard({ labelAr, target, current, unit, lowerIsBetter, lastYearV
 
         {/* Footer: cumulative progress vs annual target */}
         <div style={{ borderTop: '1px solid var(--hair)', paddingTop: 10 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-            <span className="font-jb text-[10px]" style={{ color: 'var(--ink-muted)' }}>
-              المستهدف: {fmt(target)}
-            </span>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 5 }}>
             <span className="font-jb text-[11px] font-bold" style={{ color: barColor }}>
               {Math.round(pct)}%
             </span>
@@ -138,9 +135,8 @@ interface Props {
 }
 
 function buildTrendChart(targets: TargetProgress[], year: number) {
-  const prevYear = year - 1
   const has2025 = targets.some(t => t.lastYearValue != null)
-  const total2025 = has2025
+  const prevYearTotal = has2025
     ? targets.reduce((s, t) => s + (t.lastYearValue ?? 0), 0)
     : null
 
@@ -156,20 +152,16 @@ function buildTrendChart(targets: TargetProgress[], year: number) {
     }, 0)
     return {
       label: q,
-      prevYear: null as number | null,
       quarterly: hasData ? totalActual : null,
       target: totalTarget || null,
     }
   })
 
-  return [
-    { label: String(prevYear), prevYear: total2025, quarterly: null, target: null },
-    ...quarters,
-  ]
+  return { chartData: quarters, prevYearTotal }
 }
 
 export function CurrentYearTracker({ data, accentColor }: Props) {
-  const chartData = buildTrendChart(data.targets, data.year)
+  const { chartData, prevYearTotal } = buildTrendChart(data.targets, data.year)
 
   return (
     <section className="space-y-5">
@@ -196,17 +188,21 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
                 ]}
               />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <ReferenceLine x={String(data.year - 1)} stroke="rgba(0,0,0,.10)" strokeDasharray="4 3" />
-              {/* Previous year — single dot rendered as a line */}
-              <Line
-                type="monotone"
-                dataKey="prevYear"
-                name={String(data.year - 1)}
-                stroke="#94a3b8"
-                strokeWidth={0}
-                dot={{ r: 6, fill: '#94a3b8', strokeWidth: 2, stroke: '#fff' }}
-                connectNulls={false}
-              />
+              {/* Previous year — horizontal reference line across all quarters */}
+              {prevYearTotal != null && (
+                <ReferenceLine
+                  y={prevYearTotal}
+                  stroke="#94a3b8"
+                  strokeWidth={2}
+                  strokeDasharray="6 3"
+                  label={{
+                    value: `${data.year - 1}  ${prevYearTotal.toLocaleString('en')}`,
+                    position: 'insideTopRight',
+                    fontSize: 10,
+                    fill: '#94a3b8',
+                  }}
+                />
+              )}
               {/* Current year quarterly actuals — bars */}
               <Bar
                 dataKey="quarterly"
