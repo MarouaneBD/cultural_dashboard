@@ -23,18 +23,18 @@ function matchesAny(cat: string, patterns: string[]) {
 
 function fmt(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}م`
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)} الاف`
+  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)} الف`
   return n.toLocaleString('en')
 }
 
 function fmtCard(n: number, category: string): string {
   if (category.includes('اصدار') || category.includes('إصدار')) {
-    if (n >= 1_000) return `${Math.round(n / 1_000)} مطبوع`
-    return `${Math.round(n).toLocaleString('en')} مطبوع`
+    if (n >= 1_000) return `${Math.round(n / 1_000)} الف`
+    return Math.round(n).toLocaleString('en')
   }
   if (category.includes('مستفيد')) {
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)} مليون`
-    if (n >= 1_000)     return `${(n / 1_000).toFixed(1)} الاف`
+    if (n >= 1_000)     return `${(n / 1_000).toFixed(1)} الف`
     return n.toLocaleString('en')
   }
   return fmt(n)
@@ -100,18 +100,28 @@ function ConcentricRings({
           pointerEvents: 'none',
         }}
       >
-        <span
-          className="font-fraunces font-medium leading-none"
-          style={{ fontSize: 22, color: 'var(--ink)', letterSpacing: '-.02em' }}
-        >
-          {fmt(total)}
-        </span>
-        <span
-          className="font-cairo text-[10px] mt-1"
-          style={{ color: 'var(--ink-muted)' }}
-        >
-          إجمالي
-        </span>
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          background: 'var(--card-bg)',
+          borderRadius: 12,
+          padding: '8px 14px',
+          boxShadow: '0 1px 6px rgba(0,0,0,.08)',
+          border: '1px solid var(--border)',
+          gap: 2,
+        }}>
+          <span
+            className="font-fraunces font-semibold leading-none"
+            style={{ fontSize: 26, color: 'var(--ink)', letterSpacing: '-.03em' }}
+          >
+            {fmt(total)}
+          </span>
+          <span
+            className="font-cairo text-[10px]"
+            style={{ color: 'var(--ink-muted)' }}
+          >
+            إجمالي
+          </span>
+        </div>
       </div>
     </div>
   )
