@@ -92,7 +92,19 @@ export async function GET(
     const currentTargets = kpis
       .map(k => {
         const annualTarget = k.targets.find(t => t.period === 'ANNUAL')
-        const lastYearActual = k.actuals.find(a => a.year === 2025 && a.period === 'ANNUAL')
+        // Derive 2025 annual: prefer ANNUAL row, else compute YTD from quarterly rows
+        const lastYearAnnualRow = k.actuals.find(a => a.year === 2025 && a.period === 'ANNUAL')
+        let lastYearActual: { value: number | string } | null = lastYearAnnualRow ?? null
+        if (!lastYearActual) {
+          const q2025Map: Partial<Record<'Q1' | 'Q2' | 'Q3' | 'Q4', number>> = {}
+          for (const a of k.actuals) {
+            if (a.year === 2025 && (QUARTERS as readonly string[]).includes(a.period)) {
+              q2025Map[a.period as 'Q1' | 'Q2' | 'Q3' | 'Q4'] = Number(a.value)
+            }
+          }
+          const ytd2025 = computeYtd(q2025Map, k.activityType)
+          if (ytd2025 !== null) lastYearActual = { value: ytd2025 }
+        }
         const isKpiPercent = k.unit === 'PERCENT'
 
         // Derive annual target: explicit ANNUAL row → sum of quarterly rows → 0
