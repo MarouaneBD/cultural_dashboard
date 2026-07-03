@@ -3,7 +3,7 @@ export const DEPARTMENTS = [
   { id: 'FAMILY_CULTURE',        labelAr: 'ادارة ثقافة الأسرة',        icon: '👨‍👩‍👧', color: '#7c3aed' },
   { id: 'ISLAMIC_INFO_CENTER',   labelAr: 'مركز المعلومات الاسلامي',   icon: '🕌', color: '#059669' },
   { id: 'AL_BIRR_MALE',          labelAr: 'مشروع البر - ذكور',         icon: '👦', color: '#0369a1' },
-  { id: 'AL_BIRR_FEMALE',        labelAr: 'مشروع البر - اناث',         icon: '👧', color: '#be185d' },
+  { id: 'AL_BIRR_FEMALE',        labelAr: 'مشروع البر - اناث',         icon: '👧', color: '#0d9488' },
   { id: 'ORPHANS',               labelAr: 'قسم الأيتام',               icon: '🤲', color: '#d97706' },
   { id: 'SCIENTIFIC_PROGRAMS',   labelAr: 'مكتب البرامج العلمية',      icon: '📖', color: '#6d28d9' },
   { id: 'RESEARCH_PUBLICATIONS', labelAr: 'وحدة البحوث والمطبوعات',    icon: '📝', color: '#0369a1' },

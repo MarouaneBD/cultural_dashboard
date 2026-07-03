@@ -26,9 +26,9 @@ function ActivityCard({ labelAr, target, current, unit, lowerIsBetter, lastYearV
 
   const fmt = (v: number | null) => {
     if (v == null) return '—'
-    if (unit === '%') return `${v}%`
-    if (unit === 'AED') return `${v.toLocaleString('en')} د.إ`
-    return v.toLocaleString('en')
+    if (unit === '%') return `${Math.round(v)}%`
+    if (unit === 'AED') return `${Math.round(v).toLocaleString('en')} د.إ`
+    return Math.round(v).toLocaleString('en')
   }
 
   return (

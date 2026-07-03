@@ -40,7 +40,7 @@ export const DEPT_DASHBOARDS: Record<PillarId, DeptConfig> = {
   AL_BIRR_FEMALE: {
     nameAr: 'مشروع البر - اناث',
     icon: '👧',
-    color: '#be185d',
+    color: '#0d9488',
     data: alBirrFemaleData,
   },
   ORPHANS: {

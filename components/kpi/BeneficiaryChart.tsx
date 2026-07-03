@@ -23,18 +23,18 @@ function matchesAny(cat: string, patterns: string[]) {
 
 function fmt(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}م`
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}ك`
+  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)} الاف`
   return n.toLocaleString('en')
 }
 
 function fmtCard(n: number, category: string): string {
   if (category.includes('اصدار') || category.includes('إصدار')) {
-    if (n >= 1_000) return `${(n / 1_000).toFixed(1)} مطبوع`
-    return `${n.toLocaleString('en')} مطبوع`
+    if (n >= 1_000) return `${Math.round(n / 1_000)} مطبوع`
+    return `${Math.round(n).toLocaleString('en')} مطبوع`
   }
   if (category.includes('مستفيد')) {
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)} مليون`
-    if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}ك`
+    if (n >= 1_000)     return `${(n / 1_000).toFixed(1)} الاف`
     return n.toLocaleString('en')
   }
   return fmt(n)
