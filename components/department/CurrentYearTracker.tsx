@@ -52,27 +52,18 @@ function ActivityCard({ labelAr, target, current, unit, lowerIsBetter, lastYearV
       </div>
 
       <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {/* Two-column stat row: last year vs current year */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          <div className="rounded-xl p-2.5 text-center" style={{ background: 'var(--bg-alt)' }}>
-            <p className="font-space text-[9px] tracking-[.08em] uppercase mb-1" style={{ color: 'var(--ink-muted)' }}>
-              {year - 1}
-            </p>
-            <p className="font-fraunces font-medium leading-none" style={{ fontSize: 20, color: 'var(--ink-soft)', letterSpacing: '-.02em' }}>
-              {fmt(lastYearValue)}
-            </p>
-          </div>
-          <div className="rounded-xl p-2.5 text-center" style={{
-            background: `${barColor}0f`,
-            border: `1px solid ${barColor}30`,
-          }}>
-            <p className="font-space text-[9px] tracking-[.08em] uppercase mb-1" style={{ color: barColor }}>
-              {year} حتى الآن
-            </p>
-            <p className="font-fraunces font-medium leading-none" style={{ fontSize: 20, color: 'var(--ink)', letterSpacing: '-.02em' }}>
-              {fmt(current)}
-            </p>
-          </div>
+        {/* Hero: current year progress — single large number */}
+        <div className="rounded-xl text-center" style={{
+          background: `${barColor}0f`,
+          border: `1px solid ${barColor}30`,
+          padding: '12px 10px',
+        }}>
+          <p className="font-space text-[9px] tracking-[.08em] uppercase mb-1.5" style={{ color: barColor }}>
+            {year} حتى الآن
+          </p>
+          <p className="font-fraunces font-semibold leading-none" style={{ fontSize: 34, color: 'var(--ink)', letterSpacing: '-.02em' }}>
+            {fmt(current)}
+          </p>
         </div>
 
         {/* Quarterly horizontal bars */}
@@ -113,7 +104,10 @@ function ActivityCard({ labelAr, target, current, unit, lowerIsBetter, lastYearV
 
         {/* Footer: cumulative progress vs annual target */}
         <div style={{ borderTop: '1px solid var(--hair)', paddingTop: 10 }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 5 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+            <span className="font-jb text-[11px] font-semibold" style={{ color: 'var(--ink-soft)' }}>
+              {fmt(current)} من {fmt(target)}
+            </span>
             <span className="font-jb text-[11px] font-bold" style={{ color: barColor }}>
               {Math.round(pct)}%
             </span>
@@ -127,9 +121,13 @@ function ActivityCard({ labelAr, target, current, unit, lowerIsBetter, lastYearV
               transition: 'width .4s ease',
             }} />
           </div>
-          <p className="font-jb text-[9px] mt-1.5" style={{ color: 'var(--ink-muted)', textAlign: 'left' }}>
-            {fmt(current)} من {fmt(target)} مستهدف
-          </p>
+          {/* 2025 comparison — below bar, clearly visible */}
+          {lastYearValue != null && (
+            <p className="font-jb text-[10px] mt-2" style={{ color: 'var(--ink-soft)', textAlign: 'right' }}>
+              <span style={{ color: 'var(--ink-muted)' }}>{year - 1}:</span>{' '}
+              <span style={{ fontWeight: 600 }}>{fmt(lastYearValue)}</span>
+            </p>
+          )}
         </div>
       </div>
     </div>

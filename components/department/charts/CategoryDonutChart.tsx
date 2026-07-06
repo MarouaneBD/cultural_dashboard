@@ -18,7 +18,7 @@ export function CategoryDonutChart({ data, accentColor }: Props) {
   )
 
   return (
-    <div dir="ltr" style={{ width: '100%', height: 220 }}>
+    <div dir="ltr" style={{ width: '100%', height: 260 }}>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
@@ -26,7 +26,7 @@ export function CategoryDonutChart({ data, accentColor }: Props) {
             dataKey="value"
             nameKey="nameAr"
             cx="50%"
-            cy="50%"
+            cy="42%"
             innerRadius={55}
             outerRadius={82}
             paddingAngle={3}
@@ -40,10 +40,10 @@ export function CategoryDonutChart({ data, accentColor }: Props) {
             formatter={(v) => [`${v}%`]}
           />
           <Legend
-            layout="vertical"
-            align="right"
-            verticalAlign="middle"
-            wrapperStyle={{ fontSize: 11, lineHeight: '22px' }}
+            layout="horizontal"
+            align="center"
+            verticalAlign="bottom"
+            wrapperStyle={{ fontSize: 11, lineHeight: '22px', paddingTop: 8 }}
           />
         </PieChart>
       </ResponsiveContainer>
