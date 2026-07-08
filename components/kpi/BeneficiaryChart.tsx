@@ -57,8 +57,8 @@ function ConcentricRings({
   const maxR  = cx - SW / 2 - 6   // leave a small outer margin
 
   return (
-    <div style={{ width: size, height: size, flexShrink: 0 }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <div style={{ width: size, maxWidth: '100%', aspectRatio: '1', flexShrink: 0 }}>
+      <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`}>
         {segments.map((seg, i) => {
           const r    = maxR - i * STEP
           if (r < 12) return null
@@ -128,12 +128,12 @@ function StakeholdersCard({
         أصحاب المصلحة · {year}
       </p>
 
-      {/* Body: rings left, legend right */}
-      <div className="flex items-center gap-6">
+      {/* Body: rings top on mobile, side-by-side on sm+ */}
+      <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-6">
         <ConcentricRings segments={segments} total={total} size={220} />
 
         {/* Legend */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 w-full">
           <ul className="flex flex-col gap-3">
             {items.map((d, i) => {
               const pct = total > 0 ? Math.round((d.total / total) * 100) : 0
@@ -284,12 +284,7 @@ export function BeneficiaryChart() {
 
   return (
     <div
-      className="grid gap-4 grid-cols-1"
-      style={
-        hasStakeholders && standaloneItems.length
-          ? { gridTemplateColumns: 'minmax(0,2fr) minmax(0,1fr)' }
-          : undefined
-      }
+      className={`grid gap-4 grid-cols-1${hasStakeholders && standaloneItems.length ? ' sm:grid-cols-[2fr_1fr]' : ''}`}
     >
       {hasStakeholders && <StakeholdersCard items={stakeholderItems} year={year} />}
 
