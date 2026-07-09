@@ -47,6 +47,9 @@ export async function GET(req: NextRequest) {
       const category = kpi.owner?.trim()
       if (!category) continue
 
+      // Exclude generic "نشاط" category — not a meaningful segment
+      if (category === 'نشاط') continue
+
       // Revenue KPIs — accumulate separately, skip from activity chart
       const isRevenue = category === REVENUE_OWNER
 
