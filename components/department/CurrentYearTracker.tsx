@@ -177,7 +177,7 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
       {/* Quarterly trend chart */}
       <div className="rounded-2xl border p-4" style={{ background: 'var(--card-bg)', borderColor: 'var(--border)', boxShadow: 'var(--card-shadow)' }}>
         <p className="font-cairo text-[12px] font-semibold mb-3 text-right" style={{ color: 'var(--ink-soft)' }}>
-          المسار الفصلي — {data.year - 1} والتقدم الفصلي {data.year}
+          مقارنة الأداء الفصلي ({data.year - 1}–{data.year})
         </p>
         <div dir="ltr" style={{ width: '100%', height: 220 }}>
           <ResponsiveContainer width="100%" height="100%">
