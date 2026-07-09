@@ -62,6 +62,8 @@ function ConcentricRings({
   const STEP  = SW + GAP
   const maxR  = cx - SW / 2 - 6   // leave a small outer margin
 
+  const maxVal = Math.max(...segments.map(s => s.value), 1)
+
   return (
     <div style={{ width: size, maxWidth: '100%', aspectRatio: '1', flexShrink: 0 }}>
       <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`}>
@@ -69,7 +71,8 @@ function ConcentricRings({
           const r    = maxR - i * STEP
           if (r < 12) return null
           const circ = 2 * Math.PI * r
-          const pct  = total > 0 ? seg.value / total : 0
+          // Largest segment = full ring (baseline); others are relative to it
+          const pct  = seg.value / maxVal
           const dash = pct * circ
 
           return (
@@ -274,16 +277,6 @@ function StandaloneCard({ item }: { item: CategoryTotal }) {
       >
         {fmtCard(item.total, item.category)}
       </p>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--hair)' }}>
-        <span className="font-jb text-[11px] font-medium" style={{ color }}>
-          {item.target > 0 ? `${Math.round(Math.min((item.total / item.target) * 100, 100))}%` : '—'}
-        </span>
-        <span className="font-jb text-[10px]" style={{ color: 'var(--ink-muted)' }}>
-          {item.target > 0 ? `المستهدف ${fmt(item.target)}` : 'إجمالي'}
-        </span>
-      </div>
     </div>
   )
 }
@@ -331,26 +324,21 @@ export function BeneficiaryChart() {
 
   const hasStakeholders = stakeholderItems.some(d => d.total > 0)
 
+  const hasRightColumn = standaloneItems.length > 0 || !!revenue
+
   return (
-    <div className="flex flex-col gap-4">
-      {/* Activity rings + standalone cards */}
-      <div
-        className={`grid gap-4 grid-cols-1${hasStakeholders && standaloneItems.length ? ' sm:grid-cols-[2fr_1fr]' : ''}`}
-      >
-        {hasStakeholders && <StakeholdersCard items={stakeholderItems} year={year} />}
+    <div
+      className={`grid gap-4 grid-cols-1${hasStakeholders && hasRightColumn ? ' sm:grid-cols-[2fr_1fr]' : ''}`}
+    >
+      {hasStakeholders && <StakeholdersCard items={stakeholderItems} year={year} />}
 
-        {standaloneItems.length > 0 && (
-          <div className="flex flex-col gap-4">
-            {standaloneItems.map(item => (
-              <StandaloneCard key={item.category} item={item} />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Revenue card — full width, below activity section */}
-      {revenue && (
-        <RevenueCard total={revenue.total} />
+      {hasRightColumn && (
+        <div className="flex flex-col gap-4">
+          {standaloneItems.map(item => (
+            <StandaloneCard key={item.category} item={item} />
+          ))}
+          {revenue && <RevenueCard total={revenue.total} />}
+        </div>
       )}
     </div>
   )
