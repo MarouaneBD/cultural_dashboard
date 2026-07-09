@@ -4,11 +4,20 @@ import { computeYtd } from '@/lib/kpi'
 
 export const dynamic = 'force-dynamic'
 
+/** Revenue KPIs are identified by owner = 'درهم' — they are financial metrics,
+ *  not activity counts, so they are separated from the activity rings chart. */
+const REVENUE_OWNER = 'درهم'
+
 export interface CategoryTotal {
   category: string
   total: number    // YTD actual
   target: number   // annual target (sum across all KPIs in this category)
   color: string
+}
+
+export interface TotalsResponse {
+  categories: CategoryTotal[]
+  revenue: { total: number; target: number } | null
 }
 
 const CATEGORY_COLORS = [
@@ -31,12 +40,16 @@ export async function GET(req: NextRequest) {
 
     const actualMap = new Map<string, number>()
     const targetMap = new Map<string, number>()
+    let revActual = 0
+    let revTarget = 0
 
     for (const kpi of kpis) {
       const category = kpi.owner?.trim()
-      if (!category) continue   // skip KPIs with no category
+      if (!category) continue
 
-      // YTD actual
+      // Revenue KPIs — accumulate separately, skip from activity chart
+      const isRevenue = category === REVENUE_OWNER
+
       const quarterMap: Partial<Record<'Q1' | 'Q2' | 'Q3' | 'Q4', number>> = {}
       for (const a of kpi.actuals) {
         if (['Q1', 'Q2', 'Q3', 'Q4'].includes(a.period)) {
@@ -44,24 +57,30 @@ export async function GET(req: NextRequest) {
         }
       }
       const ytd = computeYtd(quarterMap, kpi.activityType)
-      if (ytd !== null) {
-        actualMap.set(category, (actualMap.get(category) ?? 0) + Math.round(ytd))
-      }
 
-      // Annual target (prefer ANNUAL row; fall back to sum of quarterly)
       const annual = kpi.targets.find(t => t.period === 'ANNUAL')
       const targetVal = annual
         ? Math.round(Number(annual.value))
         : kpi.targets.reduce((s, t) => s + Math.round(Number(t.value)), 0)
+
+      if (isRevenue) {
+        if (ytd !== null) revActual += Math.round(ytd)
+        revTarget += targetVal
+        continue
+      }
+
+      // Activity categories
+      if (ytd !== null) {
+        actualMap.set(category, (actualMap.get(category) ?? 0) + Math.round(ytd))
+      }
       if (targetVal > 0) {
         targetMap.set(category, (targetMap.get(category) ?? 0) + targetVal)
       }
     }
 
-    // Union of all categories seen in actuals or targets
     const allCategories = new Set([...actualMap.keys(), ...targetMap.keys()])
 
-    const result: CategoryTotal[] = Array.from(allCategories)
+    const categories: CategoryTotal[] = Array.from(allCategories)
       .map(category => ({
         category,
         total:  actualMap.get(category)  ?? 0,
@@ -71,9 +90,13 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => b.total - a.total)
       .map((d, i) => ({ ...d, color: CATEGORY_COLORS[i % CATEGORY_COLORS.length] }))
 
-    return NextResponse.json(result)
+    const revenue = (revActual > 0 || revTarget > 0)
+      ? { total: revActual, target: revTarget }
+      : null
+
+    return NextResponse.json({ categories, revenue } satisfies TotalsResponse)
   } catch (err) {
     console.error('GET /api/stats/totals failed', err)
-    return NextResponse.json([], { status: 500 })
+    return NextResponse.json({ categories: [], revenue: null }, { status: 500 })
   }
 }

@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
-import type { CategoryTotal } from '@/app/api/stats/totals/route'
+import type { CategoryTotal, TotalsResponse } from '@/app/api/stats/totals/route'
 
 // ── Category routing ───────────────────────────────────────────────────────
 const STANDALONE_PATTERNS = ['مستفيد', 'اصدار', 'إصدار']
@@ -38,6 +38,12 @@ function fmtCard(n: number, category: string): string {
     return n.toLocaleString('en')
   }
   return fmt(n)
+}
+
+function fmtAed(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)} مليون`
+  if (n >= 1_000)     return `${Math.round(n / 1_000).toLocaleString('en')} الف`
+  return n.toLocaleString('en')
 }
 
 // ── Concentric rings SVG ───────────────────────────────────────────────────
@@ -94,7 +100,76 @@ function ConcentricRings({
   )
 }
 
-// ── Stakeholders card (Option A) ───────────────────────────────────────────
+// ── Revenue card ───────────────────────────────────────────────────────────
+const REVENUE_COLOR = '#b8822a'  // gold — matches the dirham visual identity
+
+function RevenueCard({ total, target, year }: { total: number; target: number; year: string }) {
+  const pct = target > 0 ? Math.min(Math.round((total / target) * 100), 100) : null
+
+  return (
+    <div
+      className="rounded-2xl border p-5 flex flex-col gap-3"
+      style={{
+        background: 'var(--card-bg)',
+        borderColor: 'var(--border)',
+        borderTop: `3px solid ${REVENUE_COLOR}`,
+        boxShadow: 'var(--card-shadow)',
+      }}
+    >
+      {/* Header */}
+      <p
+        className="font-space font-semibold text-[10px] tracking-[.14em] uppercase"
+        style={{ color: 'var(--ink-muted)' }}
+      >
+        الإيرادات · {year}
+      </p>
+
+      {/* Dirham symbol + amount */}
+      <div className="flex items-baseline gap-2 justify-end" dir="rtl">
+        {/* New UAE Dirham sign — rendered via styled span */}
+        <span
+          className="font-cairo font-bold"
+          style={{ fontSize: 22, color: REVENUE_COLOR, letterSpacing: '.02em' }}
+        >
+          د.إ
+        </span>
+        <span
+          className="font-fraunces font-semibold leading-none"
+          style={{ fontSize: 34, color: 'var(--ink)', letterSpacing: '-.02em' }}
+        >
+          {fmtAed(total)}
+        </span>
+      </div>
+
+      {/* Progress vs target */}
+      {target > 0 && (
+        <div className="flex flex-col gap-1.5 pt-2" style={{ borderTop: '1px solid var(--hair)' }}>
+          <div className="flex items-center justify-between">
+            <span className="font-jb text-[10px]" style={{ color: 'var(--ink-muted)' }}>
+              المستهدف د.إ {fmtAed(target)}
+            </span>
+            {pct !== null && (
+              <span className="font-jb text-[11px] font-bold" style={{ color: REVENUE_COLOR }}>
+                {pct}%
+              </span>
+            )}
+          </div>
+          <div className="rounded-full overflow-hidden" style={{ height: 5, background: 'var(--hair)' }}>
+            <div style={{
+              height: '100%',
+              width: `${pct ?? 0}%`,
+              background: REVENUE_COLOR,
+              borderRadius: 999,
+              transition: 'width .4s ease',
+            }} />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Stakeholders card ──────────────────────────────────────────────────────
 function StakeholdersCard({
   items,
   year,
@@ -243,12 +318,14 @@ function StandaloneCard({ item }: { item: CategoryTotal }) {
 // ── Skeleton ───────────────────────────────────────────────────────────────
 function Skeleton() {
   return (
-    <div className="grid gap-4 grid-cols-1" style={{ gridTemplateColumns: 'minmax(0,2fr) minmax(0,1fr)' }}>
-      <div className="rounded-2xl border p-5 animate-pulse" style={{ background: 'var(--card-bg)', borderColor: 'var(--border)', height: 280 }} />
-      <div className="flex flex-col gap-4">
-        {[0, 1].map(i => (
-          <div key={i} className="rounded-2xl border p-4 animate-pulse flex-1" style={{ background: 'var(--card-bg)', borderColor: 'var(--border)' }} />
-        ))}
+    <div className="flex flex-col gap-4">
+      <div className={`grid gap-4 grid-cols-1 sm:grid-cols-[2fr_1fr]`}>
+        <div className="rounded-2xl border p-5 animate-pulse" style={{ background: 'var(--card-bg)', borderColor: 'var(--border)', height: 280 }} />
+        <div className="flex flex-col gap-4">
+          {[0, 1].map(i => (
+            <div key={i} className="rounded-2xl border p-4 animate-pulse flex-1" style={{ background: 'var(--card-bg)', borderColor: 'var(--border)' }} />
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -259,7 +336,7 @@ export function BeneficiaryChart() {
   const params = useSearchParams()
   const year   = params.get('year') ?? '2026'
 
-  const { data, isLoading } = useQuery<CategoryTotal[]>({
+  const { data, isLoading } = useQuery<TotalsResponse>({
     queryKey: ['stats-totals', year],
     queryFn: () =>
       fetch(`/api/stats/totals?year=${year}`).then(r => {
@@ -270,30 +347,37 @@ export function BeneficiaryChart() {
 
   if (isLoading) return <Skeleton />
 
-  const totals = data ?? []
-  if (!totals.length) return null
+  const { categories = [], revenue } = data ?? { categories: [], revenue: null }
+  if (!categories.length && !revenue) return null
 
-  const stakeholderItems = totals
+  const stakeholderItems = categories
     .filter(d => !matchesAny(d.category, STANDALONE_PATTERNS))
     .map((d, i) => ({ ...d, segColor: SEGMENT_COLORS[i % SEGMENT_COLORS.length] }))
 
-  const standaloneItems = totals.filter(d => matchesAny(d.category, STANDALONE_PATTERNS))
+  const standaloneItems = categories.filter(d => matchesAny(d.category, STANDALONE_PATTERNS))
 
   const hasStakeholders = stakeholderItems.some(d => d.total > 0)
-  if (!hasStakeholders && !standaloneItems.length) return null
 
   return (
-    <div
-      className={`grid gap-4 grid-cols-1${hasStakeholders && standaloneItems.length ? ' sm:grid-cols-[2fr_1fr]' : ''}`}
-    >
-      {hasStakeholders && <StakeholdersCard items={stakeholderItems} year={year} />}
+    <div className="flex flex-col gap-4">
+      {/* Activity rings + standalone cards */}
+      <div
+        className={`grid gap-4 grid-cols-1${hasStakeholders && standaloneItems.length ? ' sm:grid-cols-[2fr_1fr]' : ''}`}
+      >
+        {hasStakeholders && <StakeholdersCard items={stakeholderItems} year={year} />}
 
-      {standaloneItems.length > 0 && (
-        <div className="flex flex-col gap-4">
-          {standaloneItems.map(item => (
-            <StandaloneCard key={item.category} item={item} />
-          ))}
-        </div>
+        {standaloneItems.length > 0 && (
+          <div className="flex flex-col gap-4">
+            {standaloneItems.map(item => (
+              <StandaloneCard key={item.category} item={item} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Revenue card — full width, below activity section */}
+      {revenue && (
+        <RevenueCard total={revenue.total} target={revenue.target} year={year} />
       )}
     </div>
   )

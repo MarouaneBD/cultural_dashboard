@@ -47,9 +47,10 @@ export async function GET(
       })
       .filter((x): x is NonNullable<typeof x> => x !== null)
 
-    // Category breakdown: count activities per category
+    // Category breakdown: count activities per category — exclude revenue (درهم)
     const catMap = new Map<string, number>()
     for (const k of kpis) {
+      if (k.owner?.trim() === 'درهم') continue   // revenue shown separately on main page
       const cat = k.owner ?? 'أخرى'
       catMap.set(cat, (catMap.get(cat) ?? 0) + 1)
     }
