@@ -103,9 +103,7 @@ function ConcentricRings({
 // ── Revenue card ───────────────────────────────────────────────────────────
 const REVENUE_COLOR = '#b8822a'  // gold — matches the dirham visual identity
 
-function RevenueCard({ total, target, year }: { total: number; target: number; year: string }) {
-  const pct = target > 0 ? Math.min(Math.round((total / target) * 100), 100) : null
-
+function RevenueCard({ total }: { total: number }) {
   return (
     <div
       className="rounded-2xl border p-5 flex flex-col gap-3"
@@ -114,57 +112,32 @@ function RevenueCard({ total, target, year }: { total: number; target: number; y
         borderColor: 'var(--border)',
         borderTop: `3px solid ${REVENUE_COLOR}`,
         boxShadow: 'var(--card-shadow)',
+        transition: 'box-shadow .18s, transform .18s',
+      }}
+      onMouseEnter={e => {
+        ;(e.currentTarget as HTMLElement).style.boxShadow = 'var(--card-shadow-hover)'
+        ;(e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)'
+      }}
+      onMouseLeave={e => {
+        ;(e.currentTarget as HTMLElement).style.boxShadow = 'var(--card-shadow)'
+        ;(e.currentTarget as HTMLElement).style.transform = 'none'
       }}
     >
-      {/* Header */}
-      <p
-        className="font-space font-semibold text-[10px] tracking-[.14em] uppercase"
-        style={{ color: 'var(--ink-muted)' }}
-      >
-        الإيرادات · {year}
+      {/* Category name */}
+      <p className="font-cairo text-[13px] leading-snug text-right" style={{ color: 'var(--ink-soft)' }}>
+        الإيرادات
       </p>
 
-      {/* Dirham symbol + amount */}
-      <div className="flex items-baseline gap-2 justify-end" dir="rtl">
-        {/* New UAE Dirham sign — rendered via styled span */}
-        <span
-          className="font-cairo font-bold"
-          style={{ fontSize: 22, color: REVENUE_COLOR, letterSpacing: '.02em' }}
-        >
+      {/* Big number with د.إ sign */}
+      <p
+        className="font-fraunces font-medium leading-none text-right"
+        style={{ fontSize: '38px', color: 'var(--ink)', letterSpacing: '-.02em' }}
+      >
+        <span className="font-cairo" style={{ fontSize: '22px', color: REVENUE_COLOR, marginLeft: 6 }}>
           د.إ
         </span>
-        <span
-          className="font-fraunces font-semibold leading-none"
-          style={{ fontSize: 34, color: 'var(--ink)', letterSpacing: '-.02em' }}
-        >
-          {fmtAed(total)}
-        </span>
-      </div>
-
-      {/* Progress vs target */}
-      {target > 0 && (
-        <div className="flex flex-col gap-1.5 pt-2" style={{ borderTop: '1px solid var(--hair)' }}>
-          <div className="flex items-center justify-between">
-            <span className="font-jb text-[10px]" style={{ color: 'var(--ink-muted)' }}>
-              المستهدف د.إ {fmtAed(target)}
-            </span>
-            {pct !== null && (
-              <span className="font-jb text-[11px] font-bold" style={{ color: REVENUE_COLOR }}>
-                {pct}%
-              </span>
-            )}
-          </div>
-          <div className="rounded-full overflow-hidden" style={{ height: 5, background: 'var(--hair)' }}>
-            <div style={{
-              height: '100%',
-              width: `${pct ?? 0}%`,
-              background: REVENUE_COLOR,
-              borderRadius: 999,
-              transition: 'width .4s ease',
-            }} />
-          </div>
-        </div>
-      )}
+        {fmtAed(total)}
+      </p>
     </div>
   )
 }
@@ -377,7 +350,7 @@ export function BeneficiaryChart() {
 
       {/* Revenue card — full width, below activity section */}
       {revenue && (
-        <RevenueCard total={revenue.total} target={revenue.target} year={year} />
+        <RevenueCard total={revenue.total} />
       )}
     </div>
   )
