@@ -20,7 +20,7 @@ function HamburgerIcon() {
 }
 
 export function AppShell({ children, title, actions }: AppShellProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div className="flex min-h-screen">

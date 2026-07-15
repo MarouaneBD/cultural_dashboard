@@ -33,16 +33,17 @@ export function Sidebar({ expanded }: SidebarProps) {
     <aside
       aria-label="الشريط الجانبي"
       className={[
-        'min-h-screen flex flex-col border-e border-white/[.06] flex-shrink-0',
+        'h-screen flex flex-col border-e border-white/[.06] flex-shrink-0',
         'fixed inset-y-0 start-0 z-40',
-        'md:relative md:inset-auto md:z-auto',
+        'md:relative md:inset-auto md:z-auto md:h-screen',
         !expanded ? 'hidden md:flex' : 'flex',
       ].join(' ')}
       style={{
         background: 'var(--sidebar-bg)',
         width: expanded ? WIDTH_EXPANDED : WIDTH_COLLAPSED,
         transition: 'width .25s cubic-bezier(.4,0,.2,1)',
-        overflow: 'hidden',
+        overflowX: 'hidden',
+        overflowY: 'hidden',
       }}
     >
       {/* ── Brand / Logo ─────────────────────────────────── */}
@@ -124,7 +125,7 @@ export function Sidebar({ expanded }: SidebarProps) {
 
       {/* ── Nav ──────────────────────────────────────────── */}
       <nav
-        className="flex-1 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden"
+        className="flex-1 min-h-0 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden"
         style={{ padding: expanded ? '10px 8px' : '10px 6px' }}
         aria-label="القائمة الرئيسية"
       >
