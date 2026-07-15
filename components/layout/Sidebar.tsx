@@ -33,9 +33,9 @@ export function Sidebar({ expanded }: SidebarProps) {
     <aside
       aria-label="الشريط الجانبي"
       className={[
-        'h-screen flex flex-col border-e border-white/[.06] flex-shrink-0',
+        'h-screen md:h-auto md:min-h-screen flex flex-col border-e border-white/[.06] flex-shrink-0',
         'fixed inset-y-0 start-0 z-40',
-        'md:relative md:inset-auto md:z-auto md:h-screen',
+        'md:relative md:inset-auto md:z-auto',
         !expanded ? 'hidden md:flex' : 'flex',
       ].join(' ')}
       style={{
