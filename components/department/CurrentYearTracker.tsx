@@ -1,8 +1,9 @@
 'use client'
 
+import { useMemo, useState } from 'react'
 import {
   ResponsiveContainer, ComposedChart, Bar, Line,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts'
 import type { DeptData, TargetProgress } from '@/types/department'
 
@@ -139,19 +140,31 @@ interface Props {
   accentColor: string
 }
 
-function buildTrendChart(targets: TargetProgress[], year: number) {
-  const has2025 = targets.some(t => t.lastYearValue != null)
-  const prevYearTotal = has2025
-    ? targets.reduce((s, t) => s + (t.lastYearValue ?? 0), 0)
-    : null
+interface ChartPoint {
+  label: string
+  quarterly: number | null
+  target: number | null
+  prevYear: number
+}
 
-  const quarters = (['Q1', 'Q2', 'Q3', 'Q4'] as const).map(q => {
-    const hasData = targets.some(t => t.quarters.find(x => x.q === q)?.actual != null)
-    const totalActual = targets.reduce((s, t) => {
+function buildTrendChart(
+  targets: TargetProgress[],
+  selectedLabelAr: string | null,
+): ChartPoint[] {
+  const active = selectedLabelAr
+    ? targets.filter(t => t.labelAr === selectedLabelAr)
+    : targets
+
+  const prevYearAnnual = active.reduce((s, t) => s + (t.lastYearValue ?? 0), 0)
+  const prevYearPerQuarter = prevYearAnnual / 4
+
+  return (['Q1', 'Q2', 'Q3', 'Q4'] as const).map(q => {
+    const hasData = active.some(t => t.quarters.find(x => x.q === q)?.actual != null)
+    const totalActual = active.reduce((s, t) => {
       const qd = t.quarters.find(x => x.q === q)
       return qd?.actual != null ? s + qd.actual : s
     }, 0)
-    const totalTarget = targets.reduce((s, t) => {
+    const totalTarget = active.reduce((s, t) => {
       const qd = t.quarters.find(x => x.q === q)
       return s + (qd?.target ?? 0)
     }, 0)
@@ -159,14 +172,16 @@ function buildTrendChart(targets: TargetProgress[], year: number) {
       label: q,
       quarterly: hasData ? totalActual : null,
       target: totalTarget || null,
+      prevYear: prevYearPerQuarter,
     }
   })
-
-  return { chartData: quarters, prevYearTotal }
 }
 
 export function CurrentYearTracker({ data, accentColor }: Props) {
-  const { chartData, prevYearTotal } = buildTrendChart(data.targets, data.year)
+  const chartData = useMemo(
+    () => buildTrendChart(data.targets, null),
+    [data.targets],
+  )
 
   return (
     <section className="space-y-5">
@@ -185,12 +200,9 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} />
               <YAxis
-                domain={[
-                  0,
-                  (dataMax: number) =>
-                    Math.ceil(Math.max(dataMax, prevYearTotal ?? 0) * 1.12),
-                ]}
+                domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.18)]}
                 tick={{ fontSize: 10, fill: '#94a3b8' }}
+                tickFormatter={fmtAxis}
               />
               <Tooltip
                 contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 }}
@@ -200,28 +212,22 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
                 ]}
               />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              {/* Previous year — horizontal reference line across all quarters */}
-              {prevYearTotal != null && (
-                <ReferenceLine
-                  y={prevYearTotal}
-                  stroke="#94a3b8"
-                  strokeWidth={2}
-                  strokeDasharray="6 3"
-                  label={{
-                    value: `${data.year - 1}  ${fmtAxis(prevYearTotal)}`,
-                    position: 'insideTopRight',
-                    fontSize: 10,
-                    fill: '#94a3b8',
-                  }}
-                />
-              )}
-              {/* Current year quarterly actuals — bars */}
+              {/* Previous year — muted reference bar (annual total ÷ 4, distributed equally) */}
+              <Bar
+                dataKey="prevYear"
+                name={`${data.year - 1} (تقديري)`}
+                fill={accentColor}
+                fillOpacity={0.30}
+                radius={[3, 3, 0, 0]}
+                maxBarSize={24}
+              />
+              {/* Current year quarterly actuals */}
               <Bar
                 dataKey="quarterly"
                 name={`أرباع ${data.year}`}
                 fill={accentColor}
                 radius={[4, 4, 0, 0]}
-                maxBarSize={48}
+                maxBarSize={36}
                 fillOpacity={0.85}
               />
               {/* Quarterly target — dashed line */}
