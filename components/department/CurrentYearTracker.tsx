@@ -25,7 +25,16 @@ function fmtAxis(n: number): string {
   return String(Math.round(n))
 }
 
-function ActivityCard({ labelAr, target, current, unit, lowerIsBetter, lastYearValue, quarters, year, accentColor }: TargetProgress & { year: number; accentColor: string }) {
+function ActivityCard({
+  labelAr, target, current, unit, lowerIsBetter, lastYearValue, quarters, year, accentColor,
+  isSelected, onSelect, isDimmed,
+}: TargetProgress & {
+  year: number
+  accentColor: string
+  isSelected: boolean
+  onSelect: () => void
+  isDimmed: boolean
+}) {
   const pct = lowerIsBetter
     ? safePct(target, Math.max(current, 1))
     : safePct(current, target)
@@ -40,11 +49,20 @@ function ActivityCard({ labelAr, target, current, unit, lowerIsBetter, lastYearV
   }
 
   return (
-    <div style={{
-      background: 'var(--card-bg)', borderRadius: 16,
-      border: '1px solid var(--border)', overflow: 'hidden',
-      boxShadow: 'var(--card-shadow)',
-    }}>
+    <div
+      onClick={onSelect}
+      style={{
+        background: isSelected ? `${accentColor}0d` : 'var(--card-bg)',
+        borderRadius: 16,
+        border: '1px solid var(--border)',
+        borderInlineStart: isSelected ? `4px solid ${accentColor}` : '1px solid var(--border)',
+        overflow: 'hidden',
+        boxShadow: 'var(--card-shadow)',
+        opacity: isDimmed ? 0.55 : 1,
+        transition: 'opacity .2s ease, background .15s ease, border-inline-start .15s ease',
+        cursor: 'pointer',
+      }}
+    >
       {/* Header band */}
       <div style={{ background: 'var(--bg-alt)', padding: '10px 14px', borderBottom: '1px solid var(--border)' }}>
         <p className="font-cairo text-[13px] font-semibold text-right leading-snug" style={{ color: 'var(--ink)' }}>
@@ -180,9 +198,11 @@ function buildTrendChart(
 }
 
 export function CurrentYearTracker({ data, accentColor }: Props) {
+  const [selectedActivity, setSelectedActivity] = useState<string | null>(null)
+
   const { points: chartData, hasPrevYear } = useMemo(
-    () => buildTrendChart(data.targets, null),
-    [data.targets],
+    () => buildTrendChart(data.targets, selectedActivity),
+    [data.targets, selectedActivity],
   )
 
   return (
@@ -193,9 +213,26 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
 
       {/* Quarterly trend chart */}
       <div className="rounded-2xl border p-4" style={{ background: 'var(--card-bg)', borderColor: 'var(--border)', boxShadow: 'var(--card-shadow)' }}>
-        <p className="font-cairo text-[12px] font-semibold mb-3 text-right" style={{ color: 'var(--ink-soft)' }}>
-          مقارنة الأداء الفصلي ({data.year - 1}–{data.year})
-        </p>
+        <div className="flex items-center justify-between mb-3" style={{ flexDirection: 'row-reverse' }}>
+          <p className="font-cairo text-[12px] font-semibold text-right" style={{ color: 'var(--ink-soft)' }}>
+            {selectedActivity ?? `مقارنة الأداء الفصلي (${data.year - 1}–${data.year})`}
+          </p>
+          {selectedActivity && (
+            <button
+              onClick={() => setSelectedActivity(null)}
+              className="font-jb text-[10px] px-2 py-0.5 rounded-full"
+              style={{
+                background: 'var(--bg-alt)',
+                border: '1px solid var(--border)',
+                color: 'var(--ink-muted)',
+                cursor: 'pointer',
+                flexShrink: 0,
+              }}
+            >
+              × الكل
+            </button>
+          )}
+        </div>
         <div dir="ltr" style={{ width: '100%', height: 220 }}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData} margin={{ top: 8, right: 20, left: -10, bottom: 0 }}>
@@ -253,7 +290,17 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
       {/* Activity cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {data.targets.map(t => (
-          <ActivityCard key={t.labelAr} {...t} year={data.year} accentColor={accentColor} />
+          <ActivityCard
+            key={t.labelAr}
+            {...t}
+            year={data.year}
+            accentColor={accentColor}
+            isSelected={selectedActivity === t.labelAr}
+            isDimmed={selectedActivity !== null && selectedActivity !== t.labelAr}
+            onSelect={() =>
+              setSelectedActivity(prev => (prev === t.labelAr ? null : t.labelAr))
+            }
+          />
         ))}
       </div>
     </section>
