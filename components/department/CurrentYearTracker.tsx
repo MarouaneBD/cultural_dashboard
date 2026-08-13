@@ -150,7 +150,7 @@ interface ChartPoint {
 function buildTrendChart(
   targets: TargetProgress[],
   selectedLabelAr: string | null,
-): ChartPoint[] {
+): { points: ChartPoint[]; hasPrevYear: boolean } {
   const active = selectedLabelAr
     ? targets.filter(t => t.labelAr === selectedLabelAr)
     : targets
@@ -158,7 +158,7 @@ function buildTrendChart(
   const prevYearAnnual = active.reduce((s, t) => s + (t.lastYearValue ?? 0), 0)
   const prevYearPerQuarter = prevYearAnnual / 4
 
-  return (['Q1', 'Q2', 'Q3', 'Q4'] as const).map(q => {
+  const points = (['Q1', 'Q2', 'Q3', 'Q4'] as const).map(q => {
     const hasData = active.some(t => t.quarters.find(x => x.q === q)?.actual != null)
     const totalActual = active.reduce((s, t) => {
       const qd = t.quarters.find(x => x.q === q)
@@ -175,10 +175,12 @@ function buildTrendChart(
       prevYear: prevYearPerQuarter,
     }
   })
+
+  return { points, hasPrevYear: prevYearAnnual > 0 }
 }
 
 export function CurrentYearTracker({ data, accentColor }: Props) {
-  const chartData = useMemo(
+  const { points: chartData, hasPrevYear } = useMemo(
     () => buildTrendChart(data.targets, null),
     [data.targets],
   )
@@ -213,14 +215,16 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
               />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               {/* Previous year — muted reference bar (annual total ÷ 4, distributed equally) */}
-              <Bar
-                dataKey="prevYear"
-                name={`${data.year - 1} (تقديري)`}
-                fill={accentColor}
-                fillOpacity={0.30}
-                radius={[3, 3, 0, 0]}
-                maxBarSize={24}
-              />
+              {hasPrevYear && (
+                <Bar
+                  dataKey="prevYear"
+                  name={`${data.year - 1} (تقديري)`}
+                  fill={accentColor}
+                  fillOpacity={0.30}
+                  radius={[3, 3, 0, 0]}
+                  maxBarSize={24}
+                />
+              )}
               {/* Current year quarterly actuals */}
               <Bar
                 dataKey="quarterly"
