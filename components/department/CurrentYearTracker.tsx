@@ -213,7 +213,7 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
 
       {/* Quarterly trend chart */}
       <div className="rounded-2xl border p-4" style={{ background: 'var(--card-bg)', borderColor: 'var(--border)', boxShadow: 'var(--card-shadow)' }}>
-        <div className="flex items-center justify-between mb-3" style={{ flexDirection: 'row-reverse' }}>
+        <div className="flex items-center justify-between mb-3">
           <p className="font-cairo text-[12px] font-semibold text-right" style={{ color: 'var(--ink-soft)' }}>
             {selectedActivity ?? `مقارنة الأداء الفصلي (${data.year - 1}–${data.year})`}
           </p>
@@ -244,20 +244,45 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
                 tickFormatter={fmtAxis}
               />
               <Tooltip
-                contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 }}
-                formatter={(v: unknown, name) => [
-                  v != null ? Number(v).toLocaleString('en') : '—',
-                  name ?? '',
-                ]}
+                content={({ active, payload, label }) => {
+                  if (!active || !payload?.length) return null
+                  const items = payload.filter(p => p.value != null && p.value !== 0)
+                  if (!items.length) return null
+                  return (
+                    <div dir="rtl" style={{
+                      background: '#fff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: 8,
+                      padding: '8px 12px',
+                      fontSize: 12,
+                      lineHeight: 1.8,
+                    }}>
+                      <p style={{ fontWeight: 700, color: '#1e293b', marginBottom: 2 }}>{label}</p>
+                      {items.map(p => {
+                        const isPrevYear = p.dataKey === 'prevYear'
+                        const color = isPrevYear ? '#64748b' : (p.color ?? '#334155')
+                        return (
+                          <p key={p.dataKey as string} style={{ color, margin: 0 }}>
+                            {p.name}: {Number(p.value).toLocaleString('en')}
+                          </p>
+                        )
+                      })}
+                    </div>
+                  )
+                }}
               />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Legend
+                wrapperStyle={{ fontSize: 11 }}
+                formatter={(value) => (
+                  <span style={{ color: 'var(--ink-soft)' }}>{value}</span>
+                )}
+              />
               {/* Previous year — muted reference bar (annual total ÷ 4, distributed equally) */}
               {hasPrevYear && (
                 <Bar
                   dataKey="prevYear"
                   name={`${data.year - 1} (تقديري)`}
-                  fill={accentColor}
-                  fillOpacity={0.30}
+                  fill={`${accentColor}4d`}
                   radius={[3, 3, 0, 0]}
                   maxBarSize={24}
                 />
@@ -275,7 +300,7 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
               <Line
                 type="monotone"
                 dataKey="target"
-                name="المستهدف الفصلي"
+                name="المستهدف"
                 stroke="#f59e0b"
                 strokeWidth={2}
                 strokeDasharray="5 3"

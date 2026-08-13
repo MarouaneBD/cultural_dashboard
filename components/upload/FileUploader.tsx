@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useSession } from 'next-auth/react'
 import { Trash2 } from 'lucide-react'
 import { ValidationPreview } from './ValidationPreview'
 import type { UploadValidationResult, ActivityUploadResult } from '@/types'
@@ -10,6 +11,8 @@ type PreviewState =
   | { mode: 'legacy';   result: UploadValidationResult }
 
 export function FileUploader() {
+  const { data: session, status: sessionStatus } = useSession()
+  const isAdmin = sessionStatus !== 'loading' && (session?.user as any)?.role === 'ADMIN'
   const inputRef = useRef<HTMLInputElement>(null)
   const [activeFile, setActiveFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<PreviewState | null>(null)
@@ -112,17 +115,19 @@ export function FileUploader() {
 
   return (
     <div className="space-y-6">
-      {/* Clear database */}
-      <div className="flex justify-end">
-        <button
-          onClick={handleClearData}
-          disabled={clearing}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border text-red-600 border-red-200 hover:bg-red-50 disabled:opacity-50 transition-colors"
-        >
-          <Trash2 size={14} />
-          {clearing ? 'جاري المسح…' : 'مسح جميع البيانات'}
-        </button>
-      </div>
+      {/* Clear database — admin only */}
+      {isAdmin && (
+        <div className="flex justify-end">
+          <button
+            onClick={handleClearData}
+            disabled={clearing}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border text-red-600 border-red-200 hover:bg-red-50 disabled:opacity-50 transition-colors"
+          >
+            <Trash2 size={14} />
+            {clearing ? 'جاري المسح…' : 'مسح جميع البيانات'}
+          </button>
+        </div>
+      )}
 
       <div
         role="button"

@@ -1,6 +1,5 @@
 'use client'
 
-import { Upload } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { CurrentYearTracker } from './CurrentYearTracker'
 import { InsightsPanel } from './InsightsPanel'
@@ -28,15 +27,6 @@ function PageHeader({ nameAr, icon, color, year }: { nameAr: string; icon: strin
           </p>
         </div>
       </div>
-      <button
-        disabled
-        title="رفع ملف البيانات — قريباً"
-        className="flex items-center gap-2 px-3 py-2 rounded-xl text-[12px] font-medium cursor-not-allowed opacity-50"
-        style={{ background: 'var(--bg-alt)', color: 'var(--ink-muted)', border: '1px solid var(--border)' }}
-      >
-        <Upload size={14} />
-        <span>رفع ملف البيانات</span>
-      </button>
     </div>
   )
 }
