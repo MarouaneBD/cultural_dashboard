@@ -315,7 +315,7 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
               <span className="font-cairo text-[12px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
                 {t.labelAr}
               </span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <div className="rounded-full overflow-hidden" style={{ height: 7, background: 'var(--hair)' }}>
                   <div style={{
                     height: '100%',
@@ -325,19 +325,21 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
                     transition: 'width .4s ease',
                   }} />
                 </div>
-                <span className="font-jb text-[10px]" style={{ color: 'var(--ink-muted)' }}>
-                  {fmt(t.current)} / {fmt(t.target)}
-                </span>
+                <div className="font-jb text-[11px]" style={{ display: 'flex', gap: 6 }}>
+                  <span style={{ color: accentColor, fontWeight: 700 }}>{fmt(t.current)}</span>
+                  <span style={{ color: 'var(--ink-muted)' }}>/</span>
+                  <span style={{ color: 'var(--ink)', fontWeight: 600 }}>{fmt(t.target)}</span>
+                </div>
               </div>
-              <span className="font-jb text-[12px] font-bold flex-shrink-0" style={{ color: accentColor }}>
+              <span className="font-jb text-[13px] font-bold flex-shrink-0" style={{ color: accentColor }}>
                 {Math.round(pct)}%
               </span>
-              <span className="font-jb text-[11px] flex-shrink-0 text-left" style={{ color: 'var(--ink-muted)', minWidth: 80 }}>
+              <span className="font-jb flex-shrink-0 text-left" style={{ minWidth: 90 }}>
                 {t.lastYearValue != null && (
-                  <>
-                    <span style={{ fontSize: 10 }}>{data.year - 1}: </span>
-                    <span style={{ color: 'var(--ink-soft)', fontWeight: 600 }}>{fmt(t.lastYearValue)}</span>
-                  </>
+                  <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
+                    <span style={{ fontSize: 9, color: 'var(--ink-muted)', letterSpacing: '.04em' }}>{data.year - 1}</span>
+                    <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 700 }}>{fmt(t.lastYearValue)}</span>
+                  </span>
                 )}
               </span>
             </div>
