@@ -58,7 +58,8 @@ export function DashboardContent() {
   function goHome() {
     const next = new URLSearchParams(params.toString())
     next.delete('pillar')
-    router.push(`/dashboard?${next.toString()}`)
+    const qs = next.toString()
+    router.push(qs ? `/dashboard?${qs}` : '/dashboard')
   }
 
   return (
