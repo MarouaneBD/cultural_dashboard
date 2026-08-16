@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { CurrentYearTracker } from './CurrentYearTracker'
 import { InsightsPanel } from './InsightsPanel'
+import { CommentThread } from './CommentThread'
 import { generateInsights } from '@/lib/insights'
 import { DEPT_DASHBOARDS } from '@/data/departments/registry'
 import type { DeptData } from '@/types/department'
@@ -112,6 +113,10 @@ export function DepartmentDashboard({ pillarId }: Props) {
 
       {/* ── Insights ─────────────────────────────────────────────────────── */}
       <InsightsPanel insights={insights} />
+
+      {/* ── Comments ─────────────────────────────────────────────────────── */}
+      <div className="border-t" style={{ borderColor: 'var(--border)' }} />
+      <CommentThread pillarId={pillarId} accentColor={color} />
     </div>
   )
 }
