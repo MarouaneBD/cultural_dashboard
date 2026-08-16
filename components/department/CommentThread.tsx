@@ -109,7 +109,7 @@ export function CommentThread({ pillarId, accentColor }: CommentThreadProps) {
         <ul style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {comments.map(c => {
             const isAuthor = c.author.id === userId
-            const canEdit  = isAuthor || role === 'ADMIN'
+            const canEdit  = canWrite && (isAuthor || role === 'ADMIN')
             const isEditing = editingId === c.id
 
             return (
