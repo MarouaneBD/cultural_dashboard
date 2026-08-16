@@ -9,7 +9,6 @@ import { DeptOverview } from '@/components/kpi/DeptOverview'
 import { DivisionStats } from '@/components/kpi/DivisionStats'
 import { DrillDownModal } from '@/components/kpi/DrillDownModal'
 import { ExecutiveSummary } from '@/components/narrative/ExecutiveSummary'
-import { ExportButton } from '@/components/ExportButton'
 import { BeneficiaryChart } from '@/components/kpi/BeneficiaryChart'
 import { DEPT_MAP } from '@/lib/departments'
 import type { KpiWithVariance, PillarId } from '@/types'
@@ -65,7 +64,6 @@ export function DashboardContent() {
   return (
     <AppShell
       title={title}
-      actions={<Suspense fallback={null}><ExportButton /></Suspense>}
     >
       <div className="max-w-5xl mx-auto space-y-6">
         {pillarParam ? (

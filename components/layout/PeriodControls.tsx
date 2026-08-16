@@ -42,7 +42,7 @@ export function PeriodControls() {
         }}
         aria-label="السنة"
       >
-        {[2024, 2025, 2026].map(y => (
+        {[2025, 2026].map(y => (
           <option key={y} value={y}>{y}</option>
         ))}
       </select>
