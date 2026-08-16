@@ -46,6 +46,7 @@ export function CommentThread({ pillarId, accentColor }: CommentThreadProps) {
   const queryClient = useQueryClient()
   const [composerOpen, setComposerOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const role   = status !== 'loading' ? (session?.user as any)?.role as string | undefined : undefined
   const userId = (session?.user as any)?.id as string | undefined
@@ -157,13 +158,33 @@ export function CommentThread({ pillarId, accentColor }: CommentThreadProps) {
                               تعديل
                             </button>
                           )}
-                          <button
-                            onClick={() => deleteMutation.mutate(c.id)}
-                            className="font-jb text-[10px]"
-                            style={{ color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                          >
-                            حذف
-                          </button>
+                          {confirmDeleteId === c.id ? (
+                            <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                              <button
+                                onClick={() => { deleteMutation.mutate(c.id); setConfirmDeleteId(null) }}
+                                disabled={deleteMutation.isPending}
+                                className="font-jb text-[10px]"
+                                style={{ color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 700 }}
+                              >
+                                تأكيد الحذف
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="font-jb text-[10px]"
+                                style={{ color: 'var(--ink-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                              >
+                                إلغاء
+                              </button>
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmDeleteId(c.id)}
+                              className="font-jb text-[10px]"
+                              style={{ color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                            >
+                              حذف
+                            </button>
+                          )}
                         </div>
                       )}
                     </>
