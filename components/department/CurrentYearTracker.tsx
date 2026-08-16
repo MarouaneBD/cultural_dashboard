@@ -162,21 +162,17 @@ interface ChartPoint {
   label: string
   quarterly: number | null
   target: number | null
-  prevYear: number
 }
 
 function buildTrendChart(
   targets: TargetProgress[],
   selectedLabelAr: string | null,
-): { points: ChartPoint[]; hasPrevYear: boolean } {
+): ChartPoint[] {
   const active = selectedLabelAr
     ? targets.filter(t => t.labelAr === selectedLabelAr)
     : targets
 
-  const prevYearAnnual = active.reduce((s, t) => s + (t.lastYearValue ?? 0), 0)
-  const prevYearPerQuarter = prevYearAnnual / 4
-
-  const points = (['Q1', 'Q2', 'Q3', 'Q4'] as const).map(q => {
+  return (['Q1', 'Q2', 'Q3', 'Q4'] as const).map(q => {
     const hasData = active.some(t => t.quarters.find(x => x.q === q)?.actual != null)
     const totalActual = active.reduce((s, t) => {
       const qd = t.quarters.find(x => x.q === q)
@@ -190,20 +186,21 @@ function buildTrendChart(
       label: q,
       quarterly: hasData ? totalActual : null,
       target: totalTarget || null,
-      prevYear: prevYearPerQuarter,
     }
   })
-
-  return { points, hasPrevYear: prevYearAnnual > 0 }
 }
 
 export function CurrentYearTracker({ data, accentColor }: Props) {
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null)
 
-  const { points: chartData, hasPrevYear } = useMemo(
+  const chartData = useMemo(
     () => buildTrendChart(data.targets, selectedActivity),
     [data.targets, selectedActivity],
   )
+
+  const activeTargets = selectedActivity
+    ? data.targets.filter(t => t.labelAr === selectedActivity)
+    : data.targets
 
   return (
     <section className="space-y-5">
@@ -258,15 +255,11 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
                       lineHeight: 1.8,
                     }}>
                       <p style={{ fontWeight: 700, color: '#1e293b', marginBottom: 2 }}>{label}</p>
-                      {items.map(p => {
-                        const isPrevYear = p.dataKey === 'prevYear'
-                        const color = isPrevYear ? '#64748b' : (p.color ?? '#334155')
-                        return (
-                          <p key={p.dataKey as string} style={{ color, margin: 0 }}>
-                            {p.name}: {Number(p.value).toLocaleString('en')}
-                          </p>
-                        )
-                      })}
+                      {items.map(p => (
+                        <p key={p.dataKey as string} style={{ color: p.color ?? '#334155', margin: 0 }}>
+                          {p.name}: {Number(p.value).toLocaleString('en')}
+                        </p>
+                      ))}
                     </div>
                   )
                 }}
@@ -277,16 +270,6 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
                   <span style={{ color: 'var(--ink-soft)' }}>{value}</span>
                 )}
               />
-              {/* Previous year — muted reference bar (annual total ÷ 4, distributed equally) */}
-              {hasPrevYear && (
-                <Bar
-                  dataKey="prevYear"
-                  name={`${data.year - 1} (تقديري)`}
-                  fill={`${accentColor}4d`}
-                  radius={[3, 3, 0, 0]}
-                  maxBarSize={24}
-                />
-              )}
               {/* Current year quarterly actuals */}
               <Bar
                 dataKey="quarterly"
@@ -310,6 +293,56 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
             </ComposedChart>
           </ResponsiveContainer>
         </div>
+      </div>
+
+      {/* Previous year comparison strip */}
+      <div className="rounded-2xl border p-4 space-y-3" style={{ background: 'var(--card-bg)', borderColor: 'var(--border)', boxShadow: 'var(--card-shadow)' }}>
+        <p className="font-space font-semibold text-[10px] tracking-[.12em] uppercase text-right" style={{ color: 'var(--ink-muted)' }}>
+          مقارنة مع {data.year - 1}
+        </p>
+        {activeTargets.map(t => {
+          const fmt = (v: number | null) => {
+            if (v == null) return '—'
+            if (t.unit === '%') return `${Math.round(v)}%`
+            if (t.unit === 'AED') return `${Math.round(v).toLocaleString('en')} د.إ`
+            return Math.round(v).toLocaleString('en')
+          }
+          const pct = t.lowerIsBetter
+            ? safePct(t.target, Math.max(t.current, 1))
+            : safePct(t.current, t.target)
+          return (
+            <div key={t.labelAr} dir="rtl" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto auto', alignItems: 'center', gap: 12 }}>
+              <span className="font-cairo text-[12px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
+                {t.labelAr}
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <div className="rounded-full overflow-hidden" style={{ height: 7, background: 'var(--hair)' }}>
+                  <div style={{
+                    height: '100%',
+                    width: `${pct}%`,
+                    background: accentColor,
+                    borderRadius: 999,
+                    transition: 'width .4s ease',
+                  }} />
+                </div>
+                <span className="font-jb text-[10px]" style={{ color: 'var(--ink-muted)' }}>
+                  {fmt(t.current)} / {fmt(t.target)}
+                </span>
+              </div>
+              <span className="font-jb text-[12px] font-bold flex-shrink-0" style={{ color: accentColor }}>
+                {Math.round(pct)}%
+              </span>
+              <span className="font-jb text-[11px] flex-shrink-0 text-left" style={{ color: 'var(--ink-muted)', minWidth: 80 }}>
+                {t.lastYearValue != null && (
+                  <>
+                    <span style={{ fontSize: 10 }}>{data.year - 1}: </span>
+                    <span style={{ color: 'var(--ink-soft)', fontWeight: 600 }}>{fmt(t.lastYearValue)}</span>
+                  </>
+                )}
+              </span>
+            </div>
+          )
+        })}
       </div>
 
       {/* Activity cards */}
