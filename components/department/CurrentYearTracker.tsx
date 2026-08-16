@@ -20,8 +20,8 @@ function safePct(num: number, den: number): number {
 
 /** Compact number for chart labels/axis — no thousand comma */
 function fmtAxis(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}م`
-  if (n >= 1_000)     return `${Math.round(n / 1_000)} الف`
+  if (n >= 1_000_000) return `م ${(n / 1_000_000).toFixed(1)}`
+  if (n >= 1_000)     return `ألف ${Math.round(n / 1_000)}`
   return String(Math.round(n))
 }
 
