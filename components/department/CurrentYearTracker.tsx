@@ -232,10 +232,11 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
         </div>
         <div dir="ltr" style={{ width: '100%', height: 220 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 8, right: 20, left: -10, bottom: 0 }}>
+            <ComposedChart data={chartData} margin={{ top: 8, right: -8, left: 20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} />
               <YAxis
+                orientation="right"
                 domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.18)]}
                 tick={{ fontSize: 10, fill: '#94a3b8' }}
                 tickFormatter={fmtAxis}
@@ -311,7 +312,7 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
             ? safePct(t.target, Math.max(t.current, 1))
             : safePct(t.current, t.target)
           return (
-            <div key={t.labelAr} dir="rtl" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto auto', alignItems: 'center', gap: 12 }}>
+            <div key={t.labelAr} dir="rtl" style={{ display: 'grid', gridTemplateColumns: '1fr 3fr auto auto', alignItems: 'center', gap: '8px 20px' }}>
               <span className="font-cairo text-[12px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
                 {t.labelAr}
               </span>
