@@ -8,6 +8,7 @@ declare module 'next-auth' {
       username: string
       role: UserRole
       mustChangePassword: boolean
+      assignedPillarId: string | null
     } & DefaultSession['user']
   }
 }
@@ -18,5 +19,6 @@ declare module 'next-auth/jwt' {
     username: string
     role: UserRole
     mustChangePassword: boolean
+    assignedPillarId: string | null
   }
 }

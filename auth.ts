@@ -32,6 +32,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: user.name ?? undefined,
             role: user.role,
             mustChangePassword: user.mustChangePassword,
+            assignedPillarId: user.assignedPillarId ?? null,
           }
         } catch (err) {
           console.error('[authorize] error:', err)
@@ -49,6 +50,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.username = (user as any).username
         token.role = (user as any).role as UserRole
         token.mustChangePassword = (user as any).mustChangePassword as boolean
+        token.assignedPillarId = (user as any).assignedPillarId as string | null
       }
       return token
     },
@@ -57,6 +59,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.username = token.username as string
       session.user.role = token.role as UserRole
       session.user.mustChangePassword = token.mustChangePassword as boolean
+      session.user.assignedPillarId = token.assignedPillarId as string | null
       return session
     },
   },
