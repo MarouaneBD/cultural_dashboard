@@ -8,6 +8,7 @@ import { signOutAction } from '@/app/actions/auth'
 import { DEPARTMENTS } from '@/lib/departments'
 
 const PILLARS = DEPARTMENTS.map(d => ({
+  id: d.id,
   href: `/dashboard?pillar=${d.id}`,
   labelAr: d.labelAr,
   icon: d.icon,
@@ -20,14 +21,21 @@ const WIDTH_COLLAPSED = '60px'
 
 interface SidebarProps {
   expanded: boolean
+  onNavigate?: () => void
 }
 
-export function Sidebar({ expanded }: SidebarProps) {
+export function Sidebar({ expanded, onNavigate }: SidebarProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const activePillar = searchParams.get('pillar')
   const { data: session, status } = useSession()
-  const role = status === 'loading' ? undefined : session?.user?.role
+  const role = status === 'loading' ? undefined : (session?.user as any)?.role as string | undefined
+  const assignedPillarId = (session?.user as any)?.assignedPillarId as string | null | undefined
+
+  // Assigned EDITOR sees only their department; everyone else sees all
+  const visiblePillars = (role === 'EDITOR' && assignedPillarId)
+    ? PILLARS.filter(p => p.id === assignedPillarId)
+    : PILLARS
 
   return (
     <aside
@@ -135,6 +143,7 @@ export function Sidebar({ expanded }: SidebarProps) {
           label="الرئيسية"
           active={pathname === '/dashboard' && !activePillar}
           expanded={expanded}
+          onNavigate={onNavigate}
         />
 
         {expanded ? (
@@ -148,14 +157,15 @@ export function Sidebar({ expanded }: SidebarProps) {
           <div className="my-1 mx-1 border-t border-white/[.08]" />
         )}
 
-        {PILLARS.map(p => (
+        {visiblePillars.map(p => (
           <NavLink
             key={p.href}
             href={p.href}
             icon={p.icon}
             label={p.labelAr}
-            active={activePillar === p.href.split('=')[1]}
+            active={activePillar === p.id}
             expanded={expanded}
+            onNavigate={onNavigate}
           />
         ))}
       </nav>
@@ -172,6 +182,7 @@ export function Sidebar({ expanded }: SidebarProps) {
             label="رفع البيانات"
             active={pathname === '/upload'}
             expanded={expanded}
+            onNavigate={onNavigate}
           />
         )}
         {role === 'ADMIN' && (
@@ -182,6 +193,7 @@ export function Sidebar({ expanded }: SidebarProps) {
               label="سجل المراجعة"
               active={pathname === '/admin/audit'}
               expanded={expanded}
+              onNavigate={onNavigate}
             />
             <NavLink
               href="/admin/users"
@@ -189,11 +201,12 @@ export function Sidebar({ expanded }: SidebarProps) {
               label="إدارة المستخدمين"
               active={pathname === '/admin/users'}
               expanded={expanded}
+              onNavigate={onNavigate}
             />
           </>
         )}
         <button
-          onClick={() => signOutAction()}
+          onClick={() => { onNavigate?.(); signOutAction() }}
           title={!expanded ? 'تسجيل الخروج' : undefined}
           className="flex items-center rounded-lg text-[12.5px] transition-colors w-full mt-1"
           style={{
@@ -225,12 +238,14 @@ interface NavLinkProps {
   label: string
   active: boolean
   expanded: boolean
+  onNavigate?: () => void
 }
 
-function NavLink({ href, icon, label, active, expanded }: NavLinkProps) {
+function NavLink({ href, icon, label, active, expanded, onNavigate }: NavLinkProps) {
   return (
     <Link
       href={href}
+      onClick={onNavigate}
       aria-current={active ? 'page' : undefined}
       title={!expanded ? label : undefined}
       className="flex items-center rounded-lg text-[12.5px] transition-colors"
