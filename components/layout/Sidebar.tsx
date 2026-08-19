@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRef, useEffect } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { DEPARTMENTS } from '@/lib/departments'
@@ -28,6 +29,16 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
   const searchParams = useSearchParams()
   const activePillar = searchParams.get('pillar')
   const { data: session, status } = useSession()
+
+  // Close the sidebar whenever the route actually changes (after navigation completes)
+  const prevRouteRef = useRef(pathname + searchParams.toString())
+  useEffect(() => {
+    const curr = pathname + searchParams.toString()
+    if (curr !== prevRouteRef.current) {
+      prevRouteRef.current = curr
+      onNavigate?.()
+    }
+  }, [pathname, searchParams, onNavigate])
   const role = status === 'loading' ? undefined : (session?.user as any)?.role as string | undefined
   const assignedPillarId = (session?.user as any)?.assignedPillarId as string | null | undefined
 

@@ -2,7 +2,8 @@
 
 import { useState, Suspense } from 'react'
 import dynamic from 'next/dynamic'
-import { useSearchParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { KpiGrid } from '@/components/kpi/KpiGrid'
 import { DeptOverview } from '@/components/kpi/DeptOverview'
@@ -28,10 +29,10 @@ const DepartmentDashboard = dynamic(
   }
 )
 
-function BackButton({ onClick }: { onClick: () => void }) {
+function BackButton({ href }: { href: string }) {
   return (
-    <button
-      onClick={onClick}
+    <Link
+      href={href}
       className="flex items-center gap-1.5 text-[12px] transition-colors"
       style={{ color: 'var(--ink-muted)' }}
       onMouseEnter={e => (e.currentTarget.style.color = 'var(--ink)')}
@@ -42,25 +43,24 @@ function BackButton({ onClick }: { onClick: () => void }) {
         <path d="M5 2l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
       الرئيسية
-    </button>
+    </Link>
   )
 }
 
 export function DashboardContent() {
   const params = useSearchParams()
-  const router = useRouter()
   const [selectedKpi, setSelectedKpi] = useState<KpiWithVariance | null>(null)
 
   const pillarParam = params.get('pillar') as PillarId | null
   const activeDept = pillarParam ? DEPT_MAP[pillarParam] : null
   const title = activeDept?.labelAr ?? 'لوحة تحكم قطاع الثقافة'
 
-  function goHome() {
+  const homeHref = (() => {
     const next = new URLSearchParams(params.toString())
     next.delete('pillar')
     const qs = next.toString()
-    router.push(qs ? `/dashboard?${qs}` : '/dashboard')
-  }
+    return qs ? `/dashboard?${qs}` : '/dashboard'
+  })()
 
   return (
     <AppShell
@@ -70,7 +70,7 @@ export function DashboardContent() {
         {pillarParam ? (
           /* ── Dept detail view ── */
           <>
-            <BackButton onClick={goHome} />
+            <BackButton href={homeHref} />
             <DepartmentDashboard pillarId={pillarParam} />
           </>
         ) : (
