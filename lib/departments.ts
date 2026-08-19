@@ -14,3 +14,5 @@ export type DeptId = typeof DEPARTMENTS[number]['id']
 export const DEPT_MAP = Object.fromEntries(
   DEPARTMENTS.map(d => [d.id, d])
 ) as Record<DeptId, typeof DEPARTMENTS[number]>
+
+export const VALID_PILLAR_IDS = new Set<string>(DEPARTMENTS.map(d => d.id))

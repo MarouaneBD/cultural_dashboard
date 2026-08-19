@@ -2,18 +2,8 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { hashPassword } from '@/lib/auth-utils'
+import { VALID_PILLAR_IDS } from '@/lib/departments'
 import type { UserRole } from '@prisma/client'
-
-const VALID_PILLAR_IDS = new Set<string>([
-  'EDUCATION',
-  'FAMILY_CULTURE',
-  'ISLAMIC_INFO_CENTER',
-  'AL_BIRR_MALE',
-  'AL_BIRR_FEMALE',
-  'ORPHANS',
-  'SCIENTIFIC_PROGRAMS',
-  'RESEARCH_PUBLICATIONS',
-])
 
 async function requireAdmin() {
   const session = await auth()
