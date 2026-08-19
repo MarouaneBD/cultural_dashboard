@@ -45,7 +45,7 @@ function ActivityCard({
     if (v == null) return '—'
     if (unit === '%') return `${Math.round(v)}%`
     if (unit === 'AED') return `${Math.round(v).toLocaleString('en')} د.إ`
-    return String(Math.round(v))
+    return Math.round(v).toLocaleString('en')
   }
 
   return (
