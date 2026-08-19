@@ -172,7 +172,7 @@ function buildTrendChart(
     ? targets.filter(t => t.labelAr === selectedLabelAr)
     : targets
 
-  return (['Q1', 'Q2', 'Q3', 'Q4'] as const).map(q => {
+  return (['Q4', 'Q3', 'Q2', 'Q1'] as const).map(q => {
     const hasData = active.some(t => t.quarters.find(x => x.q === q)?.actual != null)
     const totalActual = active.reduce((s, t) => {
       const qd = t.quarters.find(x => x.q === q)
