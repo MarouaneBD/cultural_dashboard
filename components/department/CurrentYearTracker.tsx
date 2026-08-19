@@ -312,37 +312,40 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
             ? safePct(t.target, Math.max(t.current, 1))
             : safePct(t.current, t.target)
           return (
-            <div key={t.labelAr} dir="rtl" style={{ display: 'grid', gridTemplateColumns: '1fr 3fr auto auto', alignItems: 'center', gap: '8px 20px' }}>
-              <span className="font-cairo text-[12px] font-semibold truncate" style={{ color: 'var(--ink)' }}>
-                {t.labelAr}
-              </span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <div className="rounded-full overflow-hidden" style={{ height: 7, background: 'var(--hair)' }}>
-                  <div style={{
-                    height: '100%',
-                    width: `${pct}%`,
-                    background: accentColor,
-                    borderRadius: 999,
-                    transition: 'width .4s ease',
-                  }} />
-                </div>
-                <div className="font-jb text-[11px]" style={{ display: 'flex', gap: 6 }}>
-                  <span style={{ color: accentColor, fontWeight: 700 }}>{fmt(t.current)}</span>
-                  <span style={{ color: 'var(--ink-muted)' }}>/</span>
-                  <span style={{ color: 'var(--ink)', fontWeight: 600 }}>{fmt(t.target)}</span>
+            <div key={t.labelAr} dir="rtl" style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {/* Row 1: label · last-year · pct */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <span className="font-cairo text-[12px] font-semibold truncate" style={{ color: 'var(--ink)', minWidth: 0 }}>
+                  {t.labelAr}
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                  {t.lastYearValue != null && (
+                    <span className="font-jb text-[10px]" style={{ color: 'var(--ink-muted)' }}>
+                      {data.year - 1}:{' '}
+                      <span style={{ color: 'var(--ink-soft)', fontWeight: 700 }}>{fmt(t.lastYearValue)}</span>
+                    </span>
+                  )}
+                  <span className="font-jb text-[13px] font-bold" style={{ color: accentColor }}>
+                    {Math.round(pct)}%
+                  </span>
                 </div>
               </div>
-              <span className="font-jb text-[13px] font-bold flex-shrink-0" style={{ color: accentColor }}>
-                {Math.round(pct)}%
-              </span>
-              <span className="font-jb flex-shrink-0 text-left" style={{ minWidth: 90 }}>
-                {t.lastYearValue != null && (
-                  <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
-                    <span style={{ fontSize: 9, color: 'var(--ink-muted)', letterSpacing: '.04em' }}>{data.year - 1}</span>
-                    <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 700 }}>{fmt(t.lastYearValue)}</span>
-                  </span>
-                )}
-              </span>
+              {/* Row 2: progress bar */}
+              <div className="rounded-full overflow-hidden" style={{ height: 7, background: 'var(--hair)' }}>
+                <div style={{
+                  height: '100%',
+                  width: `${pct}%`,
+                  background: accentColor,
+                  borderRadius: 999,
+                  transition: 'width .4s ease',
+                }} />
+              </div>
+              {/* Row 3: current / target */}
+              <div className="font-jb text-[11px]" style={{ display: 'flex', gap: 6 }}>
+                <span style={{ color: accentColor, fontWeight: 700 }}>{fmt(t.current)}</span>
+                <span style={{ color: 'var(--ink-muted)' }}>/</span>
+                <span style={{ color: 'var(--ink)', fontWeight: 600 }}>{fmt(t.target)}</span>
+              </div>
             </div>
           )
         })}
