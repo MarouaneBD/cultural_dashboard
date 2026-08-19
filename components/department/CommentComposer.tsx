@@ -61,7 +61,7 @@ export function CommentComposer({
         onChange={e => { setText(e.target.value); setError(null) }}
         maxLength={500}
         rows={3}
-        placeholder="اكتب تعليقك هنا..."
+        placeholder="اكتب ملاحظتك هنا..."
         className="font-cairo text-[13px] rounded-xl p-3 resize-none w-full"
         style={{
           background: 'var(--bg-alt)',

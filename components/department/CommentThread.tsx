@@ -79,7 +79,7 @@ export function CommentThread({ pillarId, accentColor }: CommentThreadProps) {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span className="font-space font-semibold text-[11px] tracking-[.1em] uppercase" style={{ color: 'var(--ink)' }}>
-          تعليقات التحليل
+          ملاحظات التحليل
         </span>
         {canWrite && !composerOpen && (
           <button
@@ -87,7 +87,7 @@ export function CommentThread({ pillarId, accentColor }: CommentThreadProps) {
             className="font-cairo text-[12px] px-3 py-1.5 rounded-lg"
             style={{ background: `${accentColor}15`, color: accentColor, border: `1px solid ${accentColor}30` }}
           >
-            + أضف تعليقاً
+            + أضف ملاحظة
           </button>
         )}
       </div>
@@ -105,7 +105,7 @@ export function CommentThread({ pillarId, accentColor }: CommentThreadProps) {
       {isLoading ? (
         <p className="font-cairo text-[12px] text-center" style={{ color: 'var(--ink-muted)' }}>جاري التحميل...</p>
       ) : comments.length === 0 && !composerOpen ? (
-        <p className="font-cairo text-[12px]" style={{ color: 'var(--ink-muted)' }}>لا توجد تعليقات بعد</p>
+        <p className="font-cairo text-[12px]" style={{ color: 'var(--ink-muted)' }}>لا توجد ملاحظات بعد</p>
       ) : (
         <ul style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {comments.map(c => {

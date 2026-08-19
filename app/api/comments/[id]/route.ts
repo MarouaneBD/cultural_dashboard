@@ -21,7 +21,7 @@ export async function PATCH(
 
   const comment = await prisma.comment.findUnique({ where: { id } })
   if (!comment) {
-    return NextResponse.json({ error: 'التعليق غير موجود' }, { status: 404 })
+    return NextResponse.json({ error: 'الملاحظة غير موجودة' }, { status: 404 })
   }
 
   const isAuthor = comment.authorId === session.user.id
@@ -35,7 +35,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'النص مطلوب' }, { status: 400 })
   }
   if (text.trim().length > 500) {
-    return NextResponse.json({ error: 'التعليق يتجاوز 500 حرف' }, { status: 400 })
+    return NextResponse.json({ error: 'الملاحظة تتجاوز 500 حرف' }, { status: 400 })
   }
 
   const updated = await prisma.comment.update({
@@ -67,7 +67,7 @@ export async function DELETE(
 
   const comment = await prisma.comment.findUnique({ where: { id } })
   if (!comment) {
-    return NextResponse.json({ error: 'التعليق غير موجود' }, { status: 404 })
+    return NextResponse.json({ error: 'الملاحظة غير موجودة' }, { status: 404 })
   }
 
   const isAuthor = comment.authorId === session.user.id
