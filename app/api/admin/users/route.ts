@@ -4,6 +4,17 @@ import { prisma } from '@/lib/prisma'
 import { hashPassword } from '@/lib/auth-utils'
 import type { UserRole } from '@prisma/client'
 
+const VALID_PILLAR_IDS = new Set<string>([
+  'EDUCATION',
+  'FAMILY_CULTURE',
+  'ISLAMIC_INFO_CENTER',
+  'AL_BIRR_MALE',
+  'AL_BIRR_FEMALE',
+  'ORPHANS',
+  'SCIENTIFIC_PROGRAMS',
+  'RESEARCH_PUBLICATIONS',
+])
+
 async function requireAdmin() {
   const session = await auth()
   if (!session || session.user.role !== 'ADMIN') return null
@@ -47,6 +58,10 @@ export async function POST(req: Request) {
 
   if (!username || !password || !role) {
     return NextResponse.json({ error: 'بيانات ناقصة' }, { status: 400 })
+  }
+
+  if (assignedPillarId && assignedPillarId.trim() && !VALID_PILLAR_IDS.has(assignedPillarId)) {
+    return NextResponse.json({ error: 'قسم غير صالح' }, { status: 400 })
   }
 
   const existing = await prisma.user.findUnique({ where: { username } })
