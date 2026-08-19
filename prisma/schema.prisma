@@ -116,6 +116,7 @@ model User {
   passwordHash       String
   role               UserRole  @default(VIEWER)
   mustChangePassword Boolean   @default(true)
+  assignedPillarId   String?
   createdAt          DateTime  @default(now())
   comments           Comment[]
 }
