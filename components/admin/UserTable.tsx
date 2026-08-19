@@ -1,6 +1,7 @@
 'use client'
 
 import type { UserRole } from '@prisma/client'
+import { DEPT_MAP } from '@/lib/departments'
 
 export interface UserRow {
   id: string
@@ -8,6 +9,7 @@ export interface UserRow {
   name: string | null
   role: UserRole
   mustChangePassword: boolean
+  assignedPillarId: string | null
   createdAt: string
 }
 
@@ -45,6 +47,7 @@ export function UserTable({ users, currentUserId, onEdit, onResetPassword, onDel
           <th className="text-right p-3 font-medium">اسم المستخدم</th>
           <th className="text-right p-3 font-medium">الاسم</th>
           <th className="text-right p-3 font-medium">الدور</th>
+          <th className="text-right p-3 font-medium">القسم المخصص</th>
           <th className="text-right p-3 font-medium">تاريخ الإنشاء</th>
           <th className="text-right p-3 font-medium">الإجراءات</th>
         </tr>
@@ -63,6 +66,11 @@ export function UserTable({ users, currentUserId, onEdit, onResetPassword, onDel
                   تغيير مطلوب
                 </span>
               )}
+            </td>
+            <td className="p-3 text-xs" style={{ color: 'var(--ink-muted)' }}>
+              {user.assignedPillarId
+                ? (DEPT_MAP[user.assignedPillarId as keyof typeof DEPT_MAP]?.labelAr ?? user.assignedPillarId)
+                : '—'}
             </td>
             <td className="p-3 text-xs" style={{ color: 'var(--ink-muted)' }}>
               {formatDateAr(user.createdAt)}

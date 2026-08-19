@@ -2,6 +2,7 @@
 
 import { useState, useEffect, FormEvent } from 'react'
 import type { UserRole } from '@prisma/client'
+import { DEPARTMENTS } from '@/lib/departments'
 import type { UserRow } from './UserTable'
 
 type Mode = 'create' | 'edit' | 'reset'
@@ -28,6 +29,7 @@ const TITLES: Record<Mode, string> = {
 export function UserPanel({ mode, user, onClose, onSaved }: Props) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [selectedRole, setSelectedRole] = useState<UserRole>(user?.role ?? 'VIEWER')
 
   // Close on Escape
   useEffect(() => {
@@ -42,6 +44,7 @@ export function UserPanel({ mode, user, onClose, onSaved }: Props) {
     setLoading(true)
 
     const form = new FormData(e.currentTarget)
+    const assignedPillarId = form.get('assignedPillarId') as string | null
     let res: Response
 
     if (mode === 'create') {
@@ -53,6 +56,7 @@ export function UserPanel({ mode, user, onClose, onSaved }: Props) {
           name: form.get('name') || undefined,
           role: form.get('role'),
           password: form.get('password'),
+          assignedPillarId: assignedPillarId || null,
         }),
       })
     } else if (mode === 'edit') {
@@ -62,6 +66,7 @@ export function UserPanel({ mode, user, onClose, onSaved }: Props) {
         body: JSON.stringify({
           name: form.get('name') || undefined,
           role: form.get('role'),
+          assignedPillarId: assignedPillarId || null,
         }),
       })
     } else {
@@ -158,7 +163,8 @@ export function UserPanel({ mode, user, onClose, onSaved }: Props) {
                 <select
                   name="role"
                   required
-                  defaultValue={user?.role ?? 'VIEWER'}
+                  value={selectedRole}
+                  onChange={e => setSelectedRole(e.target.value as UserRole)}
                   className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2"
                   style={{ background: 'var(--bg-alt)', borderColor: 'var(--border)', color: 'var(--ink)' }}
                 >
@@ -167,6 +173,26 @@ export function UserPanel({ mode, user, onClose, onSaved }: Props) {
                   ))}
                 </select>
               </div>
+
+              {/* Department assignment — only shown when role is EDITOR */}
+              {selectedRole === 'EDITOR' && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium" style={{ color: 'var(--ink-muted)' }}>
+                    القسم المخصص
+                  </label>
+                  <select
+                    name="assignedPillarId"
+                    defaultValue={user?.assignedPillarId ?? ''}
+                    className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2"
+                    style={{ background: 'var(--bg-alt)', borderColor: 'var(--border)', color: 'var(--ink)' }}
+                  >
+                    <option value="">— بدون تخصيص —</option>
+                    {DEPARTMENTS.map(d => (
+                      <option key={d.id} value={d.id}>{d.labelAr}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </>
           )}
 

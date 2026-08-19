@@ -16,7 +16,15 @@ export async function GET() {
   }
 
   const users = await prisma.user.findMany({
-    select: { id: true, username: true, name: true, role: true, mustChangePassword: true, createdAt: true },
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      role: true,
+      mustChangePassword: true,
+      assignedPillarId: true,
+      createdAt: true,
+    },
     orderBy: { createdAt: 'asc' },
   })
 
@@ -29,11 +37,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
   }
 
-  const { username, name, role, password } = await req.json() as {
+  const { username, name, role, password, assignedPillarId } = await req.json() as {
     username?: string
     name?: string
     role?: UserRole
     password?: string
+    assignedPillarId?: string | null
   }
 
   if (!username || !password || !role) {
@@ -47,8 +56,23 @@ export async function POST(req: Request) {
 
   const passwordHash = await hashPassword(password)
   const user = await prisma.user.create({
-    data: { username, name: name || null, role, passwordHash, mustChangePassword: true },
-    select: { id: true, username: true, name: true, role: true, mustChangePassword: true, createdAt: true },
+    data: {
+      username,
+      name: name || null,
+      role,
+      passwordHash,
+      mustChangePassword: true,
+      assignedPillarId: assignedPillarId || null,
+    },
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      role: true,
+      mustChangePassword: true,
+      assignedPillarId: true,
+      createdAt: true,
+    },
   })
 
   return NextResponse.json(user, { status: 201 })

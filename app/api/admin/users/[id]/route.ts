@@ -24,6 +24,7 @@ export async function PATCH(
     name?: string
     role?: UserRole
     newPassword?: string
+    assignedPillarId?: string | null
   }
 
   const data: Record<string, unknown> = {}
@@ -33,11 +34,20 @@ export async function PATCH(
     data.passwordHash = await hashPassword(body.newPassword)
     data.mustChangePassword = true
   }
+  if ('assignedPillarId' in body) data.assignedPillarId = body.assignedPillarId || null
 
   const user = await prisma.user.update({
     where: { id },
     data,
-    select: { id: true, username: true, name: true, role: true, mustChangePassword: true, createdAt: true },
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      role: true,
+      mustChangePassword: true,
+      assignedPillarId: true,
+      createdAt: true,
+    },
   })
 
   return NextResponse.json(user)
