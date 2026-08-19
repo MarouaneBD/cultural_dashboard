@@ -3,8 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { useSession } from 'next-auth/react'
-import { signOutAction } from '@/app/actions/auth'
+import { useSession, signOut } from 'next-auth/react'
 import { DEPARTMENTS } from '@/lib/departments'
 
 const PILLARS = DEPARTMENTS.map(d => ({
@@ -206,7 +205,7 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
           </>
         )}
         <button
-          onClick={() => { onNavigate?.(); signOutAction() }}
+          onClick={() => { onNavigate?.(); signOut({ callbackUrl: '/login' }) }}
           title={!expanded ? 'تسجيل الخروج' : undefined}
           className="flex items-center rounded-lg text-[12.5px] transition-colors w-full mt-1"
           style={{

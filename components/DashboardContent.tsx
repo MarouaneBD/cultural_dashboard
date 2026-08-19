@@ -41,7 +41,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
         {/* RTL: arrow points right (back = forward in LTR) */}
         <path d="M5 2l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
-      جميع الإدارات
+      الرئيسية
     </button>
   )
 }

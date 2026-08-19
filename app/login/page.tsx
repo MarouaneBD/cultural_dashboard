@@ -1,10 +1,8 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
 
@@ -32,8 +30,9 @@ export default function LoginPage() {
       // On success NextAuth redirects → fetch follows → final URL is /dashboard
       // On failure NextAuth redirects → final URL contains /login?error=
       if (res.redirected && !res.url.includes('error=')) {
-        router.push('/dashboard')
-        router.refresh()
+        // Full browser navigation — clears Next.js router cache and NextAuth
+        // session cache so the new user's session is picked up immediately.
+        window.location.href = '/dashboard'
         return
       }
 
