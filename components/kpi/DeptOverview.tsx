@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { DEPARTMENTS } from '@/lib/departments'
 import { SparklineChart } from '@/components/charts/SparklineChart'
 import type { KpiWithVariance } from '@/types'
@@ -94,6 +95,7 @@ export function DeptOverview() {
   const params = useSearchParams()
   const year = params.get('year') ?? '2026'
   const period = params.get('period') ?? 'ANNUAL'
+  const { data: session, status } = useSession()
 
   const { data: kpis, isLoading } = useQuery<KpiWithVariance[]>({
     queryKey: ['kpis', year, period],
@@ -108,6 +110,13 @@ export function DeptOverview() {
     DEPARTMENTS.map(d => [d.id, (kpis ?? []).filter(k => k.pillar === d.id)])
   )
 
+  // Assigned EDITOR sees only their department; everyone else sees all
+  const role = status !== 'loading' ? (session?.user as any)?.role as string | undefined : undefined
+  const assignedPillarId = (session?.user as any)?.assignedPillarId as string | null | undefined
+  const visibleDepts = (role === 'EDITOR' && assignedPillarId)
+    ? DEPARTMENTS.filter(d => d.id === assignedPillarId)
+    : DEPARTMENTS
+
   return (
     <div>
       <p
@@ -117,7 +126,7 @@ export function DeptOverview() {
         الإدارات
       </p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {DEPARTMENTS.map(dept => (
+        {visibleDepts.map(dept => (
           <DeptCard
             key={dept.id}
             dept={dept}
