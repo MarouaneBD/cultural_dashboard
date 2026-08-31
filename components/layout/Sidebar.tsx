@@ -161,7 +161,7 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
             className="font-space font-semibold tracking-[.12em] uppercase text-[9px] px-2 pt-2.5 pb-1"
             style={{ color: 'rgba(255,255,255,.25)', whiteSpace: 'nowrap' }}
           >
-            الإدارات
+            الوحدات التنظيمية
           </p>
         ) : (
           <div className="my-1 mx-1 border-t border-white/[.08]" />

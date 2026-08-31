@@ -123,7 +123,7 @@ export function DeptOverview() {
         className="font-space font-semibold text-[10px] tracking-[.14em] uppercase mb-4"
         style={{ color: 'var(--ink-muted)' }}
       >
-        الإدارات
+        الوحدات التنظيمية
       </p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {visibleDepts.map(dept => (

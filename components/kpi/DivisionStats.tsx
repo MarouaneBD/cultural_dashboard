@@ -34,7 +34,7 @@ function buildStats(kpis: KpiWithVariance[]): StatItem[] {
 
   return [
     {
-      labelAr: 'الإدارات',
+      labelAr: 'الوحدات التنظيمية',
       value: '8',
       Icon: Building2,
       note: 'departments',
