@@ -121,9 +121,11 @@ export async function GET(
         }
 
         const isCumulative = k.activityType === 'CUMULATIVE'
-        const quarterlyTargetVal = (isKpiPercent && !isCumulative)
-          ? annualTargetVal
-          : Math.max(Math.round(annualTargetVal / 4), 1)
+        // CUMULATIVE: spread annual target evenly across quarters (÷4)
+        // MONTHLY_VARIANCE: each quarter carries the full annual target
+        const quarterlyTargetVal = isCumulative
+          ? Math.max(Math.round(annualTargetVal / 4), 1)
+          : annualTargetVal
         const quarters = QUARTERS.map(q => {
           const qa = k.actuals.find(a => a.year === 2026 && a.period === q)
           const qt = k.targets.find(t => t.period === q)
