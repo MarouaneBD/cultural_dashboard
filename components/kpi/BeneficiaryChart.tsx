@@ -204,14 +204,14 @@ function StakeholdersCard({
                   </span>
                   {/* Number */}
                   <span
-                    className="font-jb text-[11px] font-semibold flex-shrink-0"
+                    className="font-jb text-[14px] font-semibold flex-shrink-0"
                     style={{ color: d.segColor }}
                   >
                     {fmt(d.total)}
                   </span>
                   {/* Pct badge */}
                   <span
-                    className="font-jb text-[10px] flex-shrink-0 rounded-md px-1.5 py-0.5"
+                    className="font-jb text-[12px] flex-shrink-0 rounded-md px-1.5 py-0.5"
                     style={{ background: `${d.segColor}15`, color: d.segColor, minWidth: 36, textAlign: 'center' }}
                   >
                     {pct}%
