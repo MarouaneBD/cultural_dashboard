@@ -35,6 +35,7 @@ export const familyCultureData: DeptData = {
     targets: [
       {
         labelAr: 'الجلسات الأسرية', target: 360, current: 168, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 312,
         quarters: [
           { q: 'Q1', actual: 84,   target: 90 },
@@ -45,6 +46,7 @@ export const familyCultureData: DeptData = {
       },
       {
         labelAr: 'المستفيدون', target: 5000, current: 2290, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 4180,
         quarters: [
           { q: 'Q1', actual: 1145, target: 1250 },
@@ -55,6 +57,7 @@ export const familyCultureData: DeptData = {
       },
       {
         labelAr: 'معدل المشاركة', target: 92, current: 90, unit: '%',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 88,
         quarters: [
           { q: 'Q1', actual: 90,   target: 92 },
@@ -65,6 +68,7 @@ export const familyCultureData: DeptData = {
       },
       {
         labelAr: 'رضا المستفيدين', target: 95, current: 94, unit: '%',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 93,
         quarters: [
           { q: 'Q1', actual: 94,   target: 95 },

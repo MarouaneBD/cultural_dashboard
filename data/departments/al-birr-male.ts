@@ -35,6 +35,7 @@ export const alBirrMaleData: DeptData = {
     targets: [
       {
         labelAr: 'المستفيدون (ذكور)', target: 2200, current: 860, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 1860,
         quarters: [
           { q: 'Q1', actual: 430,  target: 550 },
@@ -45,6 +46,7 @@ export const alBirrMaleData: DeptData = {
       },
       {
         labelAr: 'البرامج المنفذة', target: 48, current: 14, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 38,
         quarters: [
           { q: 'Q1', actual: 7,    target: 12 },
@@ -55,6 +57,7 @@ export const alBirrMaleData: DeptData = {
       },
       {
         labelAr: 'نسبة التغطية', target: 85, current: 74, unit: '%',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 78,
         quarters: [
           { q: 'Q1', actual: 74,   target: 85 },
@@ -65,6 +68,7 @@ export const alBirrMaleData: DeptData = {
       },
       {
         labelAr: 'رضا المستفيدين', target: 92, current: 88, unit: '%',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 89,
         quarters: [
           { q: 'Q1', actual: 88,   target: 92 },

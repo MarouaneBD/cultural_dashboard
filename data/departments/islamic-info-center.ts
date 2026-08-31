@@ -35,6 +35,7 @@ export const islamicInfoCenterData: DeptData = {
     targets: [
       {
         labelAr: 'الاستفسارات المجابة', target: 10000, current: 4320, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 8640,
         quarters: [
           { q: 'Q1', actual: 2160,  target: 2500 },
@@ -45,6 +46,7 @@ export const islamicInfoCenterData: DeptData = {
       },
       {
         labelAr: 'المطبوعات الصادرة', target: 150, current: 52, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 124,
         quarters: [
           { q: 'Q1', actual: 26,   target: 38 },
@@ -55,6 +57,7 @@ export const islamicInfoCenterData: DeptData = {
       },
       {
         labelAr: 'الزوار الرقميون', target: 65000, current: 26200, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 52400,
         quarters: [
           { q: 'Q1', actual: 13100, target: 16250 },
@@ -65,6 +68,7 @@ export const islamicInfoCenterData: DeptData = {
       },
       {
         labelAr: 'دقة المعلومات', target: 98, current: 97, unit: '%',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 97,
         quarters: [
           { q: 'Q1', actual: 97,   target: 98 },

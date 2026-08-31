@@ -35,6 +35,7 @@ export const scientificProgramsData: DeptData = {
     targets: [
       {
         labelAr: 'البحوث المنجزة', target: 24, current: 7, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 18,
         quarters: [
           { q: 'Q1', actual: 4,    target: 6 },
@@ -45,6 +46,7 @@ export const scientificProgramsData: DeptData = {
       },
       {
         labelAr: 'المنح الدراسية', target: 80, current: 28, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 63,
         quarters: [
           { q: 'Q1', actual: 14,   target: 20 },
@@ -55,6 +57,7 @@ export const scientificProgramsData: DeptData = {
       },
       {
         labelAr: 'الشراكات العلمية', target: 15, current: 5, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 11,
         quarters: [
           { q: 'Q1', actual: 3,    target: 4 },
@@ -65,6 +68,7 @@ export const scientificProgramsData: DeptData = {
       },
       {
         labelAr: 'معدل الإنجاز', target: 88, current: 78, unit: '%',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 81,
         quarters: [
           { q: 'Q1', actual: 78,   target: 88 },

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import {
-  ResponsiveContainer, ComposedChart, Bar, Line,
+  ResponsiveContainer, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts'
 import type { DeptData, TargetProgress } from '@/types/department'
@@ -232,7 +232,7 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
         </div>
         <div dir="ltr" style={{ width: '100%', height: 220 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 8, right: -8, left: 20, bottom: 0 }}>
+            <BarChart data={chartData} margin={{ top: 8, right: -8, left: 20, bottom: 0 }} barGap={3} barCategoryGap="28%">
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} />
               <YAxis
@@ -271,6 +271,15 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
                   <span style={{ color: 'var(--ink-soft)' }}>{value}</span>
                 )}
               />
+              {/* Quarterly target bars */}
+              <Bar
+                dataKey="target"
+                name="المستهدف"
+                fill="#f59e0b"
+                fillOpacity={0.3}
+                radius={[4, 4, 0, 0]}
+                maxBarSize={36}
+              />
               {/* Current year quarterly actuals */}
               <Bar
                 dataKey="quarterly"
@@ -280,18 +289,7 @@ export function CurrentYearTracker({ data, accentColor }: Props) {
                 maxBarSize={36}
                 fillOpacity={0.85}
               />
-              {/* Quarterly target — dashed line */}
-              <Line
-                type="monotone"
-                dataKey="target"
-                name="المستهدف"
-                stroke="#f59e0b"
-                strokeWidth={2}
-                strokeDasharray="5 3"
-                dot={{ r: 3, fill: '#f59e0b', strokeWidth: 0 }}
-                connectNulls={false}
-              />
-            </ComposedChart>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>

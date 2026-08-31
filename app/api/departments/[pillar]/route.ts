@@ -120,7 +120,10 @@ export async function GET(
           annualTargetVal = qSum
         }
 
-        const quarterlyTargetVal = isKpiPercent ? annualTargetVal : Math.max(Math.round(annualTargetVal / 4), 1)
+        const isCumulative = k.activityType === 'CUMULATIVE'
+        const quarterlyTargetVal = (isKpiPercent && !isCumulative)
+          ? annualTargetVal
+          : Math.max(Math.round(annualTargetVal / 4), 1)
         const quarters = QUARTERS.map(q => {
           const qa = k.actuals.find(a => a.year === 2026 && a.period === q)
           const qt = k.targets.find(t => t.period === q)
@@ -145,6 +148,7 @@ export async function GET(
           unit: unitDisplay(k.unit),
           lastYearValue: lastYearActual ? Math.round(Number(lastYearActual.value)) : null,
           quarters,
+          activityType: k.activityType as 'CUMULATIVE' | 'MONTHLY_VARIANCE',
         }
       })
 

@@ -44,6 +44,7 @@ export const educationData: DeptData = {
     targets: [
       {
         labelAr: 'الطلاب المسجلون', target: 3200, current: 1540, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 2840,
         quarters: [
           { q: 'Q1', actual: 770,  target: 800 },
@@ -54,6 +55,7 @@ export const educationData: DeptData = {
       },
       {
         labelAr: 'البرامج المنفذة', target: 55, current: 18, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 47,
         quarters: [
           { q: 'Q1', actual: 9,    target: 14 },
@@ -64,6 +66,7 @@ export const educationData: DeptData = {
       },
       {
         labelAr: 'معدل الإتمام', target: 90, current: 86, unit: '%',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 84,
         quarters: [
           { q: 'Q1', actual: 86,   target: 90 },
@@ -74,6 +77,7 @@ export const educationData: DeptData = {
       },
       {
         labelAr: 'رضا المستفيدين', target: 93, current: 92, unit: '%',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 91,
         quarters: [
           { q: 'Q1', actual: 92,   target: 93 },

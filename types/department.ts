@@ -38,6 +38,7 @@ export interface TargetProgress {
   lowerIsBetter?: boolean
   lastYearValue: number | null   // 2025 annual actual
   quarters: QuarterActual[]      // Q1–Q4 breakdown for current year
+  activityType: 'CUMULATIVE' | 'MONTHLY_VARIANCE'
 }
 
 export interface MonthlyProgressPoint {

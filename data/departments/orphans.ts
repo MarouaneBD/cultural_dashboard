@@ -35,6 +35,7 @@ export const orphansData: DeptData = {
     targets: [
       {
         labelAr: 'الأيتام المسجلون', target: 720, current: 340, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 680,
         quarters: [
           { q: 'Q1', actual: 170,  target: 180 },
@@ -45,6 +46,7 @@ export const orphansData: DeptData = {
       },
       {
         labelAr: 'الكفلاء النشطون', target: 580, current: 268, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 524,
         quarters: [
           { q: 'Q1', actual: 134,  target: 145 },
@@ -55,6 +57,7 @@ export const orphansData: DeptData = {
       },
       {
         labelAr: 'البرامج التربوية', target: 36, current: 14, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 29,
         quarters: [
           { q: 'Q1', actual: 7,    target: 9 },
@@ -65,6 +68,7 @@ export const orphansData: DeptData = {
       },
       {
         labelAr: 'نسبة التغطية', target: 98, current: 96, unit: '%',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 96,
         quarters: [
           { q: 'Q1', actual: 96,   target: 98 },

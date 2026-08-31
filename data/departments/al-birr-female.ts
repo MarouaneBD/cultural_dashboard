@@ -35,6 +35,7 @@ export const alBirrFemaleData: DeptData = {
     targets: [
       {
         labelAr: 'المستفيدات (إناث)', target: 2600, current: 1020, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 2140,
         quarters: [
           { q: 'Q1', actual: 510,  target: 650 },
@@ -45,6 +46,7 @@ export const alBirrFemaleData: DeptData = {
       },
       {
         labelAr: 'البرامج المنفذة', target: 52, current: 18, unit: '',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 44,
         quarters: [
           { q: 'Q1', actual: 9,    target: 13 },
@@ -55,6 +57,7 @@ export const alBirrFemaleData: DeptData = {
       },
       {
         labelAr: 'نسبة التغطية', target: 88, current: 80, unit: '%',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 82,
         quarters: [
           { q: 'Q1', actual: 80,   target: 88 },
@@ -65,6 +68,7 @@ export const alBirrFemaleData: DeptData = {
       },
       {
         labelAr: 'رضا المستفيدات', target: 96, current: 93, unit: '%',
+        activityType: 'MONTHLY_VARIANCE',
         lastYearValue: 94,
         quarters: [
           { q: 'Q1', actual: 93,   target: 96 },
