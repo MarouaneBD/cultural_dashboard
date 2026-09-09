@@ -6,6 +6,7 @@ import { useRef, useEffect } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { DEPARTMENTS } from '@/lib/departments'
+import { DIVISIONS, DIVISION_MAP, DEFAULT_DIVISION, type DivisionId } from '@/lib/divisions'
 
 const PILLARS = DEPARTMENTS.map(d => ({
   id: d.id,
@@ -28,6 +29,7 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const activePillar = searchParams.get('pillar')
+  const activeDivision = (searchParams.get('division') ?? DEFAULT_DIVISION) as DivisionId
   const { data: session, status } = useSession()
 
   // Close the sidebar whenever the route actually changes (after navigation completes)
@@ -90,7 +92,7 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
             </div>
             <div className="text-center">
               <div className="font-space font-semibold text-[12px] text-white/88 flex items-center justify-center gap-1.5">
-                قطاع الثقافة
+                {DIVISION_MAP[activeDivision]?.shortAr ?? 'الثقافة والبحوث'}
                 <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--gold)' }} />
               </div>
               <div className="text-[9.5px] text-white/38 mt-0.5">لوحة تحكم</div>
@@ -147,37 +149,68 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
         style={{ padding: expanded ? '10px 8px' : '10px 6px' }}
         aria-label="القائمة الرئيسية"
       >
+        {/* ── Division switcher ───────────────────── */}
+        {expanded ? (
+          <p
+            className="font-space font-semibold tracking-[.12em] uppercase text-[9px] px-2 pt-1 pb-1"
+            style={{ color: 'rgba(255,255,255,.25)', whiteSpace: 'nowrap' }}
+          >
+            القطاعات
+          </p>
+        ) : (
+          <div className="my-1 mx-1 border-t border-white/[.08]" />
+        )}
+
+        {DIVISIONS.map(div => (
+          <DivisionLink
+            key={div.id}
+            divisionId={div.id}
+            icon={div.icon}
+            label={div.shortAr}
+            active={activeDivision === div.id}
+            available={div.active}
+            expanded={expanded}
+            onNavigate={onNavigate}
+          />
+        ))}
+
+        <div className="my-1 mx-1 border-t border-white/[.08]" />
+
         <NavLink
-          href="/dashboard"
-          icon="◈"
+          href={`/dashboard?division=${activeDivision}`}
+          icon="⊞"
           label="الرئيسية"
           active={pathname === '/dashboard' && !activePillar}
           expanded={expanded}
           onNavigate={onNavigate}
         />
 
-        {expanded ? (
-          <p
-            className="font-space font-semibold tracking-[.12em] uppercase text-[9px] px-2 pt-2.5 pb-1"
-            style={{ color: 'rgba(255,255,255,.25)', whiteSpace: 'nowrap' }}
-          >
-            الوحدات التنظيمية
-          </p>
-        ) : (
-          <div className="my-1 mx-1 border-t border-white/[.08]" />
-        )}
+        {activeDivision === DEFAULT_DIVISION && (
+          <>
+            {expanded ? (
+              <p
+                className="font-space font-semibold tracking-[.12em] uppercase text-[9px] px-2 pt-2.5 pb-1"
+                style={{ color: 'rgba(255,255,255,.25)', whiteSpace: 'nowrap' }}
+              >
+                الوحدات التنظيمية
+              </p>
+            ) : (
+              <div className="my-1 mx-1 border-t border-white/[.08]" />
+            )}
 
-        {visiblePillars.map(p => (
-          <NavLink
-            key={p.href}
-            href={p.href}
-            icon={p.icon}
-            label={p.labelAr}
-            active={activePillar === p.id}
-            expanded={expanded}
-            onNavigate={onNavigate}
-          />
-        ))}
+            {visiblePillars.map(p => (
+              <NavLink
+                key={p.href}
+                href={p.href}
+                icon={p.icon}
+                label={p.labelAr}
+                active={activePillar === p.id}
+                expanded={expanded}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </>
+        )}
       </nav>
 
       {/* ── Footer (role-gated) ───────────────────────────── */}
@@ -239,6 +272,67 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
         </button>
       </div>
     </aside>
+  )
+}
+
+interface DivisionLinkProps {
+  divisionId: DivisionId
+  icon: string
+  label: string
+  active: boolean
+  available: boolean
+  expanded: boolean
+  onNavigate?: () => void
+}
+
+function DivisionLink({ divisionId, icon, label, active, available, expanded, onNavigate }: DivisionLinkProps) {
+  const href = `/dashboard?division=${divisionId}`
+  return (
+    <Link
+      href={href}
+      onClick={onNavigate}
+      aria-current={active ? 'page' : undefined}
+      title={!expanded ? label : undefined}
+      className="flex items-center rounded-lg text-[12.5px] transition-colors"
+      style={{
+        gap: expanded ? '9px' : '0',
+        padding: expanded ? '7px 10px' : '8px 0',
+        justifyContent: expanded ? 'flex-start' : 'center',
+        color: active ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.60)',
+        background: active ? 'rgba(255,255,255,.10)' : 'transparent',
+        fontWeight: active ? 600 : 400,
+        whiteSpace: 'nowrap',
+      }}
+      onMouseEnter={e => {
+        if (!active) {
+          e.currentTarget.style.background = 'rgba(255,255,255,.06)'
+          e.currentTarget.style.color = 'rgba(255,255,255,.90)'
+        }
+      }}
+      onMouseLeave={e => {
+        if (!active) {
+          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.color = 'rgba(255,255,255,.60)'
+        }
+      }}
+    >
+      <span style={{ fontSize: '15px', width: '20px', textAlign: 'center', flexShrink: 0, lineHeight: 1 }}>
+        {icon}
+      </span>
+      {expanded && (
+        <span className="flex items-center gap-1.5 min-w-0">
+          <span className="truncate">{label}</span>
+          {!available && (
+            <span
+              className="font-space text-[8px] tracking-wider rounded px-1 py-0.5 flex-shrink-0"
+              style={{ background: 'rgba(184,130,42,.22)', color: 'var(--gold)', letterSpacing: '.08em' }}
+            >
+              قريباً
+            </span>
+          )}
+        </span>
+      )}
+    </Link>
   )
 }
 

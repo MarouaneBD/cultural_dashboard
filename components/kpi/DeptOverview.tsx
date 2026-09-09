@@ -53,28 +53,17 @@ function DeptCard({
         </p>
       </div>
 
-      {/* Body: sparkline + big % (only when real data exists) */}
-      <div className="flex items-end justify-between gap-2">
-        <div className="h-10 flex-shrink-0" style={{ width: '88px' }}>
-          {sparklineData.length > 0
-            ? <SparklineChart data={sparklineData} color={color} />
-            : <div className="w-full h-full rounded" style={{ background: `${color}18` }} />
-          }
-        </div>
-        <p
-          className="font-fraunces font-medium leading-none flex-shrink-0"
-          style={{ fontSize: '36px', color: 'var(--ink)', letterSpacing: '-.02em' }}
-        >
-          {hasKpis ? `${avgPct.toFixed(0)}%` : '—'}
-        </p>
+      {/* Body: sparkline */}
+      <div className="h-10" style={{ width: '88px' }}>
+        {sparklineData.length > 0
+          ? <SparklineChart data={sparklineData} color={color} />
+          : <div className="w-full h-full rounded" style={{ background: `${color}18` }} />
+        }
       </div>
 
       {/* Footer: progress bar + KPI count */}
       <div className="flex flex-col gap-1.5 pt-3 border-t" style={{ borderColor: 'var(--hair)' }}>
-        <div className="flex items-center justify-between">
-          <span className="font-jb text-[11px] font-medium" style={{ color }}>
-            {hasKpis ? `${avgPct.toFixed(1)}%` : '—'}
-          </span>
+        <div className="flex items-center justify-end">
           <span className="font-jb text-[10px]" style={{ color: 'var(--ink-muted)' }}>
             {hasKpis ? `${kpis.length} نشاط` : 'لا توجد بيانات'}
           </span>

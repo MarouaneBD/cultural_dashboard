@@ -153,8 +153,6 @@ function StakeholdersCard({
   items: Array<CategoryTotal & { segColor: string }>
   year: string
 }) {
-  const total = items.reduce((s, d) => s + d.total, 0)
-
   const segments = items.map(d => ({
     label: d.category,
     value: d.total,
@@ -181,14 +179,12 @@ function StakeholdersCard({
 
       {/* Body: rings top on mobile, side-by-side on sm+ */}
       <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-6">
-        <ConcentricRings segments={segments} total={total} size={220} />
+        <ConcentricRings segments={segments} total={0} size={220} />
 
         {/* Legend */}
         <div className="flex-1 flex flex-col min-w-0 w-full">
           <ul className="flex flex-col gap-3">
-            {items.map((d, i) => {
-              const pct = total > 0 ? Math.round((d.total / total) * 100) : 0
-              return (
+            {items.map((d, i) => (
                 <li key={i} className="flex items-center gap-2.5 min-w-0">
                   {/* Ring indicator dot */}
                   <span
@@ -209,33 +205,10 @@ function StakeholdersCard({
                   >
                     {fmt(d.total)}
                   </span>
-                  {/* Pct badge */}
-                  <span
-                    className="font-jb text-[12px] flex-shrink-0 rounded-md px-1.5 py-0.5"
-                    style={{ background: `${d.segColor}15`, color: d.segColor, minWidth: 36, textAlign: 'center' }}
-                  >
-                    {pct}%
-                  </span>
                 </li>
-              )
-            })}
+            ))}
           </ul>
 
-          {/* Total row */}
-          <div
-            className="flex items-center justify-between mt-4 pt-3"
-            style={{ borderTop: '1px solid var(--hair)' }}
-          >
-            <span className="font-cairo text-[11px]" style={{ color: 'var(--ink-muted)' }}>
-              الإجمالي
-            </span>
-            <span
-              className="font-fraunces font-semibold leading-none"
-              style={{ fontSize: 20, color: 'var(--ink)', letterSpacing: '-.02em' }}
-            >
-              {fmt(total)}
-            </span>
-          </div>
         </div>
       </div>
     </div>

@@ -12,7 +12,39 @@ import { DrillDownModal } from '@/components/kpi/DrillDownModal'
 import { ExecutiveSummary } from '@/components/narrative/ExecutiveSummary'
 import { BeneficiaryChart } from '@/components/kpi/BeneficiaryChart'
 import { DEPT_MAP } from '@/lib/departments'
+import { DIVISION_MAP, DEFAULT_DIVISION, type DivisionId } from '@/lib/divisions'
 import type { KpiWithVariance, PillarId } from '@/types'
+
+function ComingSoon({ division }: { division: DivisionId }) {
+  const div = DIVISION_MAP[division]
+  return (
+    <div className="flex flex-col items-center justify-center py-32 gap-6 text-center">
+      <div
+        className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl"
+        style={{ background: 'var(--bg-alt)' }}
+      >
+        {div?.icon ?? '◉'}
+      </div>
+      <div className="flex flex-col gap-2">
+        <h2
+          className="font-cairo font-bold text-[20px]"
+          style={{ color: 'var(--ink)' }}
+        >
+          {div?.labelAr}
+        </h2>
+        <p className="font-cairo text-[14px]" style={{ color: 'var(--ink-muted)' }}>
+          لوحة تحكم هذا القطاع قيد الإعداد وستكون متاحة قريباً
+        </p>
+      </div>
+      <div
+        className="font-space font-semibold text-[11px] tracking-[.16em] uppercase px-4 py-2 rounded-lg"
+        style={{ background: 'rgba(184,130,42,.15)', color: 'var(--gold)' }}
+      >
+        قريباً
+      </div>
+    </div>
+  )
+}
 
 // Lazy-loaded: keeps Recharts + all 7 dept data files out of the initial bundle
 const DepartmentDashboard = dynamic(
@@ -52,8 +84,11 @@ export function DashboardContent() {
   const [selectedKpi, setSelectedKpi] = useState<KpiWithVariance | null>(null)
 
   const pillarParam = params.get('pillar') as PillarId | null
+  const divisionParam = (params.get('division') ?? DEFAULT_DIVISION) as DivisionId
+  const isActiveDivision = divisionParam === DEFAULT_DIVISION
+
   const activeDept = pillarParam ? DEPT_MAP[pillarParam] : null
-  const title = activeDept?.labelAr ?? 'لوحة تحكم قطاع الثقافة'
+  const title = activeDept?.labelAr ?? (DIVISION_MAP[divisionParam]?.labelAr ?? 'لوحة تحكم')
 
   const homeHref = (() => {
     const next = new URLSearchParams(params.toString())
@@ -67,7 +102,9 @@ export function DashboardContent() {
       title={title}
     >
       <div className="max-w-5xl mx-auto space-y-6">
-        {pillarParam ? (
+        {!isActiveDivision ? (
+          <ComingSoon division={divisionParam} />
+        ) : pillarParam ? (
           /* ── Dept detail view ── */
           <>
             <BackButton href={homeHref} />
