@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { computeVariance } from '@/lib/kpi'
+import { DEPARTMENTS } from '@/lib/departments'
 import type { KpiWithVariance } from '@/types'
 
 export async function GET(req: NextRequest) {
@@ -8,10 +9,21 @@ export async function GET(req: NextRequest) {
   const year = parseInt(searchParams.get('year') ?? '2026')
   const period = searchParams.get('period') ?? 'ANNUAL'
   const pillar = searchParams.get('pillar') ?? undefined
+  const division = searchParams.get('division') ?? undefined
+
+  // Build pillar filter: division takes precedence over single pillar param
+  let pillarFilter: string[] | undefined
+  if (division) {
+    pillarFilter = DEPARTMENTS
+      .filter(d => d.division === division)
+      .map(d => d.id)
+  } else if (pillar) {
+    pillarFilter = [pillar]
+  }
 
   try {
     const kpis = await prisma.kpiRegistry.findMany({
-      where: pillar ? { pillar: pillar as any } : undefined,
+      where: pillarFilter ? { pillar: { in: pillarFilter as any[] } } : undefined,
       include: {
         targets: { where: { year } },
         actuals: { where: { year }, orderBy: { period: 'asc' } },
