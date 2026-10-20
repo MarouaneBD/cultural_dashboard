@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { computeVariance } from '@/lib/kpi'
 import { DEPARTMENTS } from '@/lib/departments'
 import type { KpiWithVariance } from '@/types'
+import type { Pillar } from '@prisma/client'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
@@ -23,7 +24,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const kpis = await prisma.kpiRegistry.findMany({
-      where: pillarFilter ? { pillar: { in: pillarFilter as any[] } } : undefined,
+      where: pillarFilter ? { pillar: { in: pillarFilter as Pillar[] } } : undefined,
       include: {
         targets: { where: { year } },
         actuals: { where: { year }, orderBy: { period: 'asc' } },

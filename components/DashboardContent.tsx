@@ -129,7 +129,7 @@ export function DashboardContent() {
             </Suspense>
             <Suspense fallback={
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {Array.from({ length: 3 }).map((_, i) => (
+                {Array.from({ length: DEPARTMENTS.filter(d => d.division === divisionParam).length || 3 }).map((_, i) => (
                   <div key={i} className="h-36 rounded-2xl animate-pulse" style={{ background: 'var(--bg-alt)' }} />
                 ))}
               </div>
