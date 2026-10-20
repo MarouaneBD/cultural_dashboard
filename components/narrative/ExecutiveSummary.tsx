@@ -3,16 +3,18 @@
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
 import { generateNarrative } from '@/lib/narrative'
+import { DEFAULT_DIVISION, type DivisionId } from '@/lib/divisions'
 import type { KpiWithVariance } from '@/types'
 
 export function ExecutiveSummary() {
-  const params = useSearchParams()
-  const year = params.get('year') ?? '2026'
-  const period = params.get('period') ?? 'ANNUAL'
+  const params        = useSearchParams()
+  const year          = params.get('year')     ?? '2026'
+  const period        = params.get('period')   ?? 'ANNUAL'
+  const divisionParam = (params.get('division') ?? DEFAULT_DIVISION) as DivisionId
 
   const { data: kpis, error, isLoading } = useQuery<KpiWithVariance[]>({
-    queryKey: ['kpis', year, period],
-    queryFn: () => fetch(`/api/kpis?year=${year}&period=${period}`).then(r => {
+    queryKey: ['kpis', year, period, divisionParam],
+    queryFn: () => fetch(`/api/kpis?year=${year}&period=${period}&division=${divisionParam}`).then(r => {
       if (!r.ok) throw new Error(`API ${r.status}`)
       return r.json()
     }),

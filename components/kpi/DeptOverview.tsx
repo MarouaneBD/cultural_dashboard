@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { DEPARTMENTS } from '@/lib/departments'
+import { DEFAULT_DIVISION, type DivisionId } from '@/lib/divisions'
 import { SparklineChart } from '@/components/charts/SparklineChart'
 import type { KpiWithVariance } from '@/types'
 
@@ -84,27 +85,29 @@ export function DeptOverview() {
   const params = useSearchParams()
   const year = params.get('year') ?? '2026'
   const period = params.get('period') ?? 'ANNUAL'
+  const divisionParam = (params.get('division') ?? DEFAULT_DIVISION) as DivisionId
+  const divisionDepts = DEPARTMENTS.filter(d => d.division === divisionParam)
   const { data: session, status } = useSession()
 
   const { data: kpis, isLoading } = useQuery<KpiWithVariance[]>({
-    queryKey: ['kpis', year, period],
+    queryKey: ['kpis', year, period, divisionParam],
     queryFn: () =>
-      fetch(`/api/kpis?year=${year}&period=${period}`).then(r => {
+      fetch(`/api/kpis?year=${year}&period=${period}&division=${divisionParam}`).then(r => {
         if (!r.ok) throw new Error(`API ${r.status}`)
         return r.json()
       }),
   })
 
   const byDept = Object.fromEntries(
-    DEPARTMENTS.map(d => [d.id, (kpis ?? []).filter(k => k.pillar === d.id)])
+    divisionDepts.map(d => [d.id, (kpis ?? []).filter(k => k.pillar === d.id)])
   )
 
   // Assigned EDITOR sees only their department; everyone else sees all
   const role = status !== 'loading' ? (session?.user as any)?.role as string | undefined : undefined
   const assignedPillarId = (session?.user as any)?.assignedPillarId as string | null | undefined
   const visibleDepts = (role === 'EDITOR' && assignedPillarId)
-    ? DEPARTMENTS.filter(d => d.id === assignedPillarId)
-    : DEPARTMENTS
+    ? divisionDepts.filter(d => d.id === assignedPillarId)
+    : divisionDepts
 
   return (
     <div>

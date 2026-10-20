@@ -11,7 +11,8 @@ import { DivisionStats } from '@/components/kpi/DivisionStats'
 import { DrillDownModal } from '@/components/kpi/DrillDownModal'
 import { ExecutiveSummary } from '@/components/narrative/ExecutiveSummary'
 import { BeneficiaryChart } from '@/components/kpi/BeneficiaryChart'
-import { DEPT_MAP } from '@/lib/departments'
+import { DummyDataBanner } from '@/components/layout/DummyDataBanner'
+import { DEPARTMENTS, DEPT_MAP } from '@/lib/departments'
 import { DIVISION_MAP, DEFAULT_DIVISION, type DivisionId } from '@/lib/divisions'
 import type { KpiWithVariance, PillarId } from '@/types'
 
@@ -83,11 +84,13 @@ export function DashboardContent() {
   const params = useSearchParams()
   const [selectedKpi, setSelectedKpi] = useState<KpiWithVariance | null>(null)
 
-  const pillarParam = params.get('pillar') as PillarId | null
+  const pillarParam   = params.get('pillar') as PillarId | null
   const divisionParam = (params.get('division') ?? DEFAULT_DIVISION) as DivisionId
-  const isActiveDivision = divisionParam === DEFAULT_DIVISION
 
-  const activeDept = pillarParam ? DEPT_MAP[pillarParam] : null
+  // A division is "live" if it has at least one department registered
+  const divisionHasDepts = DEPARTMENTS.some(d => d.division === divisionParam)
+
+  const activeDept = pillarParam ? DEPT_MAP[pillarParam as keyof typeof DEPT_MAP] : null
   const title = activeDept?.labelAr ?? (DIVISION_MAP[divisionParam]?.labelAr ?? 'لوحة تحكم')
 
   const homeHref = (() => {
@@ -102,17 +105,19 @@ export function DashboardContent() {
       title={title}
     >
       <div className="max-w-5xl mx-auto space-y-6">
-        {!isActiveDivision ? (
+        {!divisionHasDepts ? (
           <ComingSoon division={divisionParam} />
         ) : pillarParam ? (
           /* ── Dept detail view ── */
           <>
             <BackButton href={homeHref} />
+            <DummyDataBanner division={divisionParam} />
             <DepartmentDashboard pillarId={pillarParam} />
           </>
         ) : (
-          /* ── Home overview ── */
+          /* ── Sector homepage ── */
           <>
+            <DummyDataBanner division={divisionParam} />
             <DivisionStats />
             <Suspense fallback={
               <div className="h-24 rounded-2xl animate-pulse" style={{ background: 'var(--bg-alt)' }} />
@@ -124,7 +129,7 @@ export function DashboardContent() {
             </Suspense>
             <Suspense fallback={
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {Array.from({ length: 8 }).map((_, i) => (
+                {Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="h-36 rounded-2xl animate-pulse" style={{ background: 'var(--bg-alt)' }} />
                 ))}
               </div>
