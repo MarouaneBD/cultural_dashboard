@@ -1,4 +1,4 @@
-export type VarianceColor = 'green' | 'amber' | 'red'
+export type VarianceColor = 'green' | 'amber' | 'red' | 'neutral'
 
 export type PillarId =
   | 'EDUCATION'

@@ -3,15 +3,19 @@ import type { KpiWithVariance } from '@/types'
 export function generateNarrative(kpis: KpiWithVariance[]): string {
   if (kpis.length === 0) return 'لا توجد بيانات كافية لإنشاء الملخص التنفيذي.'
 
-  const avg = Math.round(kpis.reduce((s, k) => s + k.variance.pct, 0) / kpis.length)
-  const green = kpis.filter(k => k.variance.color === 'green').length
-  const amber = kpis.filter(k => k.variance.color === 'amber').length
-  const red   = kpis.filter(k => k.variance.color === 'red').length
+  // Exclude neutral KPIs (no data entered yet) from all calculations
+  const rated = kpis.filter(k => k.variance.color !== 'neutral')
+  if (rated.length === 0) return 'لا توجد بيانات كافية لإنشاء الملخص التنفيذي.'
+
+  const avg = Math.round(rated.reduce((s, k) => s + k.variance.pct, 0) / rated.length)
+  const green = rated.filter(k => k.variance.color === 'green').length
+  const amber = rated.filter(k => k.variance.color === 'amber').length
+  const red   = rated.filter(k => k.variance.color === 'red').length
 
   // Overall health sentence
-  const health = avg >= 95
+  const health = avg >= 85
     ? `يُحقق القطاع نسبة إنجاز إجمالية ${avg}٪ مقارنةً بالمستهدف — أداء ممتاز.`
-    : avg >= 85
+    : avg >= 70
     ? `يُحقق القطاع نسبة إنجاز إجمالية ${avg}٪ مقارنةً بالمستهدف — ضمن النطاق المقبول.`
     : `نسبة الإنجاز الإجمالية ${avg}٪ دون المستهدف — يستدعي الوضع مراجعة عاجلة.`
 

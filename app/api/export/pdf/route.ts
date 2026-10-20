@@ -70,7 +70,9 @@ export async function GET(req: NextRequest) {
             ? styles.green
             : kpi.variance.color === 'amber'
               ? styles.amber
-              : styles.red
+              : kpi.variance.color === 'red'
+                ? styles.red
+                : styles.cell
           return React.createElement(View, { key: kpi.id, style: styles.row },
             React.createElement(Text, { style: [styles.cell, colorStyle] },
               `${kpi.variance.pct.toFixed(1)}%`

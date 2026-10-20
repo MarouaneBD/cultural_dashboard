@@ -6,28 +6,19 @@ describe('computeVariance', () => {
     expect(result.pct).toBeCloseTo(95)
   })
 
-  it('classifies >95% as green', () => {
-    expect(computeVariance(96, 100).color).toBe('green')
+  it('classifies >=85% as green', () => {
+    expect(computeVariance(85, 100).color).toBe('green')
+    expect(computeVariance(100, 100).color).toBe('green')
   })
 
-  it('classifies exactly 95% as amber', () => {
-    expect(computeVariance(95, 100).color).toBe('amber')
+  it('classifies 70-84% as amber', () => {
+    expect(computeVariance(70, 100).color).toBe('amber')
+    expect(computeVariance(84, 100).color).toBe('amber')
   })
 
-  it('classifies 96% as green', () => {
-    expect(computeVariance(96, 100).color).toBe('green')
-  })
-
-  it('classifies 90% as amber', () => {
-    expect(computeVariance(90, 100).color).toBe('amber')
-  })
-
-  it('classifies exactly 85% as amber', () => {
-    expect(computeVariance(85, 100).color).toBe('amber')
-  })
-
-  it('classifies 84% as red', () => {
-    expect(computeVariance(84, 100).color).toBe('red')
+  it('classifies <70% as red', () => {
+    expect(computeVariance(69, 100).color).toBe('red')
+    expect(computeVariance(0, 100).color).toBe('red')
   })
 
   it('handles zero target without throwing', () => {
@@ -68,9 +59,9 @@ describe('formatValue', () => {
 })
 
 describe('getVarianceColor', () => {
-  it('returns green for >95', () => expect(getVarianceColor(96)).toBe('green'))
-  it('returns amber for 85-95', () => expect(getVarianceColor(90)).toBe('amber'))
-  it('returns red for <85', () => expect(getVarianceColor(80)).toBe('red'))
+  it('returns green for >=85', () => expect(getVarianceColor(85)).toBe('green'))
+  it('returns amber for 70-84', () => expect(getVarianceColor(75)).toBe('amber'))
+  it('returns red for <70', () => expect(getVarianceColor(69)).toBe('red'))
 })
 
 import { computeYtd } from '@/lib/kpi'

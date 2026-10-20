@@ -2,20 +2,22 @@ import type { KpiVariance, VarianceColor } from '@/types'
 import type { ActivityType } from '@prisma/client'
 
 export const HEX_COLORS: Record<VarianceColor, string> = {
-  green: '#22c55e',
-  amber: '#f59e0b',
-  red:   '#ef4444',
+  green:   '#22c55e',
+  amber:   '#f59e0b',
+  red:     '#ef4444',
+  neutral: '#94a3b8',
 }
 
 export const ROW_CLASSES: Record<VarianceColor, string> = {
-  green: 'text-emerald-700 bg-emerald-50',
-  amber: 'text-amber-700 bg-amber-50',
-  red:   'text-red-700 bg-red-50',
+  green:   'text-emerald-700 bg-emerald-50',
+  amber:   'text-amber-700 bg-amber-50',
+  red:     'text-red-700 bg-red-50',
+  neutral: 'text-slate-500 bg-slate-50',
 }
 
 export function getVarianceColor(pct: number): VarianceColor {
-  if (pct > 95) return 'green'
-  if (pct >= 85) return 'amber'
+  if (pct >= 85) return 'green'
+  if (pct >= 70) return 'amber'
   return 'red'
 }
 

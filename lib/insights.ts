@@ -44,17 +44,17 @@ export function generateInsights(data: DeptData): Insight[] {
     const rounded = Math.round(pct)
     const unit = t.unit || ''
 
-    if (rounded >= 95) {
+    if (rounded >= 85) {
       insights.push({
         text: `مؤشر "${t.labelAr}" يسير بشكل ممتاز — تم إنجاز ${rounded}% من الهدف (${t.current}${unit} من ${t.target}${unit})`,
         color: 'green',
       })
-    } else if (rounded < 80) {
+    } else if (rounded < 70) {
       insights.push({
         text: `مؤشر "${t.labelAr}" يحتاج انتباهاً — الإنجاز الحالي ${rounded}% من الهدف (${t.current}${unit} من ${t.target}${unit})`,
         color: 'red',
       })
-    } else if (rounded < 90) {
+    } else if (rounded < 85) {
       insights.push({
         text: `مؤشر "${t.labelAr}" ضمن النطاق المقبول بنسبة ${rounded}% — يحتاج متابعة`,
         color: 'amber',

@@ -31,7 +31,7 @@ describe('GET /api/kpis', () => {
 
     expect(res.status).toBe(200)
     expect(body[0].variance).toBeDefined()
-    expect(body[0].variance.color).toMatch(/green|amber|red/)
+    expect(body[0].variance.color).toMatch(/green|amber|red|neutral/)
     expect(body[0].sparkline).toHaveLength(4)
   })
 
