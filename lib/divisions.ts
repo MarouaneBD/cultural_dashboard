@@ -11,7 +11,7 @@ export const DIVISIONS = [
     labelAr: 'قطاع الدعم المؤسسي',
     shortAr: 'الدعم المؤسسي',
     icon: '◉',
-    active: false,
+    active: true,
   },
   {
     id: 'ZAKAT_DEVELOPMENT',

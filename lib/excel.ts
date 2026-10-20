@@ -73,6 +73,9 @@ const DEPT_NAME_TO_PILLAR: Record<string, string> = {
   'قسم الأيتام':                'ORPHANS',
   'مكتب البرامج العلمية':       'SCIENTIFIC_PROGRAMS',
   'وحدة البحوث والمطبوعات':    'RESEARCH_PUBLICATIONS',
+  'ادارة الموارد البشرية':      'HR_MANAGEMENT',
+  'ادارة الشؤون الادارية':      'ADMIN_AFFAIRS',
+  'ادارة المشتريات':            'PROCUREMENT',
 }
 
 // Quarter column names are hardcoded to 2026.
