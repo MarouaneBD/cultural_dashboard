@@ -7,6 +7,9 @@ export const DEPARTMENTS = [
   { id: 'ORPHANS',               labelAr: 'قسم الأيتام',               icon: '🤲', color: '#d97706' },
   { id: 'SCIENTIFIC_PROGRAMS',   labelAr: 'مكتب البرامج العلمية',      icon: '📖', color: '#6d28d9' },
   { id: 'RESEARCH_PUBLICATIONS', labelAr: 'وحدة البحوث والمطبوعات',    icon: '📝', color: '#0369a1' },
+  { id: 'HR_MANAGEMENT',         labelAr: 'إدارة الموارد البشرية',     icon: '👤', color: '#0891b2' },
+  { id: 'ADMIN_AFFAIRS',         labelAr: 'الشؤون الإدارية',           icon: '🏢', color: '#475569' },
+  { id: 'PROCUREMENT',           labelAr: 'المشتريات',                  icon: '📦', color: '#b45309' },
 ] as const
 
 export type DeptId = typeof DEPARTMENTS[number]['id']

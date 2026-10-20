@@ -12,7 +12,7 @@ import { orphansData }            from './orphans'
 import { scientificProgramsData }      from './scientific-programs'
 import { researchPublicationsData }    from './research-publications'
 
-export const DEPT_DASHBOARDS: Record<PillarId, DeptConfig> = {
+export const DEPT_DASHBOARDS: Partial<Record<PillarId, DeptConfig>> = {
   EDUCATION: {
     nameAr: 'ادارة التعليم',
     icon: '📚',

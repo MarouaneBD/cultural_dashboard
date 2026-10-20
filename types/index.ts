@@ -9,6 +9,9 @@ export type PillarId =
   | 'ORPHANS'
   | 'SCIENTIFIC_PROGRAMS'
   | 'RESEARCH_PUBLICATIONS'
+  | 'HR_MANAGEMENT'
+  | 'ADMIN_AFFAIRS'
+  | 'PROCUREMENT'
 
 export interface KpiVariance {
   actual: number
