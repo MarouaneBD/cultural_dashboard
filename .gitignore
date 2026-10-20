@@ -37,4 +37,4 @@ yarn-error.log*
 next-env.d.ts
 
 # prisma
-prisma/migrations
+# prisma/migrations should NOT be ignored — migration files must be committed for deploy
