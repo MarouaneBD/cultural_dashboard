@@ -53,14 +53,29 @@ describe('GET /api/kpis', () => {
 })
 
 describe('GET /api/kpis — division filter', () => {
-  it('filters KPIs to pillars belonging to the requested division', async () => {
+  it('returns static dummy KPIs for INSTITUTIONAL_SUPPORT when DB is empty', async () => {
     // The mock returns a single KPI with pillar EDUCATION (CULTURE_RESEARCH).
-    // Requesting INSTITUTIONAL_SUPPORT should return empty — EDUCATION is not in that division.
+    // INSTITUTIONAL_SUPPORT has no DB records, so the route falls back to static data.
     const req = new NextRequest('http://localhost/api/kpis?year=2026&period=ANNUAL&division=INSTITUTIONAL_SUPPORT')
     const res = await GET(req)
     const body = await res.json()
     expect(res.status).toBe(200)
-    expect(body).toHaveLength(0)
+    // Static data has 5 + 4 + 4 = 13 KPIs across the 3 INSTITUTIONAL_SUPPORT departments
+    expect(body.length).toBeGreaterThan(0)
+    // All returned KPIs belong to INSTITUTIONAL_SUPPORT pillars
+    const issPillars = new Set(['HR_MANAGEMENT', 'ADMIN_AFFAIRS', 'PROCUREMENT'])
+    body.forEach((k: { pillar: string }) => expect(issPillars.has(k.pillar)).toBe(true))
+    // Static KPI IDs are prefixed to distinguish them from DB records
+    expect(body[0].id).toMatch(/^static-/)
+  })
+
+  it('returns DB KPIs for CULTURE_RESEARCH (EDUCATION is in that division)', async () => {
+    const req = new NextRequest('http://localhost/api/kpis?year=2026&period=ANNUAL&division=CULTURE_RESEARCH')
+    const res = await GET(req)
+    const body = await res.json()
+    expect(res.status).toBe(200)
+    expect(body).toHaveLength(1)
+    expect(body[0].pillar).toBe('EDUCATION')
   })
 
   it('returns all KPIs when no division param is given', async () => {
