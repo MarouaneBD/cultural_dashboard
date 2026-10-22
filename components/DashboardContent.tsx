@@ -11,6 +11,7 @@ import { DivisionStats } from '@/components/kpi/DivisionStats'
 import { DrillDownModal } from '@/components/kpi/DrillDownModal'
 import { ExecutiveSummary } from '@/components/narrative/ExecutiveSummary'
 import { BeneficiaryChart } from '@/components/kpi/BeneficiaryChart'
+import { DivisionAchievementChart } from '@/components/kpi/DivisionAchievementChart'
 import { DummyDataBanner } from '@/components/layout/DummyDataBanner'
 import { DEPARTMENTS, DEPT_MAP } from '@/lib/departments'
 import { DIVISION_MAP, DEFAULT_DIVISION, type DivisionId } from '@/lib/divisions'
@@ -125,7 +126,10 @@ export function DashboardContent() {
               <ExecutiveSummary />
             </Suspense>
             <Suspense fallback={null}>
-              <BeneficiaryChart />
+              {divisionParam === 'CULTURE_RESEARCH'
+                ? <BeneficiaryChart />
+                : <DivisionAchievementChart />
+              }
             </Suspense>
             <Suspense fallback={
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
