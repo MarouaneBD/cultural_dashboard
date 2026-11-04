@@ -9,6 +9,8 @@ export const DEPARTMENTS = [
   { id: 'ORPHANS',               labelAr: 'قسم الأيتام',               icon: '🤲', color: '#d97706', division: 'CULTURE_RESEARCH'      as DivisionId },
   { id: 'SCIENTIFIC_PROGRAMS',   labelAr: 'مكتب البرامج العلمية',      icon: '📖', color: '#6d28d9', division: 'CULTURE_RESEARCH'      as DivisionId },
   { id: 'RESEARCH_PUBLICATIONS', labelAr: 'وحدة البحوث والمطبوعات',    icon: '📝', color: '#0369a1', division: 'CULTURE_RESEARCH'      as DivisionId },
+  { id: 'DEVELOPMENT_PROJECTS',  labelAr: 'ادارة المشاريع التنموية',       icon: '🏗️', color: '#0369a1', division: 'ZAKAT_DEVELOPMENT'      as DivisionId },
+  { id: 'ZAKAT_MANAGEMENT',      labelAr: 'ادارة الزكاة',                  icon: '🌙', color: '#059669', division: 'ZAKAT_DEVELOPMENT'      as DivisionId },
   { id: 'HR_MANAGEMENT',         labelAr: 'ادارة الموارد البشرية',     icon: '👥', color: '#0e7490', division: 'INSTITUTIONAL_SUPPORT' as DivisionId },
   { id: 'ADMIN_AFFAIRS',         labelAr: 'ادارة الشؤون الادارية',     icon: '🏛️', color: '#7c3aed', division: 'INSTITUTIONAL_SUPPORT' as DivisionId },
   { id: 'PROCUREMENT',           labelAr: 'ادارة المشتريات',            icon: '📦', color: '#b45309', division: 'INSTITUTIONAL_SUPPORT' as DivisionId },

@@ -18,7 +18,7 @@ export const DIVISIONS = [
     labelAr: 'قطاع الزكاة والمشاريع التنموية',
     shortAr: 'الزكاة والمشاريع',
     icon: '◎',
-    active: false,
+    active: true,
   },
 ] as const
 

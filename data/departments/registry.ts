@@ -11,9 +11,11 @@ import { alBirrFemaleData }        from './al-birr-female'
 import { orphansData }             from './orphans'
 import { scientificProgramsData }  from './scientific-programs'
 import { researchPublicationsData } from './research-publications'
-import { hrManagementData }        from './hr-management'
-import { adminAffairsData }        from './admin-affairs'
-import { procurementData }         from './procurement'
+import { hrManagementData }          from './hr-management'
+import { adminAffairsData }          from './admin-affairs'
+import { procurementData }           from './procurement'
+import { developmentProjectsData }   from './development-projects'
+import { zakatManagementData }       from './zakat-management'
 
 export const DEPT_DASHBOARDS: Record<PillarId, DeptConfig> = {
   EDUCATION:             { nameAr: 'ادارة التعليم',              icon: '📚', color: '#0284c7', data: educationData },
@@ -27,4 +29,6 @@ export const DEPT_DASHBOARDS: Record<PillarId, DeptConfig> = {
   HR_MANAGEMENT:         { nameAr: 'ادارة الموارد البشرية',     icon: '👥', color: '#0e7490', data: hrManagementData },
   ADMIN_AFFAIRS:         { nameAr: 'ادارة الشؤون الادارية',     icon: '🏛️', color: '#7c3aed', data: adminAffairsData },
   PROCUREMENT:           { nameAr: 'ادارة المشتريات',            icon: '📦', color: '#b45309', data: procurementData },
+  DEVELOPMENT_PROJECTS:  { nameAr: 'ادارة المشاريع التنموية',   icon: '🏗️', color: '#0369a1', data: developmentProjectsData },
+  ZAKAT_MANAGEMENT:      { nameAr: 'ادارة الزكاة',               icon: '🌙', color: '#059669', data: zakatManagementData },
 }

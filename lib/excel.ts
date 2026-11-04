@@ -76,6 +76,8 @@ const DEPT_NAME_TO_PILLAR: Record<string, string> = {
   'ادارة الموارد البشرية':      'HR_MANAGEMENT',
   'ادارة الشؤون الادارية':      'ADMIN_AFFAIRS',
   'ادارة المشتريات':            'PROCUREMENT',
+  'ادارة المشاريع التنموية':    'DEVELOPMENT_PROJECTS',
+  'ادارة الزكاة':               'ZAKAT_MANAGEMENT',
 }
 
 // Quarter column names are hardcoded to 2026.
