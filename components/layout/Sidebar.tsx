@@ -8,12 +8,11 @@ import { useSession, signOut } from 'next-auth/react'
 import { DEPARTMENTS } from '@/lib/departments'
 import { DIVISIONS, DIVISION_MAP, DEFAULT_DIVISION, type DivisionId } from '@/lib/divisions'
 
-const PILLARS = DEPARTMENTS.map(d => ({
-  id: d.id,
-  href: `/dashboard?pillar=${d.id}`,
-  labelAr: d.labelAr,
-  icon: d.icon,
-}))
+function pillarsForDivision(divisionId: DivisionId) {
+  return DEPARTMENTS
+    .filter(d => d.division === divisionId)
+    .map(d => ({ id: d.id, href: `/dashboard?pillar=${d.id}&division=${divisionId}`, labelAr: d.labelAr, icon: d.icon }))
+}
 
 const LOGO_PATH = '/dabs-logo.png'
 
@@ -44,10 +43,11 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
   const role = status === 'loading' ? undefined : (session?.user as any)?.role as string | undefined
   const assignedPillarId = (session?.user as any)?.assignedPillarId as string | null | undefined
 
-  // Assigned EDITOR sees only their department; everyone else sees all
+  // Departments for the active division only; assigned EDITOR sees only their own
+  const divisionPillars = pillarsForDivision(activeDivision)
   const visiblePillars = (role === 'EDITOR' && assignedPillarId)
-    ? PILLARS.filter(p => p.id === assignedPillarId)
-    : PILLARS
+    ? divisionPillars.filter(p => p.id === assignedPillarId)
+    : divisionPillars
 
   return (
     <aside
@@ -185,7 +185,7 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
           onNavigate={onNavigate}
         />
 
-        {activeDivision === DEFAULT_DIVISION && (
+        {visiblePillars.length > 0 && (
           <>
             {expanded ? (
               <p
