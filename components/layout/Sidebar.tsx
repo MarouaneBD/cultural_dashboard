@@ -174,17 +174,6 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
           />
         ))}
 
-        <div className="my-1 mx-1 border-t border-white/[.08]" />
-
-        <NavLink
-          href={`/dashboard?division=${activeDivision}`}
-          icon="⊞"
-          label="الرئيسية"
-          active={pathname === '/dashboard' && !activePillar}
-          expanded={expanded}
-          onNavigate={onNavigate}
-        />
-
         {visiblePillars.length > 0 && (
           <>
             {expanded ? (
