@@ -15,14 +15,22 @@ jest.mock('@/lib/prisma', () => ({
         findUnique: jest.fn().mockResolvedValue(null), // null = new KPI → created++
         upsert: jest.fn().mockResolvedValue({ id: 'kpi-1' }),
       },
-      target: { upsert: jest.fn().mockResolvedValue({}) },
+      target: {
+        findUnique: jest.fn().mockResolvedValue(null), // null = no conflict → live write
+        upsert: jest.fn().mockResolvedValue({}),
+      },
       actual: {
+        findUnique: jest.fn().mockResolvedValue(null), // null = no conflict → live write
         create: jest.fn().mockResolvedValue({}),
         upsert: jest.fn().mockResolvedValue({}),
+      },
+      uploadSubmission: {
+        create: jest.fn().mockResolvedValue({ id: 'sub-1' }),
       },
     })),
     kpiRegistry: { findMany: jest.fn().mockResolvedValue([]) },
     actual: { create: jest.fn().mockResolvedValue({}) },
+    submissionRow: { count: jest.fn().mockResolvedValue(0) },
   },
 }))
 
