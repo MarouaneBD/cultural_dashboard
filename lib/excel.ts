@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx'
 import type { ActivityType } from '@prisma/client'
 import type { UploadRow, UploadValidationResult, ActivityRow, ActivityUploadResult } from '@/types'
+import { REPORTING_YEAR } from '@/lib/config'
 
 const ACTIVITY_TYPE_MAP: Record<string, ActivityType> = {
   'تراكمي': 'CUMULATIVE',
@@ -80,14 +81,13 @@ const DEPT_NAME_TO_PILLAR: Record<string, string> = {
   'ادارة الزكاة':               'ZAKAT_MANAGEMENT',
 }
 
-// Quarter column names are hardcoded to 2026.
-// To support a different reporting year, update these keys to match
-// the column headers in the uploaded file (e.g. '2027 Q1').
+// Quarter column names are derived from REPORTING_YEAR in lib/config.ts.
+// Advance REPORTING_YEAR there to match the new year's Excel column headers.
 const QUARTER_COL: Record<string, 'Q1' | 'Q2' | 'Q3' | 'Q4'> = {
-  '2026 Q1': 'Q1',
-  '2026 Q2': 'Q2',
-  '2026 Q3': 'Q3',
-  '2026 Q4': 'Q4',
+  [`${REPORTING_YEAR} Q1`]: 'Q1',
+  [`${REPORTING_YEAR} Q2`]: 'Q2',
+  [`${REPORTING_YEAR} Q3`]: 'Q3',
+  [`${REPORTING_YEAR} Q4`]: 'Q4',
 }
 
 const toNum = (v: unknown) => {

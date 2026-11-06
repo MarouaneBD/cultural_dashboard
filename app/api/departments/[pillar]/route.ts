@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Pillar } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { computeYtd } from '@/lib/kpi'
+import { REPORTING_YEAR, PREV_REPORTING_YEAR } from '@/lib/config'
 import type { DeptData } from '@/types/department'
 
 const UNIT_DISPLAY: Record<string, string> = {
@@ -30,8 +31,8 @@ export async function GET(
         NOT: { nameAr: 'المتحقق من المستهدف' },
       },
       include: {
-        actuals: { where: { year: { in: [2025, 2026] } } },
-        targets: { where: { year: 2026 } },
+        actuals: { where: { year: { in: [PREV_REPORTING_YEAR, REPORTING_YEAR] } } },
+        targets: { where: { year: REPORTING_YEAR } },
       },
     })
 
@@ -41,7 +42,7 @@ export async function GET(
 
     const lastYearKpis = kpis
       .map(k => {
-        const a = k.actuals.find(x => x.year === 2025 && x.period === 'ANNUAL')
+        const a = k.actuals.find(x => x.year === PREV_REPORTING_YEAR && x.period === 'ANNUAL')
         if (!a) return null
         return { labelAr: k.nameAr, value: Math.round(Number(a.value)), unit: unitDisplay(k.unit), icon: 'TrendingUp' }
       })
@@ -62,10 +63,10 @@ export async function GET(
     // Quarterly comparison 2025: use real Q1-Q4 if available, else distribute annual evenly
     const quarterlyComparison = QUARTERS.map(q => {
       const vals = kpis
-        .map(k => k.actuals.find(a => a.year === 2025 && a.period === q)?.value ?? null)
+        .map(k => k.actuals.find(a => a.year === PREV_REPORTING_YEAR && a.period === q)?.value ?? null)
         .filter((v): v is number => v !== null)
       const annualVals = kpis
-        .map(k => k.actuals.find(a => a.year === 2025 && a.period === 'ANNUAL')?.value ?? null)
+        .map(k => k.actuals.find(a => a.year === PREV_REPORTING_YEAR && a.period === 'ANNUAL')?.value ?? null)
         .filter((v): v is number => v !== null)
       const achieved = vals.length
         ? vals.reduce((s, v) => s + v, 0) / vals.length
@@ -94,12 +95,12 @@ export async function GET(
       .map(k => {
         const annualTarget = k.targets.find(t => t.period === 'ANNUAL')
         // Derive 2025 annual: prefer ANNUAL row, else compute YTD from quarterly rows
-        const lastYearAnnualRow = k.actuals.find(a => a.year === 2025 && a.period === 'ANNUAL')
+        const lastYearAnnualRow = k.actuals.find(a => a.year === PREV_REPORTING_YEAR && a.period === 'ANNUAL')
         let lastYearActual: { value: number | string } | null = lastYearAnnualRow ?? null
         if (!lastYearActual) {
           const q2025Map: Partial<Record<'Q1' | 'Q2' | 'Q3' | 'Q4', number>> = {}
           for (const a of k.actuals) {
-            if (a.year === 2025 && (QUARTERS as readonly string[]).includes(a.period)) {
+            if (a.year === PREV_REPORTING_YEAR && (QUARTERS as readonly string[]).includes(a.period)) {
               q2025Map[a.period as 'Q1' | 'Q2' | 'Q3' | 'Q4'] = Number(a.value)
             }
           }
@@ -127,7 +128,7 @@ export async function GET(
           ? Math.max(Math.round(annualTargetVal / 4), 1)
           : annualTargetVal
         const quarters = QUARTERS.map(q => {
-          const qa = k.actuals.find(a => a.year === 2026 && a.period === q)
+          const qa = k.actuals.find(a => a.year === REPORTING_YEAR && a.period === q)
           const qt = k.targets.find(t => t.period === q)
           return {
             q,
@@ -161,7 +162,7 @@ export async function GET(
       const actType = k.activityType
       const qVals: Partial<Record<string, number>> = {}
       for (const q of QUARTERS) {
-        const a = k.actuals.find(x => x.year === 2026 && x.period === q)
+        const a = k.actuals.find(x => x.year === REPORTING_YEAR && x.period === q)
         if (a) qVals[q] = Number(a.value)
       }
       return MONTHS.map((_, i) => {
@@ -200,8 +201,8 @@ export async function GET(
     })
 
     const data: DeptData = {
-      lastYear: { year: 2025, kpis: lastYearKpis, monthlyActivity, categoryBreakdown, quarterlyComparison },
-      currentYear: { year: 2026, targets: currentTargets, monthlyProgress },
+      lastYear: { year: PREV_REPORTING_YEAR, kpis: lastYearKpis, monthlyActivity, categoryBreakdown, quarterlyComparison },
+      currentYear: { year: REPORTING_YEAR, targets: currentTargets, monthlyProgress },
     }
 
     return NextResponse.json(data)

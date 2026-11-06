@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
+import { REPORTING_YEAR, PREV_REPORTING_YEAR } from '@/lib/config'
 
 const QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4', 'ANNUAL'] as const
 type Quarter = typeof QUARTERS[number]
@@ -16,7 +17,7 @@ const LABELS: Record<Quarter, string> = {
 export function PeriodControls() {
   const router = useRouter()
   const params = useSearchParams()
-  const year = params.get('year') ?? '2026'
+  const year = params.get('year') ?? String(REPORTING_YEAR)
   const rawPeriod = params.get('period') ?? 'ANNUAL'
   const period: Quarter = (QUARTERS as readonly string[]).includes(rawPeriod)
     ? (rawPeriod as Quarter)
@@ -42,7 +43,7 @@ export function PeriodControls() {
         }}
         aria-label="السنة"
       >
-        {[2025, 2026].map(y => (
+        {[PREV_REPORTING_YEAR, REPORTING_YEAR].map(y => (
           <option key={y} value={y}>{y}</option>
         ))}
       </select>

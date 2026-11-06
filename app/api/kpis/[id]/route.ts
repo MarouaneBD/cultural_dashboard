@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { computeVariance } from '@/lib/kpi'
 import { Period } from '@prisma/client'
 import { auth } from '@/auth'
+import { REPORTING_YEAR } from '@/lib/config'
 import type { DrillDownRow } from '@/types'
 
 export async function GET(
@@ -16,7 +17,7 @@ export async function GET(
 
   const { id } = await params
   const { searchParams } = req.nextUrl
-  const year = parseInt(searchParams.get('year') ?? '2026')
+  const year = parseInt(searchParams.get('year') ?? String(REPORTING_YEAR))
   const period = (searchParams.get('period') ?? 'ANNUAL') as Period
 
   try {

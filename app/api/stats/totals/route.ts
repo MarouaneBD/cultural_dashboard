@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { computeYtd } from '@/lib/kpi'
+import { REPORTING_YEAR } from '@/lib/config'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,7 +28,7 @@ const CATEGORY_COLORS = [
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
-  const year = parseInt(searchParams.get('year') ?? '2026')
+  const year = parseInt(searchParams.get('year') ?? String(REPORTING_YEAR))
 
   try {
     const kpis = await prisma.kpiRegistry.findMany({

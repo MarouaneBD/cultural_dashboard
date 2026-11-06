@@ -7,6 +7,7 @@ import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/rendere
 import React from 'react'
 import path from 'path'
 import { auth } from '@/auth'
+import { REPORTING_YEAR } from '@/lib/config'
 import type { KpiWithVariance } from '@/types'
 
 Font.register({
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = req.nextUrl
-    const year = parseInt(searchParams.get('year') ?? '2026')
+    const year = parseInt(searchParams.get('year') ?? String(REPORTING_YEAR))
     const period = searchParams.get('period') ?? 'ANNUAL'
 
     const kpis = await prisma.kpiRegistry.findMany({

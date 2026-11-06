@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { computeVariance, getVarianceColor } from '@/lib/kpi'
 import { DEPARTMENTS } from '@/lib/departments'
 import { DEPT_DASHBOARDS } from '@/data/departments/registry'
+import { REPORTING_YEAR } from '@/lib/config'
 import type { KpiWithVariance, PillarId } from '@/types'
 import type { Pillar } from '@prisma/client'
 
@@ -46,7 +47,7 @@ function staticKpisForPillars(pillars: string[]): KpiWithVariance[] {
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
-  const year = parseInt(searchParams.get('year') ?? '2026')
+  const year = parseInt(searchParams.get('year') ?? String(REPORTING_YEAR))
   const period = searchParams.get('period') ?? 'ANNUAL'
   const pillar = searchParams.get('pillar') ?? undefined
   const division = searchParams.get('division') ?? undefined
