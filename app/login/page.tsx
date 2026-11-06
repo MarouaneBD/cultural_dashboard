@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
+import { signIn } from 'next-auth/react'
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
@@ -16,22 +17,12 @@ export default function LoginPage() {
     const password = (form.elements.namedItem('password') as HTMLInputElement).value
 
     try {
-      // Step 1: get CSRF token — browser stores the cookie automatically
-      const csrfRes = await fetch('/api/auth/csrf')
-      const { csrfToken } = await csrfRes.json()
+      // signIn handles CSRF internally — avoids MissingCSRF errors from stale cookies
+      const result = await signIn('credentials', { username, password, redirect: false })
 
-      // Step 2: POST credentials + CSRF token to NextAuth callback
-      const res = await fetch('/api/auth/callback/credentials', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ username, password, csrfToken, callbackUrl: '/dashboard' }).toString(),
-      })
-
-      // On success NextAuth redirects → fetch follows → final URL is /dashboard
-      // On failure NextAuth redirects → final URL contains /login?error=
-      if (res.redirected && !res.url.includes('error=')) {
-        // Full browser navigation — clears Next.js router cache and NextAuth
-        // session cache so the new user's session is picked up immediately.
+      if (result?.ok) {
+        // Full browser navigation clears Next.js router cache so the new
+        // user's session is picked up immediately on /dashboard.
         window.location.href = '/dashboard'
         return
       }

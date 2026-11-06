@@ -114,6 +114,10 @@ model AuditLog {
   oldValue  String?
   newValue  String?
   timestamp DateTime @default(now())
+
+  @@index([userId])
+  @@index([timestamp])
+  @@index([kpiId])
 }
 
 model User {
@@ -136,4 +140,7 @@ model Comment {
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([pillarId])
+  @@index([authorId])
 }
