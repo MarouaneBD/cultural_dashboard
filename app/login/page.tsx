@@ -1,10 +1,16 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 
-export default function LoginPage() {
-  const [error, setError] = useState<string | null>(null)
+function LoginForm() {
+  const searchParams = useSearchParams()
+  // NextAuth v5 beta redirects to ?error=CredentialsSignin on failure instead
+  // of returning { ok: false } — read the param so the error survives the reload.
+  const [error, setError] = useState<string | null>(
+    searchParams.get('error') ? 'اسم المستخدم أو كلمة المرور غير صحيحة' : null
+  )
   const [isPending, setIsPending] = useState(false)
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -17,11 +23,12 @@ export default function LoginPage() {
     const password = (form.elements.namedItem('password') as HTMLInputElement).value
 
     try {
-      // signIn handles CSRF internally — avoids MissingCSRF errors from stale cookies
+      // signIn handles CSRF internally — avoids MissingCSRF errors from stale cookies.
+      // redirect: false keeps us on the page so we can read the result.
       const result = await signIn('credentials', { username, password, redirect: false })
 
       if (result?.ok) {
-        // Full browser navigation clears Next.js router cache so the new
+        // Full browser navigation clears the Next.js router cache so the new
         // user's session is picked up immediately on /dashboard.
         window.location.href = '/dashboard'
         return
@@ -93,5 +100,14 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+// useSearchParams() requires a Suspense boundary in Next.js App Router
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   )
 }
