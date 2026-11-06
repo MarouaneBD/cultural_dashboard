@@ -48,7 +48,8 @@ export async function POST(req: Request) {
     assignedPillarId?: string | null
   }
 
-  if (!username || !password || !role) {
+  const normalizedUsername = username?.trim().toLowerCase()
+  if (!normalizedUsername || !password || !role) {
     return NextResponse.json({ error: 'بيانات ناقصة' }, { status: 400 })
   }
 
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'قسم غير صالح' }, { status: 400 })
   }
 
-  const existing = await prisma.user.findUnique({ where: { username } })
+  const existing = await prisma.user.findUnique({ where: { username: normalizedUsername } })
   if (existing) {
     return NextResponse.json({ error: 'اسم المستخدم مستخدم بالفعل' }, { status: 409 })
   }
@@ -68,7 +69,7 @@ export async function POST(req: Request) {
   const passwordHash = await hashPassword(password)
   const user = await prisma.user.create({
     data: {
-      username,
+      username: normalizedUsername,
       name: name || null,
       role,
       passwordHash,

@@ -141,7 +141,7 @@ function LeftPanel() {
             className="font-cairo font-bold text-[22px] leading-snug"
             style={{ color: 'rgba(255,255,255,0.95)' }}
           >
-            لوحة تحكم قطاع الثقافة
+            منصة جمعية دار البر
           </h1>
           <p
             className="text-[11px] tracking-[.14em] uppercase"
@@ -211,7 +211,7 @@ function LoginForm() {
           />
         </div>
         <p className="font-cairo font-bold text-sm text-center" style={{ color: 'var(--ink)' }}>
-          لوحة تحكم قطاع الثقافة
+          منصة جمعية دار البر
         </p>
       </div>
 
