@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useRef, useEffect } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
+import { useQuery } from '@tanstack/react-query'
 import { DEPARTMENTS } from '@/lib/departments'
 import { DIVISIONS, DIVISION_MAP, DEFAULT_DIVISION, type DivisionId } from '@/lib/divisions'
 
@@ -42,6 +43,14 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
   }, [pathname, searchParams, onNavigate])
   const role = status === 'loading' ? undefined : session?.user?.role
   const assignedPillarId = session?.user?.assignedPillarId
+
+  const { data: pendingData } = useQuery({
+    queryKey: ['admin-pending-count'],
+    queryFn: () => fetch('/api/admin/submissions/pending-count').then(r => r.json()),
+    enabled: role === 'ADMIN',
+    refetchInterval: 30000,
+  })
+  const pendingBadge: number = (pendingData as { count?: number } | undefined)?.count ?? 0
 
   // Departments for the active division only; assigned EDITOR sees only their own
   const divisionPillars = pillarsForDivision(activeDivision)
@@ -220,6 +229,15 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
         {role === 'ADMIN' && (
           <>
             <NavLink
+              href="/admin/submissions"
+              icon="◈"
+              label="المراجعات"
+              active={pathname === '/admin/submissions' || pathname.startsWith('/admin/submissions/')}
+              expanded={expanded}
+              onNavigate={onNavigate}
+              badge={pendingBadge}
+            />
+            <NavLink
               href="/admin/audit"
               icon="📋"
               label="سجل المراجعة"
@@ -332,9 +350,10 @@ interface NavLinkProps {
   active: boolean
   expanded: boolean
   onNavigate?: () => void
+  badge?: number
 }
 
-function NavLink({ href, icon, label, active, expanded, onNavigate }: NavLinkProps) {
+function NavLink({ href, icon, label, active, expanded, onNavigate, badge = 0 }: NavLinkProps) {
   return (
     <Link
       href={href}
@@ -364,8 +383,30 @@ function NavLink({ href, icon, label, active, expanded, onNavigate }: NavLinkPro
         }
       }}
     >
-      <span style={{ fontSize: '15px', width: '20px', textAlign: 'center', flexShrink: 0, lineHeight: 1 }}>{icon}</span>
-      {expanded && <span className="truncate">{label}</span>}
+      <span className="relative" style={{ fontSize: '15px', width: '20px', textAlign: 'center', flexShrink: 0, lineHeight: 1 }}>
+        {icon}
+        {!expanded && badge > 0 && (
+          <span
+            className="absolute -top-1 -end-1 inline-flex items-center justify-center rounded-full text-[9px] font-bold text-white"
+            style={{ background: '#dc2626', minWidth: '14px', height: '14px' }}
+          >
+            {badge}
+          </span>
+        )}
+      </span>
+      {expanded && (
+        <span className="flex items-center gap-2 truncate">
+          <span className="truncate">{label}</span>
+          {badge > 0 && (
+            <span
+              className="inline-flex items-center justify-center rounded-full text-[10px] font-bold text-white flex-shrink-0"
+              style={{ background: '#dc2626', minWidth: '18px', height: '18px', padding: '0 4px' }}
+            >
+              {badge}
+            </span>
+          )}
+        </span>
+      )}
     </Link>
   )
 }
