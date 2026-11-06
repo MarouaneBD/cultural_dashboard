@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Period, Pillar } from '@prisma/client'
 import { isActivityFile, parseActivityFile, parseExcelFile } from '@/lib/excel'
-import { prisma } from '@/lib/prisma'
+import { prisma, withAuditUser } from '@/lib/prisma'
 import { auth } from '@/auth'
+import { REPORTING_YEAR, PREV_REPORTING_YEAR } from '@/lib/config'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
       const dbErrors: Array<{ row: number; message: string }> = []
 
       try {
-        await prisma.$transaction(async (tx: TxClient) => {
+        await withAuditUser(session!.user.id, () => prisma.$transaction(async (tx: TxClient) => {
           for (let i = 0; i < rows.length; i++) {
             const row = rows[i]
             try {
@@ -92,16 +93,16 @@ export async function POST(req: NextRequest) {
 
               if (row.target2026 !== undefined) {
                 await tx.target.upsert({
-                  where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: 2026 } },
-                  create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: 2026, value: row.target2026 },
+                  where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: REPORTING_YEAR } },
+                  create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: REPORTING_YEAR, value: row.target2026 },
                   update: { value: row.target2026 },
                 })
               }
 
               if (row.actual2025 !== undefined) {
                 await tx.actual.upsert({
-                  where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: 2025 } },
-                  create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: 2025, value: row.actual2025 },
+                  where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: PREV_REPORTING_YEAR } },
+                  create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: PREV_REPORTING_YEAR, value: row.actual2025 },
                   update: { value: row.actual2025 },
                 })
               }
@@ -109,8 +110,8 @@ export async function POST(req: NextRequest) {
               for (const [q, val] of Object.entries(row.actuals)) {
                 if (val !== undefined) {
                   await tx.actual.upsert({
-                    where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: 2026 } },
-                    create: { kpiId: kpi.id, period: q as Period, year: 2026, value: val },
+                    where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR } },
+                    create: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR, value: val },
                     update: { value: val },
                   })
                 }
@@ -122,7 +123,7 @@ export async function POST(req: NextRequest) {
               dbErrors.push({ row: i + 2, message: `خطأ في حفظ النشاط: ${row.nameAr}` })
             }
           }
-        }, { timeout: 50000 })
+        }, { timeout: 50000 }))
       } catch (err) {
         console.error('[upload] transaction failed', err)
         return NextResponse.json({ error: 'فشل حفظ البيانات' }, { status: 500 })
@@ -142,7 +143,7 @@ export async function POST(req: NextRequest) {
     let imported = 0
 
     try {
-      await prisma.$transaction(async (tx: TxClient) => {
+      await withAuditUser(session!.user.id, () => prisma.$transaction(async (tx: TxClient) => {
         for (let i = 0; i < valid.length; i++) {
           const row = valid[i]
           try {
@@ -161,7 +162,7 @@ export async function POST(req: NextRequest) {
             dbErrors.push({ row: i + 2, message: `خطأ في حفظ البيانات: ${row.kpiId}` })
           }
         }
-      }, { timeout: 50000 })
+      }, { timeout: 50000 }))
     } catch (err) {
       console.error('[upload] legacy transaction failed', err)
       return NextResponse.json({ error: 'فشل حفظ البيانات' }, { status: 500 })

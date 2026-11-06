@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, withAuditUser } from '@/lib/prisma'
 import { auth } from '@/auth'
 
 export const dynamic = 'force-dynamic'
@@ -12,12 +12,14 @@ export async function POST() {
 
   try {
     // Use interactive transaction to guarantee FK-safe delete order
-    const result = await prisma.$transaction(async (tx) => {
-      const actuals = await tx.actual.deleteMany()
-      const targets = await tx.target.deleteMany()
-      const kpis    = await tx.kpiRegistry.deleteMany()
-      return { actuals: actuals.count, targets: targets.count, kpis: kpis.count }
-    })
+    const result = await withAuditUser(session.user.id, () =>
+      prisma.$transaction(async (tx) => {
+        const actuals = await tx.actual.deleteMany()
+        const targets = await tx.target.deleteMany()
+        const kpis    = await tx.kpiRegistry.deleteMany()
+        return { actuals: actuals.count, targets: targets.count, kpis: kpis.count }
+      })
+    )
 
     return NextResponse.json(result)
   } catch (err) {

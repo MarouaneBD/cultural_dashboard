@@ -1,6 +1,22 @@
+import { AsyncLocalStorage } from 'async_hooks'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
+
+/**
+ * Stores the authenticated user ID for the current async call stack.
+ * API route handlers wrap their DB operations with `withAuditUser(userId, fn)`
+ * so the Prisma audit extension can attribute writes to the real actor.
+ */
+const auditUserStorage = new AsyncLocalStorage<string>()
+
+/**
+ * Run `fn` with `userId` threaded through the async context so all Prisma
+ * writes inside `fn` are attributed to that user in the audit log.
+ */
+export function withAuditUser<T>(userId: string, fn: () => Promise<T>): Promise<T> {
+  return auditUserStorage.run(userId, fn)
+}
 
 const AUDITED_MODELS = new Set(['Actual', 'KpiRegistry'])
 const WRITE_OPS = new Set(['create', 'update', 'delete', 'upsert', 'createMany', 'updateMany', 'deleteMany'])
@@ -40,7 +56,7 @@ function createPrismaClient() {
             const typedArgs = args as Record<string, unknown>
             await (base as any).auditLog.create({
               data: {
-                userId: 'system',
+                userId: auditUserStorage.getStore() ?? 'system',
                 action: `${model}.${operation}`,
                 kpiId:
                   (typedArgs?.where as Record<string, unknown>)?.id as string | null ??
