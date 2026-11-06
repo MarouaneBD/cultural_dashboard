@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: ers_db
       POSTGRES_USER: ers_user
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env for local dev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ers_pass}
     ports:
       - "5432:5432"
     volumes:
