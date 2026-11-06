@@ -82,9 +82,10 @@ export function UserTable({ users, currentUserId, onEdit, onResetPassword, onDel
               {formatDateAr(user.createdAt)}
             </td>
             <td className="p-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2" role="toolbar" aria-label={`إجراءات ${user.username}`}>
                 <button
                   onClick={() => onEdit(user)}
+                  aria-label={`تعديل ${user.username}`}
                   className="text-xs px-2 py-1 rounded hover:bg-[var(--bg-alt)]"
                   style={{ color: 'var(--ink-muted)' }}
                 >
@@ -92,6 +93,7 @@ export function UserTable({ users, currentUserId, onEdit, onResetPassword, onDel
                 </button>
                 <button
                   onClick={() => onResetPassword(user)}
+                  aria-label={`إعادة تعيين كلمة مرور ${user.username}`}
                   className="text-xs px-2 py-1 rounded hover:bg-[var(--bg-alt)]"
                   style={{ color: 'var(--ink-muted)' }}
                 >
@@ -100,6 +102,7 @@ export function UserTable({ users, currentUserId, onEdit, onResetPassword, onDel
                 {user.id !== currentUserId && (
                   <button
                     onClick={() => onDelete(user)}
+                    aria-label={`حذف ${user.username}`}
                     className="text-xs px-2 py-1 rounded text-red-600 hover:bg-red-50"
                   >
                     حذف

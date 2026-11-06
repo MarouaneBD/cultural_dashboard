@@ -53,6 +53,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'بيانات ناقصة' }, { status: 400 })
   }
 
+  const VALID_ROLES: UserRole[] = ['ADMIN', 'EDITOR', 'VIEWER']
+  if (!VALID_ROLES.includes(role)) {
+    return NextResponse.json({ error: 'دور غير صالح' }, { status: 400 })
+  }
+
   if (password.length < 8) {
     return NextResponse.json({ error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' }, { status: 400 })
   }

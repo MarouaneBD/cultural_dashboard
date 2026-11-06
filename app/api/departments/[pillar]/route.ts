@@ -54,6 +54,7 @@ export async function GET(
         // not a real departmental metric, and ships with dummy actuals only.
         NOT: { nameAr: 'المتحقق من المستهدف' },
       },
+      take: 500,
       include: {
         actuals: { where: { year: { in: [PREV_REPORTING_YEAR, REPORTING_YEAR] } } },
         targets: { where: { year: REPORTING_YEAR } },

@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
   const year   = parseInt(searchParams.get('year')   ?? String(REPORTING_YEAR))
   const period = searchParams.get('period') ?? 'ANNUAL'
+  if (isNaN(year)) return NextResponse.json({ error: 'سنة غير صالحة' }, { status: 400 })
   const VALID_QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4'] as const
   type Quarter = typeof VALID_QUARTERS[number]
   const isQuarter = (VALID_QUARTERS as readonly string[]).includes(period)
@@ -41,6 +42,7 @@ export async function GET(req: NextRequest) {
   try {
     const kpis = await prisma.kpiRegistry.findMany({
       where: { unit: 'COUNT' },
+      take: 500,
       include: {
         actuals:  { where: { year } },
         targets:  { where: { year } },

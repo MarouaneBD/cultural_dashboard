@@ -63,6 +63,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
   const year = parseInt(searchParams.get('year') ?? String(REPORTING_YEAR))
   const period = searchParams.get('period') ?? 'ANNUAL'
+  if (isNaN(year)) return NextResponse.json({ error: 'سنة غير صالحة' }, { status: 400 })
   const pillar = searchParams.get('pillar') ?? undefined
   const division = searchParams.get('division') ?? undefined
 

@@ -107,8 +107,9 @@ export async function POST(req: NextRequest) {
                 })
               }
 
+              const VALID_PERIODS: Period[] = ['Q1', 'Q2', 'Q3', 'Q4', 'ANNUAL']
               for (const [q, val] of Object.entries(row.actuals)) {
-                if (val !== undefined) {
+                if (val !== undefined && VALID_PERIODS.includes(q as Period)) {
                   await tx.actual.upsert({
                     where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR } },
                     create: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR, value: val },

@@ -19,6 +19,7 @@ export async function GET(
   const { searchParams } = req.nextUrl
   const year = parseInt(searchParams.get('year') ?? String(REPORTING_YEAR))
   const period = (searchParams.get('period') ?? 'ANNUAL') as Period
+  if (isNaN(year)) return NextResponse.json({ error: 'سنة غير صالحة' }, { status: 400 })
 
   try {
     const [actuals, target] = await Promise.all([
