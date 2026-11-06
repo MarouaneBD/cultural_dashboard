@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/auth'
 import { Pillar } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { computeYtd } from '@/lib/kpi'
@@ -20,6 +21,9 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ pillar: string }> }
 ) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
+
   const { pillar } = await params
 
   try {

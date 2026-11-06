@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { computeYtd } from '@/lib/kpi'
 import { REPORTING_YEAR } from '@/lib/config'
@@ -27,6 +28,9 @@ const CATEGORY_COLORS = [
 ]
 
 export async function GET(req: NextRequest) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
+
   const { searchParams } = req.nextUrl
   const year = parseInt(searchParams.get('year') ?? String(REPORTING_YEAR))
 

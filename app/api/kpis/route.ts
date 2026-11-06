@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { computeVariance, getVarianceColor } from '@/lib/kpi'
 import { DEPARTMENTS } from '@/lib/departments'
@@ -46,6 +47,9 @@ function staticKpisForPillars(pillars: string[]): KpiWithVariance[] {
 }
 
 export async function GET(req: NextRequest) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
+
   const { searchParams } = req.nextUrl
   const year = parseInt(searchParams.get('year') ?? String(REPORTING_YEAR))
   const period = searchParams.get('period') ?? 'ANNUAL'

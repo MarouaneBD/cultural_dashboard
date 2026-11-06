@@ -5,6 +5,38 @@ import { verifyPassword } from '@/lib/auth-utils'
 import { authConfig } from './auth.config'
 import type { UserRole } from '@prisma/client'
 
+// Simple in-memory rate limiter for the login endpoint.
+// Tracks failed attempts per username; suitable for single-instance internal deployments.
+// For multi-instance production, replace the Map with a Redis-backed store (e.g. Upstash).
+const loginAttempts = new Map<string, { failed: number; windowStart: number }>()
+const RATE_WINDOW_MS = 15 * 60 * 1000 // 15-minute sliding window
+const MAX_FAILED = 10                  // lockout after 10 consecutive failures
+
+function isRateLimited(username: string): boolean {
+  const now = Date.now()
+  const record = loginAttempts.get(username)
+  if (!record) return false
+  if (now - record.windowStart > RATE_WINDOW_MS) {
+    loginAttempts.delete(username)
+    return false
+  }
+  return record.failed >= MAX_FAILED
+}
+
+function recordFailedAttempt(username: string): void {
+  const now = Date.now()
+  const record = loginAttempts.get(username)
+  if (!record || now - record.windowStart > RATE_WINDOW_MS) {
+    loginAttempts.set(username, { failed: 1, windowStart: now })
+  } else {
+    record.failed++
+  }
+}
+
+function resetAttempts(username: string): void {
+  loginAttempts.delete(username)
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   trustHost: true,
@@ -20,12 +52,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const password = credentials?.password as string | undefined
           if (!username || !password) return null
 
+          if (isRateLimited(username)) return null
+
           const user = await prisma.user.findUnique({ where: { username } })
-          if (!user) return null
+          if (!user) {
+            recordFailedAttempt(username)
+            return null
+          }
 
           const valid = await verifyPassword(password, user.passwordHash)
-          if (!valid) return null
+          if (!valid) {
+            recordFailedAttempt(username)
+            return null
+          }
 
+          resetAttempts(username)
           return {
             id: user.id,
             username: user.username,
