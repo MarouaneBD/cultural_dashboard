@@ -19,8 +19,8 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: 'لوحة تحكم قطاع الثقافة',
-  description: 'لوحة متابعة مؤشرات الأداء التنفيذية — قطاع الثقافة',
+  title: 'منصة جمعية دار البر',
+  description: 'لوحة متابعة مؤشرات الأداء التنفيذية — جمعية دار البر',
   icons: {
     icon: '/icon.png',
     apple: '/icon.png',
