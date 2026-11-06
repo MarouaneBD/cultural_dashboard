@@ -73,3 +73,36 @@ export interface ActivityUploadResponse {
   updated: number
   errors: Array<{ row: number; message: string }>
 }
+
+export interface SubmissionRowClient {
+  id: string
+  kpiId: string
+  kpiNameAr: string
+  period: string
+  year: number
+  newValue: number
+  oldValue: number
+  tableType: 'ACTUAL' | 'TARGET'
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'DISMISSED'
+  adminComment: string | null
+  reviewedAt: string | null
+}
+
+export interface UploadSubmissionClient {
+  id: string
+  filename: string
+  uploadedAt: string
+  status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  submitter: { id: string; username: string; name: string | null }
+  rows: SubmissionRowClient[]
+  pendingCount: number
+  totalCount: number
+}
+
+export interface ActivityUploadResponseWithQueue {
+  created: number
+  updated: number
+  queued: number
+  submissionId: string | null
+  errors: Array<{ row: number; message: string }>
+}
