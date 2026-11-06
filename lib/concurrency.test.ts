@@ -10,7 +10,6 @@
 import { POST as approvePost } from '@/app/api/admin/submissions/[id]/rows/[rowId]/approve/route'
 import { POST as rejectPost } from '@/app/api/admin/submissions/[id]/rows/[rowId]/reject/route'
 import { POST as approveAllPost } from '@/app/api/admin/submissions/[id]/approve-all/route'
-import { NextRequest } from 'next/server'
 
 // ── Auth mock ──────────────────────────────────────────────────────────────────
 
@@ -34,7 +33,7 @@ jest.mock('@/lib/prisma', () => ({
     submissionRow: {
       findUnique: (...args: unknown[]) => mockFindUnique(...args),
     },
-    $transaction: jest.fn(async (fn: (tx: unknown) => Promise<unknown>) =>
+    $transaction: jest.fn(async (fn: (_tx: unknown) => Promise<unknown>) =>
       fn({
         submissionRow: {
           updateMany: (...args: unknown[]) => mockUpdateMany(...args),
