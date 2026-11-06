@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRef, useEffect } from 'react'
+import { LogOut } from 'lucide-react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { useQuery } from '@tanstack/react-query'
@@ -274,7 +275,7 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
             e.currentTarget.style.color = 'rgba(255,255,255,.78)'
           }}
         >
-          <span style={{ fontSize: '15px', width: '20px', textAlign: 'center', flexShrink: 0, lineHeight: 1 }}>⏻</span>
+          <LogOut size={16} style={{ width: '20px', flexShrink: 0 }} />
           {expanded && <span className="truncate">تسجيل الخروج</span>}
         </button>
       </div>
