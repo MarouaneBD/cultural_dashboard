@@ -185,7 +185,7 @@ export function SplashScreen() {
                 color: 'rgba(255,255,255,.45)',
               }}
             >
-              Dar Al Birr Association
+              Dar Al Ber Society Platform
             </div>
           </div>
         </div>
