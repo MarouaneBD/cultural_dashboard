@@ -1,23 +1,13 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+import { VALID_PILLAR_IDS } from '@/lib/departments'
 
 const AUTHOR_SELECT = {
   id: true,
   username: true,
   name: true,
 } as const
-
-const VALID_PILLAR_IDS = new Set<string>([
-  'EDUCATION',
-  'FAMILY_CULTURE',
-  'ISLAMIC_INFO_CENTER',
-  'AL_BIRR_MALE',
-  'AL_BIRR_FEMALE',
-  'ORPHANS',
-  'SCIENTIFIC_PROGRAMS',
-  'RESEARCH_PUBLICATIONS',
-])
 
 export async function GET(req: Request) {
   const session = await auth()

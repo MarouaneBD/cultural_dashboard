@@ -21,18 +21,20 @@ jest.mock('next/image', () => ({
 }))
 
 jest.mock('next-auth/react', () => ({
-  useSession: () => ({ data: { user: { role: 'ADMIN' } } }),
+  useSession: () => ({ data: { user: { role: 'ADMIN', username: 'admin' } }, status: 'authenticated' }),
 }))
 
 import { Sidebar } from './Sidebar'
 
 describe('Sidebar', () => {
-  it('renders the app name when expanded', () => {
+  it('renders the division name when expanded', () => {
     render(<Sidebar expanded={true} />)
-    expect(screen.getByText('قطاع الثقافة')).toBeInTheDocument()
+    // DEFAULT_DIVISION = CULTURE_RESEARCH, shortAr = 'الثقافة والبحوث'.
+    // Appears in both the brand label and the division nav link.
+    expect(screen.getAllByText('الثقافة والبحوث').length).toBeGreaterThan(0)
   })
 
-  it('renders all seven department links when expanded', () => {
+  it('renders all eight CULTURE_RESEARCH department links when expanded', () => {
     render(<Sidebar expanded={true} />)
     expect(screen.getByText('ادارة التعليم')).toBeInTheDocument()
     expect(screen.getByText('ادارة ثقافة الأسرة')).toBeInTheDocument()
@@ -41,6 +43,7 @@ describe('Sidebar', () => {
     expect(screen.getByText('مشروع البر - اناث')).toBeInTheDocument()
     expect(screen.getByText('قسم الأيتام')).toBeInTheDocument()
     expect(screen.getByText('مكتب البرامج العلمية')).toBeInTheDocument()
+    expect(screen.getByText('وحدة البحوث والمطبوعات')).toBeInTheDocument()
   })
 
   it('renders upload and audit links when expanded', () => {
