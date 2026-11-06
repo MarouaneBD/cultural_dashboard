@@ -160,8 +160,8 @@ export function parseActivityFile(buffer: ArrayBuffer): ActivityUploadResult {
         nameAr,
         pillar: pillar as ActivityRow['pillar'],
         category: normalizeAr(String(getCol(raw, 'الفئة') ?? '')) || undefined,
-        actual2025: toNum(getCol(raw, '2025')),
-        target2026: toNum(getCol(raw, 'المستهدف 2026')),
+        actual2025: toNum(getCol(raw, String(REPORTING_YEAR - 1))),
+        target2026: toNum(getCol(raw, `المستهدف ${REPORTING_YEAR}`)),
         actuals,
         activityType,
       })

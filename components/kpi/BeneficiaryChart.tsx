@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { REPORTING_YEAR } from '@/lib/config'
 import { useSearchParams } from 'next/navigation'
 import type { CategoryTotal, TotalsResponse } from '@/app/api/stats/totals/route'
 
@@ -273,7 +274,7 @@ function Skeleton() {
 // ── Main ───────────────────────────────────────────────────────────────────
 export function BeneficiaryChart() {
   const params = useSearchParams()
-  const year   = params.get('year') ?? '2026'
+  const year   = params.get('year') ?? String(REPORTING_YEAR)
 
   const { data, isLoading } = useQuery<TotalsResponse>({
     queryKey: ['stats-totals', year],

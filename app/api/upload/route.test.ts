@@ -2,8 +2,13 @@ import * as XLSX from 'xlsx'
 import { POST } from './route'
 import { NextRequest } from 'next/server'
 
-// Mock prisma
+jest.mock('@/auth', () => ({
+  auth: jest.fn().mockResolvedValue({ user: { id: 'u1', role: 'EDITOR' } }),
+}))
+
+// Mock prisma + withAuditUser (passthrough — just calls the callback)
 jest.mock('@/lib/prisma', () => ({
+  withAuditUser: jest.fn((_userId: string, fn: () => Promise<unknown>) => fn()),
   prisma: {
     $transaction: jest.fn(async (fn: (tx: unknown) => Promise<unknown>) => fn({
       kpiRegistry: {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { REPORTING_YEAR } from '@/lib/config'
 import { useSearchParams } from 'next/navigation'
 import { KpiCard } from './KpiCard'
 import type { KpiWithVariance, PillarId } from '@/types'
@@ -12,7 +13,7 @@ interface KpiGridProps {
 
 export function KpiGrid({ pillar, onKpiClick }: KpiGridProps) {
   const params = useSearchParams()
-  const year = params.get('year') ?? '2026'
+  const year = params.get('year') ?? String(REPORTING_YEAR)
   const period = params.get('period') ?? 'ANNUAL'
 
   const { data: kpis, isLoading, error } = useQuery<KpiWithVariance[]>({

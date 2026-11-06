@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { REPORTING_YEAR } from '@/lib/config'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -83,7 +84,7 @@ function DeptCard({
 
 export function DeptOverview() {
   const params = useSearchParams()
-  const year = params.get('year') ?? '2026'
+  const year = params.get('year') ?? String(REPORTING_YEAR)
   const period = params.get('period') ?? 'ANNUAL'
   const divisionParam = (params.get('division') ?? DEFAULT_DIVISION) as DivisionId
   const divisionDepts = DEPARTMENTS.filter(d => d.division === divisionParam)

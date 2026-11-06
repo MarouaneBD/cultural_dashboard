@@ -1,5 +1,6 @@
 import type { UploadValidationResult, ActivityUploadResult } from '@/types'
 import { DEPT_MAP } from '@/lib/departments'
+import { REPORTING_YEAR } from '@/lib/config'
 
 type Props =
   | { mode: 'legacy';   result: UploadValidationResult }
@@ -33,9 +34,9 @@ export function ValidationPreview(props: Props) {
                 <th className="text-right p-2 border">الأنشطة</th>
                 <th className="text-right p-2 border">نوع النشاط</th>
                 <th className="text-right p-2 border">الفئة</th>
-                <th className="text-right p-2 border">2025</th>
-                <th className="text-right p-2 border">المستهدف 2026</th>
-                <th className="text-right p-2 border">Q1 2026</th>
+                <th className="text-right p-2 border">{REPORTING_YEAR - 1}</th>
+                <th className="text-right p-2 border">المستهدف {REPORTING_YEAR}</th>
+                <th className="text-right p-2 border">Q1 {REPORTING_YEAR}</th>
               </tr>
             </thead>
             <tbody>

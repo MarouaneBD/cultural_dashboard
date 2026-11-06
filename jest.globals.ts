@@ -5,6 +5,14 @@
  * the jsdom realm here, which runs before any module imports.
  */
 
+// Polyfill TextEncoder / TextDecoder — next/server internals (e.g. URL parsing,
+// cookie handling) rely on these; jsdom does not expose them on globalThis.
+import { TextEncoder, TextDecoder } from 'util'
+if (typeof (globalThis as Record<string, unknown>).TextEncoder === 'undefined') {
+  ;(globalThis as Record<string, unknown>).TextEncoder = TextEncoder
+  ;(globalThis as Record<string, unknown>).TextDecoder = TextDecoder
+}
+
 // Access outer Node.js globals (they exist at this point regardless of jsdom)
 const nodeGlobal = global as Record<string, unknown>
 

@@ -10,6 +10,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
+import { REPORTING_YEAR } from '@/lib/config'
 import { useSearchParams } from 'next/navigation'
 import { DEPARTMENTS } from '@/lib/departments'
 import { DEFAULT_DIVISION, type DivisionId } from '@/lib/divisions'

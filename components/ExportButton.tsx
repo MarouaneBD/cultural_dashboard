@@ -1,10 +1,10 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-
+import { REPORTING_YEAR } from '@/lib/config'
 export function ExportButton() {
   const params = useSearchParams()
-  const year = params.get('year') ?? '2026'
+  const year = params.get('year') ?? String(REPORTING_YEAR)
   const period = params.get('period') ?? 'ANNUAL'
 
   return (

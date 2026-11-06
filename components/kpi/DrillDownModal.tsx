@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { REPORTING_YEAR } from '@/lib/config'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
 import { ROW_CLASSES, formatValue, formatVariancePct } from '@/lib/kpi'
@@ -13,7 +14,7 @@ interface DrillDownModalProps {
 
 export function DrillDownModal({ kpi, onClose }: DrillDownModalProps) {
   const params = useSearchParams()
-  const year = params.get('year') ?? '2026'
+  const year = params.get('year') ?? String(REPORTING_YEAR)
   const period = params.get('period') ?? 'ANNUAL'
 
   useEffect(() => {

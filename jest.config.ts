@@ -6,12 +6,13 @@ const config: Config = {
       displayName: 'dom',
       testEnvironment: '<rootDir>/jest.env.ts',
       testMatch: ['<rootDir>/**/*.test.ts', '<rootDir>/**/*.test.tsx'],
-      testPathIgnorePatterns: ['/node_modules/', '<rootDir>/prisma/'],
+      testPathIgnorePatterns: ['/node_modules/', '<rootDir>/prisma/', '<rootDir>/.claude/'],
       setupFiles: ['<rootDir>/jest.globals.ts'],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
       transform: {
         '^.+\\.tsx?$': ['ts-jest', { tsconfig: { jsx: 'react-jsx' } }],
       },
+      transformIgnorePatterns: ['/node_modules/(?!(next|next-auth|@auth)/)'],
       moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/$1',
       },

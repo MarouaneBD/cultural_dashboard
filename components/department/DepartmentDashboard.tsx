@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { REPORTING_YEAR } from '@/lib/config'
 import { CurrentYearTracker } from './CurrentYearTracker'
 import { InsightsPanel } from './InsightsPanel'
 import { CommentThread } from './CommentThread'
@@ -24,7 +25,7 @@ function PageHeader({ nameAr, icon, color, year }: { nameAr: string; icon: strin
             {nameAr}
           </h1>
           <p className="font-space text-[10px] tracking-[.1em] mt-0.5" style={{ color: 'var(--ink-muted)' }}>
-            2025 — {year} · لوحة الأداء
+            {REPORTING_YEAR - 1} — {year} · لوحة الأداء
           </p>
         </div>
       </div>
@@ -96,7 +97,7 @@ export function DepartmentDashboard({ pillarId }: Props) {
   if (isLoading) {
     return (
       <div className="space-y-8">
-        <PageHeader nameAr={nameAr} icon={icon} color={color} year={2026} />
+        <PageHeader nameAr={nameAr} icon={icon} color={color} year={REPORTING_YEAR} />
         <DashboardSkeleton accentColor={color} />
       </div>
     )

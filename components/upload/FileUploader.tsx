@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { Trash2 } from 'lucide-react'
 import { ValidationPreview } from './ValidationPreview'
 import type { UploadValidationResult, ActivityUploadResult } from '@/types'
+import { REPORTING_YEAR } from '@/lib/config'
 
 type PreviewState =
   | { mode: 'activity'; result: ActivityUploadResult }
@@ -146,7 +147,7 @@ export function FileUploader() {
       >
         <p className="text-slate-500 text-sm">اسحب ملف Excel أو CSV هنا، أو انقر للاختيار</p>
         <p className="text-xs text-slate-400 mt-1">
-          الأعمدة المتوقعة: الوحدة التنظيمية · الأنشطة · نوع النشاط · 2025 · المستهدف 2026 · 2026 Q1 · الفئة
+          {`الأعمدة المتوقعة: الوحدة التنظيمية · الأنشطة · نوع النشاط · ${REPORTING_YEAR - 1} · المستهدف ${REPORTING_YEAR} · ${REPORTING_YEAR} Q1 · الفئة`}
         </p>
         <input
           ref={inputRef}

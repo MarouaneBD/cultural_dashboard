@@ -17,6 +17,10 @@ const ALL_KPIS = [
   },
 ]
 
+jest.mock('@/auth', () => ({
+  auth: jest.fn().mockResolvedValue({ user: { id: 'u1', role: 'ADMIN' } }),
+}))
+
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     kpiRegistry: {
