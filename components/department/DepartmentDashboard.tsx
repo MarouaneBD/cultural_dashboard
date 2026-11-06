@@ -92,8 +92,13 @@ export function DepartmentDashboard({ pillarId }: Props) {
     enabled: !!config,
   })
 
+  // useMemo must be called unconditionally (Rules of Hooks) — before any early return
+  const staticData = config?.data
+  const data = dbData ?? staticData
+  const insights = useMemo(() => (data ? generateInsights(data) : []), [data])
+
   if (!config) return null
-  const { nameAr, icon, color, data: staticData } = config
+  const { nameAr, icon, color } = config
 
   // Show skeleton until the first fetch resolves — avoids flashing placeholder numbers
   if (isLoading) {
@@ -116,8 +121,7 @@ export function DepartmentDashboard({ pillarId }: Props) {
     )
   }
 
-  const data = dbData ?? staticData
-  const insights = useMemo(() => generateInsights(data), [data])
+  if (!data) return null
 
   return (
     <div className="space-y-8">
