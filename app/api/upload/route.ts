@@ -241,13 +241,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ dryRun: true, preview: valid, errors })
     }
 
+    const isEditor = session!.user.role === 'EDITOR'
+    const assignedPillarId = session!.user.assignedPillarId ?? null
+
     const dbErrors: Array<{ row: number; message: string }> = []
+    const scopeErrors: Array<{ row: number; message: string }> = []
     let imported = 0
+
+    // EDITOR scope check — resolve each kpiId to its pillar and reject mismatches
+    let allowedRows = valid
+    if (isEditor) {
+      if (!assignedPillarId) {
+        return NextResponse.json({ error: 'لم يتم تعيين قسم لهذا المحرر، تواصل مع المدير' }, { status: 403 })
+      }
+      const kpiIds = [...new Set(valid.map(r => r.kpiId))]
+      const registryEntries = await prisma.kpiRegistry.findMany({
+        where: { id: { in: kpiIds } },
+        select: { id: true, pillar: true },
+      })
+      const pillarByKpiId = new Map(registryEntries.map(e => [e.id, e.pillar as string]))
+      allowedRows = valid.filter((row, i) => {
+        const pillar = pillarByKpiId.get(row.kpiId)
+        if (!pillar || pillar !== assignedPillarId) {
+          scopeErrors.push({ row: i + 2, message: `ليس لديك صلاحية رفع بيانات المؤشر: ${row.kpiId}` })
+          return false
+        }
+        return true
+      })
+    }
 
     try {
       await withAuditUser(session!.user.id, () => prisma.$transaction(async (tx: TxClient) => {
-        for (let i = 0; i < valid.length; i++) {
-          const row = valid[i]
+        for (let i = 0; i < allowedRows.length; i++) {
+          const row = allowedRows[i]
           try {
             await tx.actual.create({
               data: {
@@ -270,7 +296,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'فشل حفظ البيانات' }, { status: 500 })
     }
 
-    return NextResponse.json({ imported, errors: [...errors, ...dbErrors] })
+    return NextResponse.json({ imported, errors: [...errors, ...dbErrors, ...scopeErrors] })
   } catch (err) {
     console.error('[upload] unhandled error', err)
     return NextResponse.json({ error: 'حدث خطأ أثناء معالجة الملف' }, { status: 500 })
