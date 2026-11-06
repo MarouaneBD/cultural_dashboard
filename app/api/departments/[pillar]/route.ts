@@ -17,6 +17,22 @@ const QUARTERS = ['Q1','Q2','Q3','Q4'] as const
 
 function unitDisplay(u: string) { return UNIT_DISPLAY[u] ?? '' }
 
+const VALID_PILLARS = [
+  'EDUCATION',
+  'FAMILY_CULTURE',
+  'ISLAMIC_INFO_CENTER',
+  'AL_BIRR_MALE',
+  'AL_BIRR_FEMALE',
+  'ORPHANS',
+  'SCIENTIFIC_PROGRAMS',
+  'RESEARCH_PUBLICATIONS',
+  'HR_MANAGEMENT',
+  'ADMIN_AFFAIRS',
+  'PROCUREMENT',
+  'DEVELOPMENT_PROJECTS',
+  'ZAKAT_MANAGEMENT',
+] as const
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ pillar: string }> }
@@ -25,6 +41,10 @@ export async function GET(
   if (!session) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
 
   const { pillar } = await params
+
+  if (!VALID_PILLARS.includes(pillar as typeof VALID_PILLARS[number])) {
+    return NextResponse.json({ error: 'قطاع غير صالح' }, { status: 400 })
+  }
 
   try {
     const kpis = await prisma.kpiRegistry.findMany({

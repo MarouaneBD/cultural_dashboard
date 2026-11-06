@@ -25,6 +25,7 @@ export async function GET(
       prisma.actual.findMany({
         where: { kpiId: id, year },
         orderBy: { region: 'asc' },
+        take: 500,
       }),
       prisma.target.findFirst({
         where: { kpiId: id, period, year },

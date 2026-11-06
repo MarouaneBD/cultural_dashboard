@@ -26,7 +26,8 @@ export async function GET(req: Request) {
 
   const comments = await prisma.comment.findMany({
     where: { pillarId },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { createdAt: 'desc' },
+    take: 200,
     select: {
       id: true,
       pillarId: true,

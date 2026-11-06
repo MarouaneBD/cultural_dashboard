@@ -27,6 +27,7 @@ export async function GET() {
       createdAt: true,
     },
     orderBy: { createdAt: 'asc' },
+    take: 200,
   })
 
   return NextResponse.json(users)

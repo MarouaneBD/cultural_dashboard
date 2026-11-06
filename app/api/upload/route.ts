@@ -171,6 +171,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ imported, errors: [...errors, ...dbErrors] })
   } catch (err) {
     console.error('[upload] unhandled error', err)
-    return NextResponse.json({ error: `خطأ في معالجة الملف: ${String(err)}` }, { status: 500 })
+    return NextResponse.json({ error: 'حدث خطأ أثناء معالجة الملف' }, { status: 500 })
   }
 }
