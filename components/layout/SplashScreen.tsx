@@ -164,7 +164,7 @@ export function SplashScreen() {
                 letterSpacing: '-.01em',
               }}
             >
-              لوحة تحكم قطاع الثقافة
+              منصة جمعية دار البر
             </div>
             {/* Gold divider */}
             <div
