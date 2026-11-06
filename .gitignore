@@ -38,3 +38,4 @@ next-env.d.ts
 
 # prisma
 # prisma/migrations should NOT be ignored — migration files must be committed for deploy
+.claude/worktrees/
