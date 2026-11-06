@@ -76,9 +76,9 @@ interface Props {
 
 export function DepartmentDashboard({ pillarId }: Props) {
   const config = DEPT_DASHBOARDS[pillarId]
-  if (!config) return null
-  const { nameAr, icon, color, data: staticData } = config
 
+  // Hook must be called unconditionally (Rules of Hooks).
+  // The `enabled` flag prevents any fetch when config is absent.
   const { data: dbData, isLoading } = useQuery<DeptData | null>({
     queryKey: ['dept', pillarId],
     queryFn: () =>
@@ -86,7 +86,11 @@ export function DepartmentDashboard({ pillarId }: Props) {
         if (!r.ok) throw new Error(`API ${r.status}`)
         return r.json()
       }),
+    enabled: !!config,
   })
+
+  if (!config) return null
+  const { nameAr, icon, color, data: staticData } = config
 
   // Show skeleton until the first fetch resolves — avoids flashing placeholder numbers
   if (isLoading) {

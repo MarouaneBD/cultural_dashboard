@@ -16,9 +16,9 @@ export const authConfig = {
     jwt({ token, user }) {
       if (user) {
         token.id = user.id as string
-        token.username = (user as any).username
-        token.role = (user as any).role as UserRole
-        token.mustChangePassword = (user as any).mustChangePassword as boolean
+        token.username = user.username
+        token.role = user.role
+        token.mustChangePassword = user.mustChangePassword
       }
       return token
     },

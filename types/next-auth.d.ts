@@ -2,6 +2,13 @@ import type { UserRole } from '@prisma/client'
 import type { DefaultSession } from 'next-auth'
 
 declare module 'next-auth' {
+  interface User {
+    username: string
+    role: UserRole
+    mustChangePassword: boolean
+    assignedPillarId: string | null
+  }
+
   interface Session {
     user: {
       id: string

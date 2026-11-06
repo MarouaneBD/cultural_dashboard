@@ -48,8 +48,8 @@ export function CommentThread({ pillarId, accentColor }: CommentThreadProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
-  const role   = status !== 'loading' ? (session?.user as any)?.role as string | undefined : undefined
-  const userId = (session?.user as any)?.id as string | undefined
+  const role   = status !== 'loading' ? session?.user?.role : undefined
+  const userId = session?.user?.id
   const canWrite = role === 'ADMIN' || role === 'EDITOR'
 
   const { data: comments = [] as CommentResponse[], isLoading } = useQuery<CommentResponse[]>({

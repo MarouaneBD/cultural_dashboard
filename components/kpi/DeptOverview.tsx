@@ -103,8 +103,8 @@ export function DeptOverview() {
   )
 
   // Assigned EDITOR sees only their department; everyone else sees all
-  const role = status !== 'loading' ? (session?.user as any)?.role as string | undefined : undefined
-  const assignedPillarId = (session?.user as any)?.assignedPillarId as string | null | undefined
+  const role = status !== 'loading' ? session?.user?.role : undefined
+  const assignedPillarId = session?.user?.assignedPillarId
   const visibleDepts = (role === 'EDITOR' && assignedPillarId)
     ? divisionDepts.filter(d => d.id === assignedPillarId)
     : divisionDepts

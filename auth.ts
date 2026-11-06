@@ -47,10 +47,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     jwt({ token, user }) {
       if (user) {
         token.id = user.id as string
-        token.username = (user as any).username
-        token.role = (user as any).role as UserRole
-        token.mustChangePassword = (user as any).mustChangePassword as boolean
-        token.assignedPillarId = (user as any).assignedPillarId as string | null
+        token.username = user.username
+        token.role = user.role
+        token.mustChangePassword = user.mustChangePassword
+        token.assignedPillarId = user.assignedPillarId
       }
       return token
     },

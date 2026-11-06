@@ -195,7 +195,7 @@ export default function ColorsDemo() {
         </div>
 
         <p style={{ textAlign: 'center', fontSize: 11, color: '#94a3b8', marginTop: 24 }}>
-          Once you pick, I'll update <code style={{ background: '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>--sidebar-bg</code> in globals.css with one line.
+          Once you pick, I&apos;ll update <code style={{ background: '#f1f5f9', padding: '1px 5px', borderRadius: 4 }}>--sidebar-bg</code> in globals.css with one line.
         </p>
       </div>
     </div>

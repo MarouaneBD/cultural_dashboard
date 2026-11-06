@@ -40,8 +40,8 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
       onNavigate?.()
     }
   }, [pathname, searchParams, onNavigate])
-  const role = status === 'loading' ? undefined : (session?.user as any)?.role as string | undefined
-  const assignedPillarId = (session?.user as any)?.assignedPillarId as string | null | undefined
+  const role = status === 'loading' ? undefined : session?.user?.role
+  const assignedPillarId = session?.user?.assignedPillarId
 
   // Departments for the active division only; assigned EDITOR sees only their own
   const divisionPillars = pillarsForDivision(activeDivision)
@@ -128,15 +128,15 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
             className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
             style={{ background: 'var(--accent)', color: '#fff' }}
           >
-            {(session.user as any).username?.[0]?.toUpperCase() ?? '؟'}
+            {session.user.username?.[0]?.toUpperCase() ?? '؟'}
           </div>
           {expanded && (
             <div className="flex flex-col min-w-0">
               <span className="text-[12.5px] font-semibold truncate" style={{ color: 'rgba(255,255,255,.92)' }}>
-                {(session.user as any).username}
+                {session.user.username}
               </span>
               <span className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,.45)' }}>
-                {(session.user as any).role === 'ADMIN' ? 'مدير' : (session.user as any).role === 'EDITOR' ? 'محرر' : 'مشاهد'}
+                {session.user.role === 'ADMIN' ? 'مدير' : session.user.role === 'EDITOR' ? 'محرر' : 'مشاهد'}
               </span>
             </div>
           )}

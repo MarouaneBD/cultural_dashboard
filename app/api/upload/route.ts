@@ -12,9 +12,9 @@ type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0]
 
 export async function POST(req: NextRequest) {
   // ── Auth ─────────────────────────────────────────────────────────────────────
-  let session: { user: { role: string } } | null = null
+  let session: import('next-auth').Session | null = null
   try {
-    session = await auth() as any
+    session = await auth()
   } catch (err) {
     console.error('[upload] auth() threw', err)
     return NextResponse.json({ error: 'خطأ في التحقق من الجلسة' }, { status: 500 })

@@ -16,7 +16,7 @@ export async function signInAction(
       redirectTo: '/dashboard',
     })
     return null
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AuthError) return 'invalid'
     throw err   // re-throws NEXT_REDIRECT → 303 full-page reload
   }

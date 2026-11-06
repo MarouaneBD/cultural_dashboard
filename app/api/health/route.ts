@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   let sessionInfo: unknown = 'skipped'
   if (req.nextUrl.searchParams.get('auth') === '1') {
     try {
-      const session = await auth() as any
+      const session = await auth()
       sessionInfo = session
         ? { role: session.user?.role, id: session.user?.id }
         : null

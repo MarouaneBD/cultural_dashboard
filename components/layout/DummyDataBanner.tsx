@@ -15,7 +15,9 @@ export function DummyDataBanner({ division }: Props) {
   useEffect(() => {
     if (division !== 'INSTITUTIONAL_SUPPORT') return
     const dismissed = sessionStorage.getItem(DISMISS_KEY)
-    if (!dismissed) setVisible(true)
+    // SSR-safe: state starts false (hidden) so SSR and initial hydration agree;
+    // we reveal after mount only when the user hasn't dismissed the banner.
+    if (!dismissed) setVisible(true) // eslint-disable-line react-hooks/set-state-in-effect
   }, [division])
 
   if (!visible) return null
