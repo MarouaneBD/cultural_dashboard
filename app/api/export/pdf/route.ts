@@ -6,6 +6,7 @@ import { generateNarrative } from '@/lib/narrative'
 import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer'
 import React from 'react'
 import path from 'path'
+import { auth } from '@/auth'
 import type { KpiWithVariance } from '@/types'
 
 Font.register({
@@ -27,6 +28,11 @@ const styles = StyleSheet.create({
 })
 
 export async function GET(req: NextRequest) {
+  const session = await auth()
+  if (!session) {
+    return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
+  }
+
   try {
     const { searchParams } = req.nextUrl
     const year = parseInt(searchParams.get('year') ?? '2026')

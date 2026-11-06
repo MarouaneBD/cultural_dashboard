@@ -40,6 +40,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'الملف مطلوب' }, { status: 400 })
   }
 
+  // ── Validate file size and MIME type ─────────────────────────────────────────
+  const MAX_SIZE = 10 * 1024 * 1024 // 10 MB
+  if (file.size > MAX_SIZE) {
+    return NextResponse.json({ error: 'حجم الملف يتجاوز الحد المسموح به (10 ميغابايت)' }, { status: 400 })
+  }
+  const ALLOWED_MIMES = [
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-excel',
+  ]
+  if (!ALLOWED_MIMES.includes(file.type)) {
+    return NextResponse.json({ error: 'نوع الملف غير مدعوم. يُسمح فقط بملفات Excel' }, { status: 400 })
+  }
+
   // ── Read buffer ──────────────────────────────────────────────────────────────
   let buffer: ArrayBuffer
   try {

@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 
 export async function POST() {
   const session = await auth()
-  if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'EDITOR')) {
+  if (!session || session.user.role !== 'ADMIN') {
     return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
   }
 
