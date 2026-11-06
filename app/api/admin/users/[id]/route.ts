@@ -41,6 +41,7 @@ export async function PATCH(
     }
     data.passwordHash = await hashPassword(body.newPassword)
     data.mustChangePassword = true
+    data.passwordResetRequested = false  // clear the pending reset request
   }
   if ('assignedPillarId' in body) data.assignedPillarId = body.assignedPillarId || null
 
@@ -53,6 +54,7 @@ export async function PATCH(
       name: true,
       role: true,
       mustChangePassword: true,
+      passwordResetRequested: true,
       assignedPillarId: true,
       createdAt: true,
     },

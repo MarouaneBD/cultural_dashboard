@@ -3,6 +3,7 @@
 import { useState, FormEvent, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 
 function LoginForm() {
   const searchParams = useSearchParams()
@@ -96,7 +97,9 @@ function LoginForm() {
         </form>
 
         <p className="mt-5 text-center text-xs" style={{ color: 'var(--ink-muted)' }}>
-          نسيت كلمة المرور؟ تواصل مع المسؤول
+          <Link href="/forgot-password" style={{ color: 'var(--accent)' }}>
+            نسيت كلمة المرور؟
+          </Link>
         </p>
       </div>
     </div>

@@ -9,6 +9,7 @@ export interface UserRow {
   name: string | null
   role: UserRole
   mustChangePassword: boolean
+  passwordResetRequested: boolean
   assignedPillarId: string | null
   createdAt: string
 }
@@ -64,6 +65,11 @@ export function UserTable({ users, currentUserId, onEdit, onResetPassword, onDel
               {user.mustChangePassword && (
                 <span className="mr-2 inline-block px-2 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-700">
                   تغيير مطلوب
+                </span>
+              )}
+              {user.passwordResetRequested && (
+                <span className="mr-2 inline-block px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-700 font-medium">
+                  طلب إعادة تعيين
                 </span>
               )}
             </td>

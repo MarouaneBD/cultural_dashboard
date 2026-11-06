@@ -8,7 +8,7 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   const session = req.auth
 
-  const isAuthPage = pathname === '/login' || pathname === '/change-password'
+  const isAuthPage = pathname === '/login' || pathname === '/change-password' || pathname === '/forgot-password'
 
   // Not logged in → allow auth pages, redirect everything else to login
   if (!session) {
