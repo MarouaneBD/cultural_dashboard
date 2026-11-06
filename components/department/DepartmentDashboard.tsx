@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import type { LucideIcon } from 'lucide-react'
 import { REPORTING_YEAR } from '@/lib/config'
 import { CurrentYearTracker } from './CurrentYearTracker'
 import { InsightsPanel } from './InsightsPanel'
@@ -10,15 +11,15 @@ import { DEPT_DASHBOARDS } from '@/data/departments/registry'
 import type { DeptData } from '@/types/department'
 import type { PillarId } from '@/types'
 
-function PageHeader({ nameAr, icon, color, year }: { nameAr: string; icon: string; color: string; year: number }) {
+function PageHeader({ nameAr, icon: Icon, color, year }: { nameAr: string; icon: LucideIcon; color: string; year: number }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-3">
         <span
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{ background: `${color}18` }}
         >
-          {icon}
+          <Icon size={22} color={color} strokeWidth={1.75} />
         </span>
         <div>
           <h1 className="font-cairo text-[17px] font-bold leading-tight" style={{ color: 'var(--ink)' }}>
@@ -66,7 +67,7 @@ function DashboardSkeleton({ accentColor }: { accentColor: string }) {
 
 export interface DeptConfig {
   nameAr: string
-  icon: string
+  icon: LucideIcon
   color: string    // hex accent color for this dept
   data: DeptData
 }
