@@ -90,7 +90,9 @@ function ConcentricRings({
           dominantBaseline="middle"
           style={{ fontSize: 28, fontFamily: 'var(--font-fraunces)', fontWeight: 500, fill: 'var(--ink)' }}
         >
-          {segments.length > 0 ? `${Math.round(segments.reduce((s, g) => s + g.pct, 0) / segments.length)}` : '—'}
+          {segments.length > 0 && segments.some(s => s.pct > 0)
+            ? `${Math.round(segments.reduce((s, g) => s + g.pct, 0) / segments.length)}`
+            : '—'}
         </text>
         <text
           x={cx} y={cx + 20}
@@ -206,7 +208,11 @@ export function DivisionAchievementChart() {
   })
 
   if (isLoading) return <Skeleton />
-  if (isError) return null
+  if (isError) return (
+    <p className="text-sm text-center py-6" style={{ color: 'var(--ink-muted)' }}>
+      تعذّر تحميل بيانات الإنجاز
+    </p>
+  )
   if (!kpis?.length) return null
 
   const depts = DEPARTMENTS.filter(d => d.division === divisionParam)

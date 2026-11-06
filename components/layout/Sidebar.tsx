@@ -45,13 +45,16 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
   const role = status === 'loading' ? undefined : session?.user?.role
   const assignedPillarId = session?.user?.assignedPillarId
 
-  const { data: pendingData } = useQuery({
+  const { data: pendingData, isError: pendingError } = useQuery({
     queryKey: ['admin-pending-count'],
-    queryFn: () => fetch('/api/admin/submissions/pending-count').then(r => r.json()),
+    queryFn: () => fetch('/api/admin/submissions/pending-count').then(r => {
+      if (!r.ok) throw new Error(`API ${r.status}`)
+      return r.json()
+    }),
     enabled: role === 'ADMIN',
     refetchInterval: 30000,
   })
-  const pendingBadge: number = (pendingData as { count?: number } | undefined)?.count ?? 0
+  const pendingBadge: number = pendingError ? 0 : ((pendingData as { count?: number } | undefined)?.count ?? 0)
 
   // Departments for the active division only; assigned EDITOR sees only their own
   const divisionPillars = pillarsForDivision(activeDivision)

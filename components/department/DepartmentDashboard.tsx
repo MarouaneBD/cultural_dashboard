@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { REPORTING_YEAR } from '@/lib/config'
 import { CurrentYearTracker } from './CurrentYearTracker'
@@ -81,7 +82,7 @@ export function DepartmentDashboard({ pillarId }: Props) {
 
   // Hook must be called unconditionally (Rules of Hooks).
   // The `enabled` flag prevents any fetch when config is absent.
-  const { data: dbData, isLoading } = useQuery<DeptData | null>({
+  const { data: dbData, isLoading, isError } = useQuery<DeptData | null>({
     queryKey: ['dept', pillarId],
     queryFn: () =>
       fetch(`/api/departments/${pillarId}`).then(r => {
@@ -104,8 +105,19 @@ export function DepartmentDashboard({ pillarId }: Props) {
     )
   }
 
+  if (isError) {
+    return (
+      <div className="space-y-8">
+        <PageHeader nameAr={nameAr} icon={icon} color={color} year={REPORTING_YEAR} />
+        <p className="text-sm text-center py-10" style={{ color: 'var(--ink-muted)' }}>
+          تعذّر تحميل بيانات القسم — يتم عرض البيانات المحلية
+        </p>
+      </div>
+    )
+  }
+
   const data = dbData ?? staticData
-  const insights = generateInsights(data)
+  const insights = useMemo(() => generateInsights(data), [data])
 
   return (
     <div className="space-y-8">

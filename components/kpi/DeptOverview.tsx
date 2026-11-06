@@ -35,16 +35,13 @@ function DeptCard({
   return (
     <Link
       href={`/dashboard?pillar=${dept.id}&division=${division}`}
-      className="block rounded-2xl border transition-all hover:-translate-y-[3px] flex flex-col gap-3 p-5"
+      className="card-interactive block rounded-2xl border transition-all hover:-translate-y-[3px] flex flex-col gap-3 p-5"
       style={{
         background: 'var(--card-bg)',
         borderColor: 'var(--border)',
         borderTop: `3px solid ${color}`,
-        boxShadow: 'var(--card-shadow)',
         textDecoration: 'none',
       }}
-      onMouseEnter={e => (e.currentTarget.style.boxShadow = 'var(--card-shadow-hover)')}
-      onMouseLeave={e => (e.currentTarget.style.boxShadow = 'var(--card-shadow)')}
     >
       {/* Header: icon + dept name */}
       <div className="flex items-start justify-between gap-2">

@@ -20,15 +20,12 @@ export function KpiCard({ kpi, onClick }: KpiCardProps) {
     <button
       onClick={onClick}
       data-variance={variance.color}
-      className="w-full text-right rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-[3px] flex flex-col gap-3 border"
+      className="card-interactive w-full text-right rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-[3px] flex flex-col gap-3 border"
       style={{
         background: 'var(--card-bg)',
         borderColor: 'var(--border)',
         borderTop: `3px solid ${CARD_COLOR}`,
-        boxShadow: 'var(--card-shadow)',
       }}
-      onMouseEnter={e => (e.currentTarget.style.boxShadow = 'var(--card-shadow-hover)')}
-      onMouseLeave={e => (e.currentTarget.style.boxShadow = 'var(--card-shadow)')}
     >
       {/* Header: KPI name */}
       <p className="text-[13px] leading-snug text-right" style={{ color: 'var(--ink-soft)' }}>
