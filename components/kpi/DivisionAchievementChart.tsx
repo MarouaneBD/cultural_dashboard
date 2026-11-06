@@ -112,7 +112,7 @@ function DeptStatCard({
   headlineKpi,
   avgPct,
 }: {
-  dept: { id: string; labelAr: string; icon: string; color: string }
+  dept: { id: string; labelAr: string; icon: import('lucide-react').LucideIcon; color: string }
   headlineKpi: KpiWithVariance | undefined
   avgPct: number
 }) {
@@ -134,7 +134,7 @@ function DeptStatCard({
         <p className="font-cairo text-[12px] font-semibold leading-snug text-right" style={{ color: 'var(--ink)' }}>
           {dept.labelAr}
         </p>
-        <span style={{ fontSize: '18px', lineHeight: 1 }}>{dept.icon}</span>
+        <span style={{ display: 'flex', alignItems: 'center' }}><dept.icon size={18} color={dept.color} strokeWidth={1.75} /></span>
       </div>
 
       {/* Headline KPI */}

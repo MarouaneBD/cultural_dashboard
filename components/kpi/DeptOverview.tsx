@@ -46,7 +46,7 @@ function DeptCard({
     >
       {/* Header: icon + dept name */}
       <div className="flex items-start justify-between gap-2">
-        <span style={{ fontSize: '22px', lineHeight: 1, flexShrink: 0 }}>{dept.icon}</span>
+        <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}><dept.icon size={22} color={dept.color} strokeWidth={1.75} /></span>
         <p
           className="font-cairo text-[13px] font-semibold leading-snug text-right"
           style={{ color: 'var(--ink)' }}

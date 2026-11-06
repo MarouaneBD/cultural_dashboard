@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRef, useEffect } from 'react'
-import { LogOut } from 'lucide-react'
+import { LogOut, Upload, ListChecks, ClipboardList, Users, type LucideIcon } from 'lucide-react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { useQuery } from '@tanstack/react-query'
@@ -220,7 +220,7 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
         {(role === 'ADMIN' || role === 'EDITOR') && (
           <NavLink
             href="/upload"
-            icon="⬆"
+            icon={Upload}
             label="رفع البيانات"
             active={pathname === '/upload'}
             expanded={expanded}
@@ -231,7 +231,7 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
           <>
             <NavLink
               href="/admin/submissions"
-              icon="◈"
+              icon={ListChecks}
               label="المراجعات"
               active={pathname === '/admin/submissions' || pathname.startsWith('/admin/submissions/')}
               expanded={expanded}
@@ -240,7 +240,7 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
             />
             <NavLink
               href="/admin/audit"
-              icon="📋"
+              icon={ClipboardList}
               label="سجل المراجعة"
               active={pathname === '/admin/audit'}
               expanded={expanded}
@@ -248,7 +248,7 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
             />
             <NavLink
               href="/admin/users"
-              icon="👥"
+              icon={Users}
               label="إدارة المستخدمين"
               active={pathname === '/admin/users'}
               expanded={expanded}
@@ -346,7 +346,7 @@ function DivisionLink({ divisionId, icon, label, active, available, expanded, on
 
 interface NavLinkProps {
   href: string
-  icon: string
+  icon: LucideIcon
   label: string
   active: boolean
   expanded: boolean
@@ -354,7 +354,7 @@ interface NavLinkProps {
   badge?: number
 }
 
-function NavLink({ href, icon, label, active, expanded, onNavigate, badge = 0 }: NavLinkProps) {
+function NavLink({ href, icon: Icon, label, active, expanded, onNavigate, badge = 0 }: NavLinkProps) {
   return (
     <Link
       href={href}
@@ -384,8 +384,8 @@ function NavLink({ href, icon, label, active, expanded, onNavigate, badge = 0 }:
         }
       }}
     >
-      <span className="relative" style={{ fontSize: '15px', width: '20px', textAlign: 'center', flexShrink: 0, lineHeight: 1 }}>
-        {icon}
+      <span className="relative" style={{ width: '20px', textAlign: 'center', flexShrink: 0, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Icon size={15} strokeWidth={1.75} />
         {!expanded && badge > 0 && (
           <span
             className="absolute -top-1 -end-1 inline-flex items-center justify-center rounded-full text-[9px] font-bold text-white"
