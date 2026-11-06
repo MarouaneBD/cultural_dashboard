@@ -16,7 +16,6 @@
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import * as XLSX from 'xlsx'
 
 // ── DB client ─────────────────────────────────────────────────────────────────
 
@@ -30,20 +29,6 @@ function ok(name: string) { console.log(`  ✓ ${name}`); pass++ }
 function ko(name: string, reason: string) { console.error(`  ✗ ${name}: ${reason}`); fail++ }
 function assert(cond: boolean, name: string, reason = '') {
   if (cond) ok(name); else ko(name, reason)
-}
-
-function makeXlsx(nameAr: string, pillar = 'ادارة التعليم'): Buffer {
-  const ws = XLSX.utils.json_to_sheet([{
-    'الوحدة التنظيمية': pillar,
-    'الأنشطة': nameAr,
-    '2025': 80,
-    'المستهدف 2026': 100,
-    '2026 Q1': 85,
-    'الفئة': 'تعليم',
-  }])
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
-  return Buffer.from(XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer)
 }
 
 async function resetDb() {
