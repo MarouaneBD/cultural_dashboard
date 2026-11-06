@@ -94,6 +94,10 @@ function LoginForm() {
             {isPending ? 'جارٍ التحقق…' : 'دخول'}
           </button>
         </form>
+
+        <p className="mt-5 text-center text-xs" style={{ color: 'var(--ink-muted)' }}>
+          نسيت كلمة المرور؟ تواصل مع المسؤول
+        </p>
       </div>
     </div>
   )

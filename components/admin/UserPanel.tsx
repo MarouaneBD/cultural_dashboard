@@ -1,11 +1,36 @@
 'use client'
 
-import { useState, useEffect, FormEvent } from 'react'
+import { useState, useEffect, useRef, FormEvent } from 'react'
 import type { UserRole } from '@prisma/client'
 import { DEPARTMENTS } from '@/lib/departments'
 import type { UserRow } from './UserTable'
 
 type Mode = 'create' | 'edit' | 'reset'
+
+/** Generates a secure random 10-char password: uppercase + lowercase + digits + symbols */
+function generateTempPassword(): string {
+  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
+  const lower = 'abcdefghjkmnpqrstuvwxyz'
+  const digits = '23456789'
+  const symbols = '@#$%'
+  const all = upper + lower + digits + symbols
+  const arr = new Uint8Array(10)
+  crypto.getRandomValues(arr)
+  // Guarantee at least one from each set
+  const chars = [
+    upper[arr[0] % upper.length],
+    lower[arr[1] % lower.length],
+    digits[arr[2] % digits.length],
+    symbols[arr[3] % symbols.length],
+    ...Array.from({ length: 6 }, (_, i) => all[arr[4 + i] % all.length]),
+  ]
+  // Shuffle
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = arr[i] % (i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]]
+  }
+  return chars.join('')
+}
 
 interface Props {
   mode: Mode
@@ -30,6 +55,9 @@ export function UserPanel({ mode, user, onClose, onSaved }: Props) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [selectedRole, setSelectedRole] = useState<UserRole>(user?.role ?? 'VIEWER')
+  const [generatedPwd, setGeneratedPwd] = useState<string | null>(null)
+  const pwdRef = useRef<HTMLInputElement>(null)
+  const confirmRef = useRef<HTMLInputElement>(null)
 
   // Close on Escape
   useEffect(() => {
@@ -198,16 +226,45 @@ export function UserPanel({ mode, user, onClose, onSaved }: Props) {
 
           {(mode === 'create' || mode === 'reset') && (
             <>
+              {mode === 'reset' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pwd = generateTempPassword()
+                    setGeneratedPwd(pwd)
+                    if (pwdRef.current)     pwdRef.current.value = pwd
+                    if (confirmRef.current) confirmRef.current.value = pwd
+                  }}
+                  className="rounded-lg border px-3 py-2 text-xs font-medium transition-colors"
+                  style={{ borderColor: 'var(--border)', color: 'var(--ink-muted)' }}
+                >
+                  توليد كلمة مرور مؤقتة تلقائياً
+                </button>
+              )}
+
+              {generatedPwd && mode === 'reset' && (
+                <div
+                  className="rounded-lg border p-3 text-xs font-mono break-all"
+                  style={{ borderColor: 'var(--border)', background: 'var(--bg-alt)', color: 'var(--ink)' }}
+                >
+                  <span className="block text-[10px] mb-1" style={{ color: 'var(--ink-muted)' }}>
+                    كلمة المرور المؤقتة — شاركها مع المستخدم:
+                  </span>
+                  {generatedPwd}
+                </div>
+              )}
+
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-medium" style={{ color: 'var(--ink-muted)' }}>
                   {mode === 'create' ? 'كلمة المرور الأولية *' : 'كلمة المرور الجديدة *'}
                 </label>
                 <input
+                  ref={mode === 'reset' ? pwdRef : undefined}
                   name="password"
-                  type="password"
+                  type="text"
                   required
                   minLength={8}
-                  className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2"
+                  className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 font-mono"
                   style={{ background: 'var(--bg-alt)', borderColor: 'var(--border)', color: 'var(--ink)' }}
                 />
               </div>
@@ -218,10 +275,11 @@ export function UserPanel({ mode, user, onClose, onSaved }: Props) {
                     تأكيد كلمة المرور *
                   </label>
                   <input
+                    ref={confirmRef}
                     name="confirm"
-                    type="password"
+                    type="text"
                     required
-                    className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2"
+                    className="rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 font-mono"
                     style={{ background: 'var(--bg-alt)', borderColor: 'var(--border)', color: 'var(--ink)' }}
                   />
                 </div>
