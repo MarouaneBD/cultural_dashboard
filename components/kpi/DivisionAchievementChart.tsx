@@ -196,7 +196,7 @@ export function DivisionAchievementChart() {
   const divisionParam = (params.get('division') ?? DEFAULT_DIVISION) as DivisionId
   const periodLabel   = { ANNUAL: 'سنوي', Q1: 'الربع الأول', Q2: 'الربع الثاني', Q3: 'الربع الثالث', Q4: 'الربع الرابع' }[period] ?? period
 
-  const { data: kpis, isLoading } = useQuery<KpiWithVariance[]>({
+  const { data: kpis, isLoading, isError } = useQuery<KpiWithVariance[]>({
     queryKey: ['kpis', year, period, divisionParam],
     queryFn: () =>
       fetch(`/api/kpis?year=${year}&period=${period}&division=${divisionParam}`).then(r => {
@@ -206,6 +206,7 @@ export function DivisionAchievementChart() {
   })
 
   if (isLoading) return <Skeleton />
+  if (isError) return null
   if (!kpis?.length) return null
 
   const depts = DEPARTMENTS.filter(d => d.division === divisionParam)

@@ -90,7 +90,7 @@ export function DeptOverview() {
   const divisionDepts = DEPARTMENTS.filter(d => d.division === divisionParam)
   const { data: session, status } = useSession()
 
-  const { data: kpis, isLoading } = useQuery<KpiWithVariance[]>({
+  const { data: kpis, isLoading, isError } = useQuery<KpiWithVariance[]>({
     queryKey: ['kpis', year, period, divisionParam],
     queryFn: () =>
       fetch(`/api/kpis?year=${year}&period=${period}&division=${divisionParam}`).then(r => {
@@ -109,6 +109,12 @@ export function DeptOverview() {
   const visibleDepts = (role === 'EDITOR' && assignedPillarId)
     ? divisionDepts.filter(d => d.id === assignedPillarId)
     : divisionDepts
+
+  if (isError) return (
+    <p className="text-sm text-center py-6" style={{ color: 'var(--ink-muted)' }}>
+      تعذّر تحميل بيانات الأقسام
+    </p>
+  )
 
   return (
     <div>

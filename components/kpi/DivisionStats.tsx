@@ -63,7 +63,7 @@ export function DivisionStats() {
 
   const deptCount = DEPARTMENTS.filter(d => d.division === divisionParam).length
 
-  const { data: kpis } = useQuery<KpiWithVariance[]>({
+  const { data: kpis, isError } = useQuery<KpiWithVariance[]>({
     queryKey: ['kpis', year, period, divisionParam],
     queryFn: () =>
       fetch(`/api/kpis?year=${year}&period=${period}&division=${divisionParam}`).then(r => {
@@ -73,6 +73,15 @@ export function DivisionStats() {
   })
 
   const stats = kpis ? buildStats(kpis, deptCount) : SKELETON_STATS
+
+  if (isError) return (
+    <div
+      className="rounded-2xl px-5 py-4 mb-6 text-sm text-center"
+      style={{ background: 'var(--sidebar-bg)', color: 'rgba(255,255,255,.45)' }}
+    >
+      تعذّر تحميل الإحصائيات
+    </div>
+  )
 
   return (
     <div

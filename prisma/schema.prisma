@@ -78,6 +78,7 @@ model Target {
 
   @@unique([kpiId, period, year])
   @@index([kpiId])
+  @@index([kpiId, year, period])
 }
 
 model Actual {
@@ -94,6 +95,7 @@ model Actual {
 
   @@unique([kpiId, period, year])
   @@index([kpiId])
+  @@index([kpiId, year, period])
 }
 
 model Program {
