@@ -2,9 +2,11 @@
 
 import { useState, useRef } from 'react'
 import { useSession } from 'next-auth/react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trash2 } from 'lucide-react'
+import Link from 'next/link'
 import { ValidationPreview } from './ValidationPreview'
-import type { UploadValidationResult, ActivityUploadResult } from '@/types'
+import type { UploadValidationResult, ActivityUploadResult, UploadSubmissionClient } from '@/types'
 import { REPORTING_YEAR } from '@/lib/config'
 
 type PreviewState =
@@ -20,6 +22,17 @@ export function FileUploader() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [message, setMessage] = useState('')
   const [clearing, setClearing] = useState(false)
+  const qc = useQueryClient()
+
+  const { data: submissionsData } = useQuery<UploadSubmissionClient[]>({
+    queryKey: ['editor-submissions-count'],
+    queryFn: () => fetch('/api/upload/submissions').then(r => r.json()),
+    enabled: !isAdmin && sessionStatus === 'authenticated',
+    refetchInterval: 30000,
+  })
+  const pendingCount = submissionsData
+    ? submissionsData.reduce((sum, s) => sum + s.rows.filter(r => r.status === 'PENDING' || r.status === 'REJECTED').length, 0)
+    : 0
 
   async function handleFile(file: File) {
     setActiveFile(file)
@@ -71,8 +84,12 @@ export function FileUploader() {
       }
 
       if (body !== null && 'created' in body) {
-        const r = body as { created: number; updated: number }
-        setMessage(`تم إنشاء ${r.created} مؤشر، تحديث ${r.updated} مؤشر`)
+        const r = body as { created: number; updated: number; queued?: number }
+        const queuedMsg = r.queued && r.queued > 0 ? ` · ${r.queued} صف بانتظار الموافقة` : ''
+        setMessage(`تم إنشاء ${r.created} مؤشر، تحديث ${r.updated} مؤشر${queuedMsg}`)
+        if (r.queued && r.queued > 0) {
+          qc.invalidateQueries({ queryKey: ['editor-submissions-count'] })
+        }
       } else if (body !== null) {
         setMessage(`تم استيراد ${(body as { imported: number }).imported} سجل بنجاح`)
       }
@@ -128,6 +145,18 @@ export function FileUploader() {
             <Trash2 size={14} />
             {clearing ? 'جاري المسح…' : 'مسح جميع البيانات'}
           </button>
+        </div>
+      )}
+
+      {!isAdmin && pendingCount > 0 && (
+        <div
+          className="rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-3 text-sm"
+          style={{ background: 'rgba(184,130,42,.12)', border: '1px solid rgba(184,130,42,.3)', color: 'var(--ink)' }}
+        >
+          <span>لديك <strong>{pendingCount}</strong> {pendingCount === 1 ? 'صف' : 'صفاً'} بانتظار المراجعة</span>
+          <Link href="/upload/submissions" className="text-xs px-3 py-1 rounded-lg text-white" style={{ background: 'var(--accent)' }}>
+            عرض التفاصيل
+          </Link>
         </div>
       )}
 
