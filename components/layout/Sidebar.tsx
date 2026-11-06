@@ -235,7 +235,7 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
             <NavLink
               href="/admin/submissions"
               icon={ListChecks}
-              label="المراجعات"
+              label="اعتماد البيانات"
               active={pathname === '/admin/submissions' || pathname.startsWith('/admin/submissions/')}
               expanded={expanded}
               onNavigate={onNavigate}
