@@ -23,19 +23,15 @@ function LoginForm() {
     const password = (form.elements.namedItem('password') as HTMLInputElement).value
 
     try {
-      // signIn handles CSRF internally — avoids MissingCSRF errors from stale cookies.
-      // redirect: false keeps us on the page so we can read the result.
-      const result = await signIn('credentials', { username, password, redirect: false })
-
-      if (result?.ok) {
-        // Full browser navigation clears the Next.js router cache so the new
-        // user's session is picked up immediately on /dashboard.
-        window.location.href = '/dashboard'
-        return
-      }
-
-      setError('اسم المستخدم أو كلمة المرور غير صحيحة')
+      // Let NextAuth own the full redirect cycle — it sets the session cookie
+      // correctly and redirects to /dashboard on success, or back to
+      // /login?error=CredentialsSignin on failure (read below via useSearchParams).
+      await signIn('credentials', { username, password, callbackUrl: '/dashboard' })
     } catch (err) {
+      // signIn throws a redirect "error" on success in Next.js App Router —
+      // that's expected and should not show an error to the user.
+      const msg = err instanceof Error ? err.message : String(err)
+      if (msg.includes('NEXT_REDIRECT') || msg.includes('redirect')) return
       console.error('[login]', err)
       setError('حدث خطأ، يرجى المحاولة مرة أخرى')
     } finally {
