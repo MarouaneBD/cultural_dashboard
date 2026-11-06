@@ -3,7 +3,7 @@ import { SubmissionsList } from '@/components/admin/SubmissionsList'
 
 export default function AdminSubmissionsPage() {
   return (
-    <AppShell title="طلبات رفع البيانات">
+    <AppShell title="اعتماد البيانات">
       <div className="max-w-5xl mx-auto">
         <SubmissionsList />
       </div>
