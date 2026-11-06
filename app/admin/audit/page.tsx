@@ -34,19 +34,19 @@ function ActionBadge({ action }: { action: string }) {
 
 function JsonCell({ value }: { value: string | null }) {
   if (!value) return <span className="text-slate-300">—</span>
+
+  // Parse outside of JSX — ESLint disallows returning JSX from inside try/catch
+  let display: string
   try {
     const parsed = JSON.parse(value)
-    // Show only meaningful fields, skip internal Prisma fields
     const keys = Object.keys(parsed).filter(k => !['id', 'createdAt', 'updatedAt', 'passwordHash'].includes(k))
-    if (keys.length === 0) return <span className="text-slate-400 text-xs font-mono">—</span>
-    return (
-      <span className="text-xs font-mono text-slate-500">
-        {keys.map(k => `${k}: ${JSON.stringify(parsed[k])}`).join(' · ')}
-      </span>
-    )
+    display = keys.length === 0 ? '' : keys.map(k => `${k}: ${JSON.stringify(parsed[k])}`).join(' · ')
   } catch {
-    return <span className="text-xs font-mono text-slate-500 truncate">{value}</span>
+    display = value
   }
+
+  if (!display) return <span className="text-slate-400 text-xs font-mono">—</span>
+  return <span className="text-xs font-mono text-slate-500">{display}</span>
 }
 
 export default async function AuditPage() {
