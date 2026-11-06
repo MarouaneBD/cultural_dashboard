@@ -12,8 +12,8 @@ const REVENUE_OWNER = 'درهم'
 
 export interface CategoryTotal {
   category: string
-  total: number    // YTD actual
-  target: number   // annual target (sum across all KPIs in this category)
+  total: number    // actual for the selected period (YTD for ANNUAL, single quarter otherwise)
+  target: number   // target for the selected period
   color: string
 }
 
@@ -32,7 +32,11 @@ export async function GET(req: NextRequest) {
   if (!session) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 })
 
   const { searchParams } = req.nextUrl
-  const year = parseInt(searchParams.get('year') ?? String(REPORTING_YEAR))
+  const year   = parseInt(searchParams.get('year')   ?? String(REPORTING_YEAR))
+  const period = searchParams.get('period') ?? 'ANNUAL'
+  const VALID_QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4'] as const
+  type Quarter = typeof VALID_QUARTERS[number]
+  const isQuarter = (VALID_QUARTERS as readonly string[]).includes(period)
 
   try {
     const kpis = await prisma.kpiRegistry.findMany({
@@ -58,28 +62,46 @@ export async function GET(req: NextRequest) {
       // Revenue KPIs — accumulate separately, skip from activity chart
       const isRevenue = category === REVENUE_OWNER
 
-      const quarterMap: Partial<Record<'Q1' | 'Q2' | 'Q3' | 'Q4', number>> = {}
-      for (const a of kpi.actuals) {
-        if (['Q1', 'Q2', 'Q3', 'Q4'].includes(a.period)) {
-          quarterMap[a.period as 'Q1' | 'Q2' | 'Q3' | 'Q4'] = Number(a.value)
-        }
-      }
-      const ytd = computeYtd(quarterMap, kpi.activityType)
+      let actualVal: number | null
+      let targetVal: number
 
-      const annual = kpi.targets.find(t => t.period === 'ANNUAL')
-      const targetVal = annual
-        ? Math.round(Number(annual.value))
-        : kpi.targets.reduce((s, t) => s + Math.round(Number(t.value)), 0)
+      if (isQuarter) {
+        // Single quarter: use the specific quarter's actual and target
+        const qActual = kpi.actuals.find(a => a.period === period)
+        actualVal = qActual != null ? Math.round(Number(qActual.value)) : null
+
+        const qTarget = kpi.targets.find(t => t.period === period)
+        if (qTarget) {
+          targetVal = Math.round(Number(qTarget.value))
+        } else {
+          // Fall back to proportional annual target (÷4) if no per-quarter target exists
+          const annual = kpi.targets.find(t => t.period === 'ANNUAL')
+          targetVal = annual ? Math.round(Number(annual.value) / 4) : 0
+        }
+      } else {
+        // ANNUAL: compute YTD from quarterly actuals
+        const quarterMap: Partial<Record<Quarter, number>> = {}
+        for (const a of kpi.actuals) {
+          if ((VALID_QUARTERS as readonly string[]).includes(a.period)) {
+            quarterMap[a.period as Quarter] = Number(a.value)
+          }
+        }
+        actualVal = computeYtd(quarterMap, kpi.activityType)
+        const annual = kpi.targets.find(t => t.period === 'ANNUAL')
+        targetVal = annual
+          ? Math.round(Number(annual.value))
+          : kpi.targets.reduce((s, t) => s + Math.round(Number(t.value)), 0)
+      }
 
       if (isRevenue) {
-        if (ytd !== null) revActual += Math.round(ytd)
+        if (actualVal !== null) revActual += actualVal
         revTarget += targetVal
         continue
       }
 
       // Activity categories
-      if (ytd !== null) {
-        actualMap.set(category, (actualMap.get(category) ?? 0) + Math.round(ytd))
+      if (actualVal !== null) {
+        actualMap.set(category, (actualMap.get(category) ?? 0) + actualVal)
       }
       if (targetVal > 0) {
         targetMap.set(category, (targetMap.get(category) ?? 0) + targetVal)

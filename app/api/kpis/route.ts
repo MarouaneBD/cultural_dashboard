@@ -10,24 +10,37 @@ import type { Pillar } from '@prisma/client'
 
 // Build KpiWithVariance[] from static dept data files when the DB has no records yet.
 // Used as fallback so the sector homepage shows meaningful dummy data immediately.
-function staticKpisForPillars(pillars: string[]): KpiWithVariance[] {
+function staticKpisForPillars(pillars: string[], period: string): KpiWithVariance[] {
   const result: KpiWithVariance[] = []
+  const VALID_QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4'] as const
+  const isQuarter = (VALID_QUARTERS as readonly string[]).includes(period)
+
   for (const pillarId of pillars) {
     const config = DEPT_DASHBOARDS[pillarId as PillarId]
     if (!config) continue
     for (const t of config.data.currentYear.targets) {
       const sparkline = t.quarters.map(q => q.actual ?? 0)
 
-      let variance: KpiWithVariance['variance']
-      if (t.target === 0) {
-        variance = { actual: t.current, target: 0, pct: 0, color: 'neutral' }
+      // Pick actual/target for the selected period
+      let actual: number
+      let target: number
+      if (isQuarter) {
+        const qData = t.quarters.find(q => q.q === period)
+        actual = qData?.actual ?? 0
+        target = qData?.target ?? Math.round(t.target / 4)
       } else {
-        // For lowerIsBetter metrics (e.g. turnover rate), invert the ratio so
-        // "actual < target" scores high (good), not low.
+        actual = t.current   // YTD annual value
+        target = t.target
+      }
+
+      let variance: KpiWithVariance['variance']
+      if (target === 0) {
+        variance = { actual, target: 0, pct: 0, color: 'neutral' }
+      } else {
         const pct = t.lowerIsBetter
-          ? (t.target / t.current) * 100
-          : (t.current / t.target) * 100
-        variance = { actual: t.current, target: t.target, pct, color: getVarianceColor(Math.min(pct, 100)) }
+          ? (target / actual) * 100
+          : (actual / target) * 100
+        variance = { actual, target, pct, color: getVarianceColor(Math.min(pct, 100)) }
       }
 
       result.push({
@@ -127,7 +140,7 @@ export async function GET(req: NextRequest) {
     // No DB records found — fall back to static dummy data for division requests.
     // Once real data is uploaded via Excel, the DB response takes over automatically.
     if (result.length === 0 && pillarFilter) {
-      return NextResponse.json(staticKpisForPillars(pillarFilter))
+      return NextResponse.json(staticKpisForPillars(pillarFilter, period))
     }
 
     return NextResponse.json(result)

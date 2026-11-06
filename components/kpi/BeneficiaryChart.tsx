@@ -271,13 +271,14 @@ function Skeleton() {
 
 // ── Main ───────────────────────────────────────────────────────────────────
 export function BeneficiaryChart() {
-  const params = useSearchParams()
-  const year   = params.get('year') ?? String(REPORTING_YEAR)
+  const params  = useSearchParams()
+  const year    = params.get('year')   ?? String(REPORTING_YEAR)
+  const period  = params.get('period') ?? 'ANNUAL'
 
   const { data, isLoading } = useQuery<TotalsResponse>({
-    queryKey: ['stats-totals', year],
+    queryKey: ['stats-totals', year, period],
     queryFn: () =>
-      fetch(`/api/stats/totals?year=${year}`).then(r => {
+      fetch(`/api/stats/totals?year=${year}&period=${period}`).then(r => {
         if (!r.ok) throw new Error(`API ${r.status}`)
         return r.json()
       }),
