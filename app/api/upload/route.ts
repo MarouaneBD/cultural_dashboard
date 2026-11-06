@@ -109,6 +109,16 @@ export async function POST(req: NextRequest) {
                 where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
               })
 
+              // EDITORs may update existing KPIs but must not create new registry entries.
+              // New KPI definitions require ADMIN review — reject with a scope error.
+              if (!existing && isEditor) {
+                scopeErrors.push({
+                  row: i + 2,
+                  message: `لا يمكن للمحرر إنشاء مؤشرات جديدة (${row.nameAr}). تواصل مع المدير لإضافة المؤشر أولاً`,
+                })
+                continue
+              }
+
               const kpi = await tx.kpiRegistry.upsert({
                 where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
                 create: { nameAr: row.nameAr, pillar: row.pillar as Pillar, unit: 'COUNT', owner: row.category, activityType: row.activityType },
