@@ -72,15 +72,33 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ dryRun: true, rows, errors })
       }
 
+      const isEditor = session!.user.role === 'EDITOR'
+      const assignedPillarId = session!.user.assignedPillarId ?? null
+
       let created = 0
       let updated = 0
+      let submissionId: string | null = null
       const dbErrors: Array<{ row: number; message: string }> = []
+      const scopeErrors: Array<{ row: number; message: string }> = []
+
+      type StagingRow = {
+        kpiId: string; kpiNameAr: string; period: string; year: number
+        newValue: number; oldValue: number; tableType: string
+      }
 
       try {
         await withAuditUser(session!.user.id, () => prisma.$transaction(async (tx: TxClient) => {
+          const stagingRows: StagingRow[] = []
+
           for (let i = 0; i < rows.length; i++) {
             const row = rows[i]
             try {
+              // EDITOR scope check
+              if (isEditor && assignedPillarId && row.pillar !== assignedPillarId) {
+                scopeErrors.push({ row: i + 2, message: `ليس لديك صلاحية رفع بيانات القسم: ${row.pillar}` })
+                continue
+              }
+
               const existing = await tx.kpiRegistry.findUnique({
                 where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
               })
@@ -92,29 +110,74 @@ export async function POST(req: NextRequest) {
               })
 
               if (row.target2026 !== undefined) {
-                await tx.target.upsert({
-                  where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: REPORTING_YEAR } },
-                  create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: REPORTING_YEAR, value: row.target2026 },
-                  update: { value: row.target2026 },
-                })
+                if (isEditor) {
+                  const existingTarget = await tx.target.findUnique({
+                    where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: REPORTING_YEAR } },
+                  })
+                  if (existingTarget) {
+                    stagingRows.push({ kpiId: kpi.id, kpiNameAr: row.nameAr, period: 'ANNUAL', year: REPORTING_YEAR, newValue: row.target2026, oldValue: existingTarget.value, tableType: 'TARGET' })
+                  } else {
+                    await tx.target.upsert({
+                      where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: REPORTING_YEAR } },
+                      create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: REPORTING_YEAR, value: row.target2026 },
+                      update: { value: row.target2026 },
+                    })
+                  }
+                } else {
+                  await tx.target.upsert({
+                    where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: REPORTING_YEAR } },
+                    create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: REPORTING_YEAR, value: row.target2026 },
+                    update: { value: row.target2026 },
+                  })
+                }
               }
 
               if (row.actual2025 !== undefined) {
-                await tx.actual.upsert({
-                  where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: PREV_REPORTING_YEAR } },
-                  create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: PREV_REPORTING_YEAR, value: row.actual2025 },
-                  update: { value: row.actual2025 },
-                })
+                if (isEditor) {
+                  const existingActual = await tx.actual.findUnique({
+                    where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: PREV_REPORTING_YEAR } },
+                  })
+                  if (existingActual) {
+                    stagingRows.push({ kpiId: kpi.id, kpiNameAr: row.nameAr, period: 'ANNUAL', year: PREV_REPORTING_YEAR, newValue: row.actual2025, oldValue: existingActual.value, tableType: 'ACTUAL' })
+                  } else {
+                    await tx.actual.upsert({
+                      where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: PREV_REPORTING_YEAR } },
+                      create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: PREV_REPORTING_YEAR, value: row.actual2025 },
+                      update: { value: row.actual2025 },
+                    })
+                  }
+                } else {
+                  await tx.actual.upsert({
+                    where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: PREV_REPORTING_YEAR } },
+                    create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: PREV_REPORTING_YEAR, value: row.actual2025 },
+                    update: { value: row.actual2025 },
+                  })
+                }
               }
 
               const VALID_PERIODS: Period[] = ['Q1', 'Q2', 'Q3', 'Q4', 'ANNUAL']
               for (const [q, val] of Object.entries(row.actuals)) {
                 if (val !== undefined && VALID_PERIODS.includes(q as Period)) {
-                  await tx.actual.upsert({
-                    where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR } },
-                    create: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR, value: val },
-                    update: { value: val },
-                  })
+                  if (isEditor) {
+                    const existingActual = await tx.actual.findUnique({
+                      where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR } },
+                    })
+                    if (existingActual) {
+                      stagingRows.push({ kpiId: kpi.id, kpiNameAr: row.nameAr, period: q, year: REPORTING_YEAR, newValue: val, oldValue: existingActual.value, tableType: 'ACTUAL' })
+                    } else {
+                      await tx.actual.upsert({
+                        where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR } },
+                        create: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR, value: val },
+                        update: { value: val },
+                      })
+                    }
+                  } else {
+                    await tx.actual.upsert({
+                      where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR } },
+                      create: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR, value: val },
+                      update: { value: val },
+                    })
+                  }
                 }
               }
 
@@ -124,13 +187,45 @@ export async function POST(req: NextRequest) {
               dbErrors.push({ row: i + 2, message: `خطأ في حفظ النشاط: ${row.nameAr}` })
             }
           }
+
+          // Write staging rows as a single UploadSubmission
+          if (stagingRows.length > 0) {
+            const sub = await tx.uploadSubmission.create({
+              data: {
+                submitterId: session!.user.id,
+                filename: file.name,
+                rows: {
+                  create: stagingRows.map(r => ({
+                    kpiId: r.kpiId,
+                    kpiNameAr: r.kpiNameAr,
+                    period: r.period as Period,
+                    year: r.year,
+                    newValue: r.newValue,
+                    oldValue: r.oldValue,
+                    tableType: r.tableType,
+                  })),
+                },
+              },
+            })
+            submissionId = sub.id
+          }
         }, { timeout: 50000 }))
       } catch (err) {
         console.error('[upload] transaction failed', err)
         return NextResponse.json({ error: 'فشل حفظ البيانات' }, { status: 500 })
       }
 
-      return NextResponse.json({ created, updated, errors: [...errors, ...dbErrors] })
+      const queued = submissionId
+        ? await prisma.submissionRow.count({ where: { submissionId } })
+        : 0
+
+      return NextResponse.json({
+        created,
+        updated,
+        queued,
+        submissionId,
+        errors: [...errors, ...dbErrors, ...scopeErrors],
+      })
     }
 
     // ── Legacy format ──────────────────────────────────────────────────────────
