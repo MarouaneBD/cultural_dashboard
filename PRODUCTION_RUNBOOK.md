@@ -29,17 +29,13 @@ Work through sections 1–5 in order. Each step lists: the **action**, the **exp
 
 **Commit relationship.** `f6410ec` is the tip of the branch and contains this runbook file. `b06e486` is the tested application candidate — the last commit that modifies source code. The diff between them is a single documentation-only file addition (`PRODUCTION_RUNBOOK.md`). No application source, migration SQL, test, or configuration file changed between the two commits.
 
-**Deployment artifact rule.** The artifact or checkout deployed to production must correspond to `b06e48661fee147fdb2e1b95970ff87f4828d5ec` or `f6410ec6316b53ae3c67029c87c59f53be60126f`. If your platform builds from a source checkout, either SHA is acceptable; `f6410ec` is preferred as it includes this runbook. If the platform builds from a container image or archive, verify the image digest or archive checksum is derived from one of these two SHAs and record it in V1 before proceeding.
+**Deployment artifact rule.** The artifact deployed to production must be built from `b06e48661fee147fdb2e1b95970ff87f4828d5ec` (tested application candidate) or a commit that is a documentation-only descendant of it — meaning every commit between `b06e486` and the selected SHA touches only documentation files (`*.md`, `PRODUCTION_RUNBOOK.md`) and nothing in `app/`, `lib/`, `prisma/`, `auth*`, `middleware*`, `next.config*`, `package*.json`, or test files. Any source-code change between `b06e486` and the selected SHA invalidates this runbook.
 
-```bash
-# On the deployment host, after checkout, confirm the SHA
-git rev-parse HEAD
-# Acceptable: b06e48661fee147fdb2e1b95970ff87f4828d5ec
-#         or: f6410ec6316b53ae3c67029c87c59f53be60126f
-# Any other SHA is NOT acceptable — stop and investigate.
-```
+`f6410ec6316b53ae3c67029c87c59f53be60126f` satisfies this rule — its only change is adding `PRODUCTION_RUNBOOK.md`.
 
-⛔ **Stop if the deployed SHA is anything other than one of the two values above.**
+Verification is two-stage and tracked in the sign-off matrix:
+- **V1a (pre-migration, Group B):** Record the full source SHA and, for container or archive deployments, the immutable image digest or archive checksum. Confirm the SHA is `b06e486`, `f6410ec`, or a verified documentation-only descendant.
+- **V1b (post-deploy, Group C):** Confirm the running process serves the identity recorded in V1a — via `git rev-parse HEAD` on the deployment host, an image label, or a version endpoint.
 
 ### 1.2 Changes in this release
 
@@ -663,12 +659,12 @@ A count of 400–499 means the deployment may proceed, but the team must immedia
 
 A count of 500 or higher means truncation is already occurring. Do not deploy this release without fixing pagination first.
 
-**Two separate sign-off items are required:**
+**Two separate sign-off items are required (tracked as V11a and V11b in Section 5.4):**
 
-| Item | Status | Evidence required | Owner | Date |
-|---|---|---|---|---|
-| Current production KPI count recorded | **PENDING** | `SELECT count(*) FROM "KpiRegistry";` result noted by operator | Operator | — |
-| Silent-truncation risk explicitly accepted for this release | **PENDING** | Count confirmed < 400, OR count 400–499 with pagination work scheduled; written acceptance if count ≥ 400 | [PLACEHOLDER: business owner name] | — |
+| Item | V-ID | Status | Evidence required | Owner | Date |
+|---|---|---|---|---|---|
+| Current production KPI count recorded | V11a | **PENDING** | Exact number from `SELECT count(*) FROM "KpiRegistry";` | Operator | — |
+| Silent-truncation risk explicitly accepted for this release | V11b | **PENDING** | Written sign-off from business owner. A count below 400 provides headroom but does not constitute acceptance — explicit sign-off is always required. | [PLACEHOLDER: business owner name] | — |
 
 ---
 
@@ -693,11 +689,11 @@ Items are grouped by when they must be completed and who provides the evidence. 
 
 | ID | Condition | Evidence to record | Owner | Status |
 |---|---|---|---|---|
-| V1 | Deployed artifact SHA is `b06e486` or `f6410ec` (Section 1.1) | `git rev-parse HEAD` output on deployment host | Operator | **PENDING** |
+| V1a | Artifact source SHA is `b06e486`, `f6410ec`, or a verified documentation-only descendant; image digest or archive checksum recorded for non-git deployments (Section 1.1) | Full `git rev-parse HEAD` output on deployment host; image digest if applicable | Operator | **PENDING** |
 | V2 | Backup taken and restore-verified against a throwaway DB (Section 2.3) | Backup filename with timestamp; restore row counts match production | Operator | **PENDING** |
 | V-BL | Production baseline matches a rehearsed state; STOP-M1 table completed (Section 2.1.6) | Completed STOP-M1 evidence table with all items matching | Operator | **PENDING** |
 | V11a | Current production KPI count recorded (Section 5.3) | Exact count from `SELECT count(*) FROM "KpiRegistry";` | Operator | **PENDING** |
-| V11b | Silent-truncation risk explicitly accepted for this release (Section 5.3) | Count < 400 confirmed, OR count 400–499 with pagination work scheduled in writing | Business owner | **PENDING** |
+| V11b | Silent-truncation risk explicitly accepted by business owner (Section 5.3) | Written sign-off from business owner — required regardless of KPI count | Business owner | **PENDING** |
 
 ---
 
@@ -706,6 +702,7 @@ Items are grouped by when they must be completed and who provides the evidence. 
 
 | ID | Condition | Evidence to record | Owner | Status |
 |---|---|---|---|---|
+| V1b | Running artifact identity matches V1a: source SHA or image digest of the live process confirmed equal to what was recorded in V1a (Section 1.1) | `git rev-parse HEAD` on deployment host, image label, or equivalent runtime identity; must match V1a record | Operator | **PENDING** |
 | V3 | Migration applied cleanly: `prisma migrate status` → "up to date" (Section 2.4) | Command output | Operator | **PENDING** |
 | V4 | Post-migration schema parity: all 6 SQL checks in Section 2.5 passed | Recorded query outputs | Operator | **PENDING** |
 | V5 | Health endpoint returns `{"status":"ok","db":"ok","env":{...}}` with no MISSING fields (Section 3.1) | `curl` output | Operator | **PENDING** |
@@ -715,10 +712,10 @@ Items are grouped by when they must be completed and who provides the evidence. 
 
 ---
 
-**Deployment may proceed only when V9, V10, V1, V2, V-BL, V11a, and V11b are all VERIFIED.**  
-**Access may be opened to users only when V3–V8 are additionally VERIFIED.**
+**Deployment may proceed only when V9, V10, V1a, V2, V-BL, V11a, and V11b are all VERIFIED.**  
+**Access may be opened to users only when V1b, V3–V8 are additionally VERIFIED.**
 
-*ID cross-reference for traceability: original V1→V1, V2→V2, V3→V3, V4→V4, V5→V5, V6→V6, V7→V7, V8→V8, V9→V9, V10→V10, V11→V11a+V11b, new V-BL is an addition.*
+*ID cross-reference for traceability: original V1→V1a+V1b, V2→V2, V3→V3, V4→V4, V5→V5, V6→V6, V7→V7, V8→V8, V9→V9, V10→V10, V11→V11a+V11b, new V-BL is an addition.*
 
 ---
 
