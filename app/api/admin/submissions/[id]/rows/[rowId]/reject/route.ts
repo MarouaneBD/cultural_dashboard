@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { prisma } from '@/lib/prisma'
+import { prisma, withAuditUser } from '@/lib/prisma'
 
 async function requireAdmin() {
   const session = await auth()
@@ -22,34 +22,46 @@ export async function POST(
     return NextResponse.json({ error: 'سبب الرفض مطلوب (10 أحرف على الأقل)' }, { status: 400 })
   }
 
-  const row = await prisma.submissionRow.findUnique({ where: { id: rowId } })
-  if (!row) return NextResponse.json({ error: 'غير موجود' }, { status: 404 })
-  if (row.submissionId !== id) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
-  if (row.status !== 'PENDING') {
-    return NextResponse.json({ error: 'الصف ليس في حالة انتظار' }, { status: 400 })
-  }
+  // Pre-flight: ownership check only (status is verified atomically inside the transaction)
+  const preflight = await prisma.submissionRow.findUnique({ where: { id: rowId } })
+  if (!preflight) return NextResponse.json({ error: 'غير موجود' }, { status: 404 })
+  if (preflight.submissionId !== id) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
 
-  await prisma.$transaction(async tx => {
-    await tx.submissionRow.update({
-      where: { id: rowId },
-      data: {
-        status: 'REJECTED',
-        adminComment: comment.trim(),
-        reviewedAt: new Date(),
-        reviewedBy: session.user.id,
-      },
-    })
+  try {
+    await withAuditUser(session.user.id, () =>
+      prisma.$transaction(async tx => {
+        // Atomic claim: only succeeds if the row is still PENDING — eliminates TOCTOU race
+        const claimed = await tx.submissionRow.updateMany({
+          where: { id: rowId, status: 'PENDING' },
+          data: {
+            status: 'REJECTED',
+            adminComment: comment.trim(),
+            reviewedAt: new Date(),
+            reviewedBy: session.user.id,
+          },
+        })
+        if (claimed.count === 0) {
+          throw Object.assign(new Error('already-processed'), { code: 'NOT_PENDING' })
+        }
 
-    const remaining = await tx.submissionRow.count({
-      where: { submissionId: row.submissionId, status: 'PENDING' },
-    })
-    if (remaining === 0) {
-      await tx.uploadSubmission.update({
-        where: { id: row.submissionId },
-        data: { status: 'APPROVED' },
+        // Auto-close submission if no PENDING rows remain
+        const remaining = await tx.submissionRow.count({
+          where: { submissionId: preflight.submissionId, status: 'PENDING' },
+        })
+        if (remaining === 0) {
+          await tx.uploadSubmission.update({
+            where: { id: preflight.submissionId },
+            data: { status: 'APPROVED' },
+          })
+        }
       })
+    )
+  } catch (err) {
+    if ((err as { code?: string }).code === 'NOT_PENDING') {
+      return NextResponse.json({ error: 'الصف ليس في حالة انتظار' }, { status: 400 })
     }
-  })
+    throw err
+  }
 
   return NextResponse.json({ ok: true })
 }
