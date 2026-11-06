@@ -77,9 +77,14 @@ All KPI data belongs to one of four pillars. Never create a new pillar — these
 
 Every KPI card must compute and display:
 - `variance_pct = (actual / target) * 100`
-- **Green:** `variance_pct > 95`
-- **Amber:** `85 <= variance_pct <= 95`
-- **Red:** `variance_pct < 85`
+- **Green:** `variance_pct >= 85`
+- **Amber:** `70 <= variance_pct < 85`
+- **Red:** `variance_pct < 70`
+
+Thresholds are intentionally relaxed from the original spec (95/85) to reflect
+proportional early-year performance — a team at 85 % of a Q1 target is on-track.
+See commit `a459934` for rationale. Do not revert to 95/85 without a deliberate
+product decision.
 
 This logic lives in one place — a shared utility (`lib/kpi.ts`). Do not inline it in components.
 
