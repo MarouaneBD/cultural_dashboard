@@ -3,7 +3,7 @@ import { POST } from './route'
 import { NextRequest } from 'next/server'
 
 jest.mock('@/auth', () => ({
-  auth: jest.fn().mockResolvedValue({ user: { id: 'u1', role: 'EDITOR' } }),
+  auth: jest.fn().mockResolvedValue({ user: { id: 'u1', role: 'EDITOR', assignedPillarId: 'EDUCATION' } }),
 }))
 
 // Mock prisma + withAuditUser (passthrough — just calls the callback)

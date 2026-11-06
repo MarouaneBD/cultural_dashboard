@@ -93,10 +93,16 @@ export async function POST(req: NextRequest) {
           for (let i = 0; i < rows.length; i++) {
             const row = rows[i]
             try {
-              // EDITOR scope check
-              if (isEditor && assignedPillarId && row.pillar !== assignedPillarId) {
-                scopeErrors.push({ row: i + 2, message: `ليس لديك صلاحية رفع بيانات القسم: ${row.pillar}` })
-                continue
+              // EDITOR scope check — null assignedPillarId means no pillar assigned, block all writes
+              if (isEditor) {
+                if (!assignedPillarId) {
+                  scopeErrors.push({ row: i + 2, message: 'لم يتم تعيين قسم لهذا المحرر، تواصل مع المدير' })
+                  continue
+                }
+                if (row.pillar !== assignedPillarId) {
+                  scopeErrors.push({ row: i + 2, message: `ليس لديك صلاحية رفع بيانات القسم: ${row.pillar}` })
+                  continue
+                }
               }
 
               const existing = await tx.kpiRegistry.findUnique({

@@ -15,7 +15,7 @@ export async function POST(
   const session = await requireAdmin()
   if (!session) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
 
-  const { rowId } = await params
+  const { id, rowId } = await params
   const { comment } = await req.json() as { comment?: string }
 
   if (!comment || comment.trim().length < 10) {
@@ -24,6 +24,7 @@ export async function POST(
 
   const row = await prisma.submissionRow.findUnique({ where: { id: rowId } })
   if (!row) return NextResponse.json({ error: 'غير موجود' }, { status: 404 })
+  if (row.submissionId !== id) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
   if (row.status !== 'PENDING') {
     return NextResponse.json({ error: 'الصف ليس في حالة انتظار' }, { status: 400 })
   }

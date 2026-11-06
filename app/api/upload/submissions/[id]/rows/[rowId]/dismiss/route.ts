@@ -25,6 +25,7 @@ export async function POST(
 
   const row = await prisma.submissionRow.findUnique({ where: { id: rowId } })
   if (!row) return NextResponse.json({ error: 'غير موجود' }, { status: 404 })
+  if (row.submissionId !== submissionId) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
   if (row.status !== 'REJECTED') {
     return NextResponse.json({ error: 'يمكن تجاهل الصفوف المرفوضة فقط' }, { status: 400 })
   }
