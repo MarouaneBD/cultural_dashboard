@@ -24,7 +24,14 @@ const WRITE_OPS = new Set(['create', 'update', 'delete', 'upsert', 'createMany',
 function createPrismaClient() {
   const url = process.env.DATABASE_URL
   if (!url) throw new Error('DATABASE_URL environment variable is not set')
-  const pool = new Pool({ connectionString: url, ssl: { rejectUnauthorized: false } })
+  // rejectUnauthorized defaults to true (validate server certificate).
+  // Set DATABASE_SSL_REJECT_UNAUTHORIZED=false only when connecting to a managed
+  // service that uses a self-signed cert (e.g. Supabase pgbouncer pooler).
+  // Never set this to false in a production environment you control.
+  const ssl = process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === 'false'
+    ? { rejectUnauthorized: false }
+    : { rejectUnauthorized: true }
+  const pool = new Pool({ connectionString: url, ssl })
   const adapter = new PrismaPg(pool)
   const base = new PrismaClient({ adapter })
 
