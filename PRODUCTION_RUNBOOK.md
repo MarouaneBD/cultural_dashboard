@@ -1,7 +1,8 @@
 # Production Deployment Runbook
-## Cultural Dashboard — Release Candidate `b06e486`
+## Cultural Dashboard — Application Candidate `b06e486`
 
 **Prepared:** 2026-11-07  
+**Runbook revision:** `f6410ec` (documentation-only commit on top of `b06e486`)  
 **Status:** PENDING sign-off (see Section 5)
 
 ---
@@ -18,12 +19,27 @@ Work through sections 1–5 in order. Each step lists: the **action**, the **exp
 
 | Field | Value |
 |---|---|
-| Candidate commit (full SHA) | `b06e48661fee147fdb2e1b95970ff87f4828d5ec` |
+| **Tested application candidate** | `b06e48661fee147fdb2e1b95970ff87f4828d5ec` |
+| **Runbook revision** | `f6410ec6316b53ae3c67029c87c59f53be60126f` |
 | Branch | `main` (worktree: `worktree-fix+remediation-2dfd8da`) |
 | Merge base | `2dfd8da` (last commit before remediation) |
 | Migration file | `prisma/migrations/20261107000000_backfill_schema_drift/migration.sql` |
 | Reporting year | 2026 (`lib/config.ts` — `REPORTING_YEAR = 2026`) |
 | Node runtime | nodejs (all routes — `export const runtime = 'nodejs'`) |
+
+**Commit relationship.** `f6410ec` is the tip of the branch and contains this runbook file. `b06e486` is the tested application candidate — the last commit that modifies source code. The diff between them is a single documentation-only file addition (`PRODUCTION_RUNBOOK.md`). No application source, migration SQL, test, or configuration file changed between the two commits.
+
+**Deployment artifact rule.** The artifact or checkout deployed to production must correspond to `b06e48661fee147fdb2e1b95970ff87f4828d5ec` or `f6410ec6316b53ae3c67029c87c59f53be60126f`. If your platform builds from a source checkout, either SHA is acceptable; `f6410ec` is preferred as it includes this runbook. If the platform builds from a container image or archive, verify the image digest or archive checksum is derived from one of these two SHAs and record it in V1 before proceeding.
+
+```bash
+# On the deployment host, after checkout, confirm the SHA
+git rev-parse HEAD
+# Acceptable: b06e48661fee147fdb2e1b95970ff87f4828d5ec
+#         or: f6410ec6316b53ae3c67029c87c59f53be60126f
+# Any other SHA is NOT acceptable — stop and investigate.
+```
+
+⛔ **Stop if the deployed SHA is anything other than one of the two values above.**
 
 ### 1.2 Changes in this release
 
@@ -173,6 +189,37 @@ SELECT count(*) AS kpi_count FROM "KpiRegistry";
 ```
 
 Record this number. It is needed for Section 5.3 (take:500 sign-off) and for post-migration verification (Section 2.5).
+
+---
+
+### 2.1.6 — STOP-M1: Baseline verification gate
+
+**Run this check before any migration command and before marking any migration as applied. It is a hard gate — not optional.**
+
+The migration rehearsal was performed against a specific baseline. Record the following facts from the production database using the checks above, then compare each against the rehearsed values:
+
+| Evidence item | Rehearsed value | Observed production value | Match? |
+|---|---|---|---|
+| `_prisma_migrations` table exists? | No (db-push baseline) | _record here_ | — |
+| Table count (public schema) | 6 (`Actual, AuditLog, KpiRegistry, Program, Target, User`) | _record here_ | — |
+| `Pillar` enum count | 7 (db-push baseline) OR 10 (if migrations 1+2 were previously applied) | _record here_ | — |
+| `User.assignedPillarId` column exists? | No | _record here_ | — |
+| `KpiRegistry.activityType` column exists? | No | _record here_ | — |
+| `UploadSubmission` table exists? | No | _record here_ | — |
+| `SubmissionRow` table exists? | No | _record here_ | — |
+| `Comment` table exists? | No | _record here_ | — |
+
+**What "match" means:**
+
+- `_prisma_migrations` absent and 7 Pillar values → matches rehearsed Case B (db-push). Proceed to 2.2 Case B.
+- `_prisma_migrations` present and 7 or 10 Pillar values → matches Case A. Proceed to 2.2 Case A.
+- Any of the new tables already present → migration may have been partially applied previously. Stop and investigate.
+- `User.assignedPillarId` already present → schema was modified outside migrations. Stop and investigate.
+- Table count ≠ 6 (excluding `_prisma_migrations`) → unknown additions. Stop and investigate.
+
+⛔ **STOP-M1: If ANY observed value does not match a known rehearsed state, stop here. Do not mark any migration as applied. Do not run `prisma migrate deploy`. Investigate and obtain written sign-off from the operator before proceeding. The rehearsal guarantees safe migration only from the two confirmed baseline states.**
+
+Record the baseline evidence and confirm match in V-BL (Section 5.4).
 
 ---
 
@@ -594,40 +641,84 @@ The EDITOR upload flow does not write directly to the live KPI tables. EDITOR ch
 
 ### 5.3 Known limitation: take:500 query cap
 
-All KPI list queries are hard-capped at 500 records with no pagination or overflow signal:
+All KPI list queries are hard-capped at 500 records with no overflow signal or pagination:
 
 - `app/api/kpis/route.ts:83`
 - `app/api/departments/[pillar]/route.ts:57`
 - `app/api/stats/totals/route.ts:45`
 - `app/api/kpis/[id]/route.ts:29`
 
-If the KPI registry exceeds 500 records, the dashboard will silently show incomplete data.
+If the KPI registry exceeds 500 records, the dashboard will silently display incomplete data. There is no indicator visible to users or operators that truncation has occurred. This is documented in `lib/kpi-limit.test.ts` and accepted as a known limitation for this release.
 
-**Required confirmation:** The operator must record the actual production KPI count and confirm it is below 400 (providing a 20 % safety margin before the cap is reached).
+**Two distinct thresholds — do not conflate them:**
 
-| Item | Status | Evidence | Approver | Date |
+| Threshold | Value | Meaning |
+|---|---|---|
+| Application hard cap | **500** | The `take: 500` clause in the four routes above. Exceeding this causes silent truncation. This is a code limit. |
+| Preflight gate | **400** | A proposed operational warning level providing ~20 % headroom below the cap. The basis for 400 is a judgment call, not a code requirement. Its appropriateness depends on how fast the KPI registry grows. |
+
+**What to do if production count is 400 or higher:**
+
+A count of 400–499 means the deployment may proceed, but the team must immediately schedule work to implement cursor-based pagination (the four routes listed above) before the registry reaches 500. Do not deploy and defer this — the fix is straightforward and the risk of silent data loss is real.
+
+A count of 500 or higher means truncation is already occurring. Do not deploy this release without fixing pagination first.
+
+**Two separate sign-off items are required:**
+
+| Item | Status | Evidence required | Owner | Date |
 |---|---|---|---|---|
-| Production KPI count recorded and confirmed < 400 | **PENDING** | `SELECT count(*) FROM "KpiRegistry";` result | [PLACEHOLDER: operator name] | — |
+| Current production KPI count recorded | **PENDING** | `SELECT count(*) FROM "KpiRegistry";` result noted by operator | Operator | — |
+| Silent-truncation risk explicitly accepted for this release | **PENDING** | Count confirmed < 400, OR count 400–499 with pagination work scheduled; written acceptance if count ≥ 400 | [PLACEHOLDER: business owner name] | — |
 
 ---
 
 ### 5.4 Verification checklist
 
-| # | Condition | Status |
-|---|---|---|
-| V1 | Candidate SHA `b06e486` matches the deployed artifact | PENDING |
-| V2 | Backup taken and restore-verified before migration | PENDING |
-| V3 | Migration applied cleanly (`migrate status` shows up to date) | PENDING |
-| V4 | Post-migration schema parity checks passed (Section 2.5) | PENDING |
-| V5 | Health endpoint returns `{"status":"ok","db":"ok"}` | PENDING |
-| V6 | Smoke test S2: novel KPI rejected, `KpiRegistry` unchanged | PENDING |
-| V7 | Smoke test S3: existing KPI staged, live table unchanged | PENDING |
-| V8 | Smoke test S4: approval writes live value, submission closes | PENDING |
-| V9 | KPI variance thresholds accepted by business owner (5.1) | PENDING |
-| V10 | Staging write model accepted (5.2) | PENDING |
-| V11 | Production KPI count confirmed < 400 (5.3) | PENDING |
+Items are grouped by when they must be completed and who provides the evidence. All items must reach VERIFIED before the deployment window opens to users.
 
-**Deployment may proceed only when all V1–V11 are marked VERIFIED.**
+---
+
+#### Group A — Business and process owner approvals
+*Obtain before the deployment window opens. Only the named approver can verify these; the operator cannot self-approve.*
+
+| ID | Condition | Evidence required | Owner | Status |
+|---|---|---|---|---|
+| V9 | KPI variance thresholds accepted: green ≥ 85 %, amber ≥ 70 %, red < 70 % (Section 5.1) | Written sign-off from business owner | [PLACEHOLDER: business owner] | **PENDING** |
+| V10 | Two-tier EDITOR→staged / ADMIN→direct write model accepted (Section 5.2) | Written sign-off from process owner | [PLACEHOLDER: process owner] | **PENDING** |
+
+---
+
+#### Group B — Pre-migration operator checks
+*Sequential. Complete in order before touching any database schema. Each step is a hard gate for the next.*
+
+| ID | Condition | Evidence to record | Owner | Status |
+|---|---|---|---|---|
+| V1 | Deployed artifact SHA is `b06e486` or `f6410ec` (Section 1.1) | `git rev-parse HEAD` output on deployment host | Operator | **PENDING** |
+| V2 | Backup taken and restore-verified against a throwaway DB (Section 2.3) | Backup filename with timestamp; restore row counts match production | Operator | **PENDING** |
+| V-BL | Production baseline matches a rehearsed state; STOP-M1 table completed (Section 2.1.6) | Completed STOP-M1 evidence table with all items matching | Operator | **PENDING** |
+| V11a | Current production KPI count recorded (Section 5.3) | Exact count from `SELECT count(*) FROM "KpiRegistry";` | Operator | **PENDING** |
+| V11b | Silent-truncation risk explicitly accepted for this release (Section 5.3) | Count < 400 confirmed, OR count 400–499 with pagination work scheduled in writing | Business owner | **PENDING** |
+
+---
+
+#### Group C — Post-migration, pre-access verification
+*Run after migration and app deploy, before reopening access to users. QA-executable steps require the test accounts prepared in Section 3.2.*
+
+| ID | Condition | Evidence to record | Owner | Status |
+|---|---|---|---|---|
+| V3 | Migration applied cleanly: `prisma migrate status` → "up to date" (Section 2.4) | Command output | Operator | **PENDING** |
+| V4 | Post-migration schema parity: all 6 SQL checks in Section 2.5 passed | Recorded query outputs | Operator | **PENDING** |
+| V5 | Health endpoint returns `{"status":"ok","db":"ok","env":{...}}` with no MISSING fields (Section 3.1) | `curl` output | Operator | **PENDING** |
+| V6 | Smoke test S2 passed: novel KPI rejected, `KpiRegistry` count unchanged (Section 3.3) | DB count before and after; screenshot or response body | QA | **PENDING** |
+| V7 | Smoke test S3 passed: existing KPI staged, live Actual not written (Section 3.3) | `SubmissionRow` status = PENDING; Actual count unchanged | QA | **PENDING** |
+| V8 | Smoke test S4 passed: approval writes live Actual, submission closes (Section 3.3) | `Actual.value` matches submitted value; `UploadSubmission.status` = APPROVED | QA | **PENDING** |
+
+---
+
+**Deployment may proceed only when V9, V10, V1, V2, V-BL, V11a, and V11b are all VERIFIED.**  
+**Access may be opened to users only when V3–V8 are additionally VERIFIED.**
+
+*ID cross-reference for traceability: original V1→V1, V2→V2, V3→V3, V4→V4, V5→V5, V6→V6, V7→V7, V8→V8, V9→V9, V10→V10, V11→V11a+V11b, new V-BL is an addition.*
 
 ---
 
