@@ -131,7 +131,6 @@ export async function GET(
           const ytd2025 = computeYtd(q2025Map, k.activityType)
           if (ytd2025 !== null) lastYearActual = { value: ytd2025 }
         }
-        const isKpiPercent = k.unit === 'PERCENT'
 
         // Derive annual target: explicit ANNUAL row → sum of quarterly rows → 0
         let annualTargetVal: number

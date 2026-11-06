@@ -10,7 +10,6 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { REPORTING_YEAR } from '@/lib/config'
 import { useSearchParams } from 'next/navigation'
 import { DEPARTMENTS } from '@/lib/departments'
 import { DEFAULT_DIVISION, type DivisionId } from '@/lib/divisions'
@@ -251,7 +250,7 @@ export function DivisionAchievementChart() {
 
           {/* Legend */}
           <ul className="flex flex-col gap-4 flex-1 w-full">
-            {deptStats.map((s, i) => (
+            {deptStats.map((s) => (
               <li key={s.dept.id} className="flex items-center gap-3 min-w-0">
                 {/* Ring colour dot */}
                 <span

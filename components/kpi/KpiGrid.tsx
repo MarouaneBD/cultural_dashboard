@@ -8,7 +8,7 @@ import type { KpiWithVariance, PillarId } from '@/types'
 
 interface KpiGridProps {
   pillar: PillarId
-  onKpiClick?: (kpi: KpiWithVariance) => void
+  onKpiClick?: (_kpi: KpiWithVariance) => void
 }
 
 export function KpiGrid({ pillar, onKpiClick }: KpiGridProps) {

@@ -16,9 +16,6 @@ function staticKpisForPillars(pillars: string[]): KpiWithVariance[] {
     const config = DEPT_DASHBOARDS[pillarId as PillarId]
     if (!config) continue
     for (const t of config.data.currentYear.targets) {
-      const qActuals = t.quarters
-        .map(q => q.actual)
-        .filter((v): v is number => v !== null)
       const sparkline = t.quarters.map(q => q.actual ?? 0)
 
       let variance: KpiWithVariance['variance']

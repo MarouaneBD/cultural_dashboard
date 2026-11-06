@@ -95,6 +95,6 @@ export const scientificProgramsData: DeptData = {
   },
 }
 
-export async function parseFromFile(_file: File): Promise<DeptData> {
+export async function parseFromFile(_: File): Promise<DeptData> {
   throw new Error('File upload not yet implemented for مكتب البرامج العلمية')
 }

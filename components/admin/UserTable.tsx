@@ -17,9 +17,9 @@ export interface UserRow {
 interface Props {
   users: UserRow[]
   currentUserId: string
-  onEdit: (user: UserRow) => void
-  onResetPassword: (user: UserRow) => void
-  onDelete: (user: UserRow) => void
+  onEdit: (_user: UserRow) => void
+  onResetPassword: (_user: UserRow) => void
+  onDelete: (_user: UserRow) => void
 }
 
 const ROLE_LABELS: Record<UserRole, string> = {

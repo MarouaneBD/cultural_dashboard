@@ -1,7 +1,6 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { REPORTING_YEAR } from '@/lib/config'
 import { useQuery } from '@tanstack/react-query'
 import { Building2, BarChart3, CheckCircle2, AlertCircle, XCircle, TrendingUp } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'

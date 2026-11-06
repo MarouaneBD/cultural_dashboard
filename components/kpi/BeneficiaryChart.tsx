@@ -50,11 +50,9 @@ function fmtAed(n: number): string {
 // ── Concentric rings SVG ───────────────────────────────────────────────────
 function ConcentricRings({
   segments,
-  total,
   size = 220,
 }: {
   segments: Array<{ label: string; value: number; color: string }>
-  total: number
   size: number
 }) {
   const cx    = size / 2
@@ -180,7 +178,7 @@ function StakeholdersCard({
 
       {/* Body: rings top on mobile, side-by-side on sm+ */}
       <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-6">
-        <ConcentricRings segments={segments} total={0} size={220} />
+        <ConcentricRings segments={segments} size={220} />
 
         {/* Legend */}
         <div className="flex-1 flex flex-col min-w-0 w-full">

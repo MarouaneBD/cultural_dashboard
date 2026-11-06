@@ -147,7 +147,7 @@ function LeftPanel() {
             className="text-[11px] tracking-[.14em] uppercase"
             style={{ fontFamily: 'var(--font-space)', color: GOLD }}
           >
-            Islamic Affairs Division
+            Dar Al Ber Society Platform
           </p>
         </div>
 
@@ -195,25 +195,42 @@ function LoginForm() {
 
   return (
     <div
-      className="flex flex-col items-center justify-center min-h-screen px-6 py-12"
+      className="flex flex-col min-h-screen"
       style={{ background: 'var(--bg)' }}
     >
-      {/* Mobile-only identity header */}
-      <div className="md:hidden flex flex-col items-center gap-3 mb-8">
-        <div className="rounded-xl px-5 py-3 shadow" style={{ background: GREEN }}>
+      {/* Mobile-only identity header — full-width green panel */}
+      <div
+        className="md:hidden relative w-full overflow-hidden flex flex-col items-center justify-center gap-3 py-7"
+        style={{ background: GREEN, minHeight: '180px' }}
+      >
+        <IslamicPattern />
+        <CornerOrnament position="tl" />
+
+        {/* Logo on white card */}
+        <div className="relative z-10 rounded-2xl px-5 py-3 shadow-lg" style={{ background: 'rgba(255,255,255,0.97)' }}>
           <Image
             src="/dabs-logo.png"
             alt="شعار دار البر"
             width={100}
             height={134}
             priority
-            style={{ maxHeight: '48px', width: 'auto', display: 'block', filter: 'brightness(0) invert(1)' }}
+            style={{ maxHeight: '52px', width: 'auto', display: 'block' }}
           />
         </div>
-        <p className="font-cairo font-bold text-sm text-center" style={{ color: 'var(--ink)' }}>
-          منصة جمعية دار البر
-        </p>
+
+        {/* App name + subtitle */}
+        <div className="relative z-10 flex flex-col items-center gap-1 text-center">
+          <p className="font-cairo font-bold text-[16px] leading-snug" style={{ color: 'rgba(255,255,255,0.95)' }}>
+            منصة جمعية دار البر
+          </p>
+          <p className="text-[10px] tracking-[.14em] uppercase" style={{ fontFamily: 'var(--font-space)', color: GOLD }}>
+            Dar Al Ber Society Platform
+          </p>
+        </div>
       </div>
+
+      {/* Form area — centred vertically on desktop, padded on mobile */}
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-10">
 
       {/* Form card */}
       <div className="w-full max-w-sm">
@@ -279,6 +296,8 @@ function LoginForm() {
             نسيت كلمة المرور؟
           </Link>
         </p>
+      </div>
+
       </div>
     </div>
   )

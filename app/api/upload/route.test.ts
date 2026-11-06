@@ -10,7 +10,7 @@ jest.mock('@/auth', () => ({
 jest.mock('@/lib/prisma', () => ({
   withAuditUser: jest.fn((_userId: string, fn: () => Promise<unknown>) => fn()),
   prisma: {
-    $transaction: jest.fn(async (fn: (tx: unknown) => Promise<unknown>) => fn({
+    $transaction: jest.fn(async (fn: (_tx: unknown) => Promise<unknown>) => fn({
       kpiRegistry: {
         findUnique: jest.fn().mockResolvedValue(null), // null = new KPI → created++
         upsert: jest.fn().mockResolvedValue({ id: 'kpi-1' }),
