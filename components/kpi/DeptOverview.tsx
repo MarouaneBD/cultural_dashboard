@@ -13,9 +13,11 @@ import type { KpiWithVariance } from '@/types'
 function DeptCard({
   dept,
   kpis,
+  division,
 }: {
   dept: typeof DEPARTMENTS[number]
   kpis: KpiWithVariance[]
+  division: DivisionId
 }) {
   const hasKpis = kpis.length > 0
   const color = dept.color
@@ -32,7 +34,7 @@ function DeptCard({
 
   return (
     <Link
-      href={`/dashboard?pillar=${dept.id}`}
+      href={`/dashboard?pillar=${dept.id}&division=${division}`}
       className="block rounded-2xl border transition-all hover:-translate-y-[3px] flex flex-col gap-3 p-5"
       style={{
         background: 'var(--card-bg)',
@@ -130,6 +132,7 @@ export function DeptOverview() {
             key={dept.id}
             dept={dept}
             kpis={isLoading ? [] : (byDept[dept.id] ?? [])}
+            division={divisionParam}
           />
         ))}
       </div>
