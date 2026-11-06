@@ -13,6 +13,7 @@ describe('validateRow', () => {
   })
 
   it('returns error for invalid period', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const errors = validateRow({ kpiId: 'k1', period: 'X3' as any, year: 2026, value: 100 }, 3)
     expect(errors[0]).toMatch(/period/)
   })
@@ -30,12 +31,14 @@ describe('validateRow', () => {
 
 describe('normalizeRow', () => {
   it('trims whitespace from string fields', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const row = normalizeRow({ kpiId: '  k1  ', period: ' Q1 ' as any, year: 2026, value: 10 })
     expect(row.kpiId).toBe('k1')
     expect(row.period).toBe('Q1')
   })
 
   it('coerces string numbers to numbers', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const row = normalizeRow({ kpiId: 'k1', period: 'Q1', year: '2026' as any, value: '99.5' as any })
     expect(typeof row.year).toBe('number')
     expect(typeof row.value).toBe('number')
@@ -68,6 +71,7 @@ describe('parseExcelFile', () => {
 
   it('returns structured error when XLSX.read throws', () => {
     // Pass null to trigger a try/catch (XLSX.read will throw on null)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = parseExcelFile(null as any)
     expect(result.valid).toHaveLength(0)
     expect(result.errors).toHaveLength(1)

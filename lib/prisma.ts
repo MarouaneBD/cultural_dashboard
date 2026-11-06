@@ -38,6 +38,7 @@ function createPrismaClient() {
   return base.$extends({
     query: {
       $allModels: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         async $allOperations({ model, operation, args, query }: any) {
           if (!AUDITED_MODELS.has(model) || !WRITE_OPS.has(operation)) {
             return query(args)
@@ -45,10 +46,13 @@ function createPrismaClient() {
 
           // Capture old value for single-record updates
           let oldValue: string | null = null
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           if (operation === 'update' && (args as any)?.where) {
             try {
               const modelKey = model.charAt(0).toLowerCase() + model.slice(1)
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const before = await (base as any)[modelKey].findUnique({
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 where: (args as any).where,
               })
               oldValue = before ? JSON.stringify(before) : null
@@ -61,6 +65,7 @@ function createPrismaClient() {
 
           try {
             const typedArgs = args as Record<string, unknown>
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await (base as any).auditLog.create({
               data: {
                 userId: auditUserStorage.getStore() ?? 'system',
@@ -99,6 +104,7 @@ function getClient(): ExtendedPrismaClient {
 export const prisma = new Proxy({} as ExtendedPrismaClient, {
   get(_target, prop: string | symbol) {
     const client = getClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const value = (client as any)[prop]
     return typeof value === 'function' ? value.bind(client) : value
   },

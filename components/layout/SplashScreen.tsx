@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 
 const SESSION_KEY = 'ers_splash_shown'
@@ -8,14 +8,12 @@ const GREEN = '#162b1e'
 const GOLD = '#b8822a'
 
 export function SplashScreen() {
-  const [visible, setVisible] = useState(false)
-  const [leaving, setLeaving] = useState(false)
-
-  useEffect(() => {
-    if (!sessionStorage.getItem(SESSION_KEY)) {
-      setVisible(true)
-    }
-  }, [])
+  // Lazy initialiser avoids calling sessionStorage during SSR and
+  // removes the need for a useEffect that sets state synchronously.
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return !sessionStorage.getItem(SESSION_KEY)
+  })
 
   // Called when the curtain-out animation finishes
   function handleDone() {

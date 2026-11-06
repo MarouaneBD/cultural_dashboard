@@ -12,7 +12,7 @@ type PreviewState =
 
 export function FileUploader() {
   const { data: session, status: sessionStatus } = useSession()
-  const isAdmin = sessionStatus !== 'loading' && (session?.user as any)?.role === 'ADMIN'
+  const isAdmin = sessionStatus !== 'loading' && session?.user?.role === 'ADMIN'
   const inputRef = useRef<HTMLInputElement>(null)
   const [activeFile, setActiveFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<PreviewState | null>(null)
@@ -31,18 +31,18 @@ export function FileUploader() {
       formData.append('dryRun', 'true')
 
       const res = await fetch('/api/upload', { method: 'POST', body: formData })
-      let body: any = null
+      let body: Record<string, unknown> | null = null
       try { body = await res.json() } catch { /* non-JSON response */ }
       if (!res.ok) {
-        setMessage(`خطأ ${res.status}: ${body?.error ?? res.statusText ?? 'خطأ في الخادم'}`)
+        setMessage(`خطأ ${res.status}: ${(body?.error as string | undefined) ?? res.statusText ?? 'خطأ في الخادم'}`)
         setStatus('error')
         return
       }
 
-      if ('rows' in body) {
-        setPreview({ mode: 'activity', result: body })
+      if (body !== null && 'rows' in body) {
+        setPreview({ mode: 'activity', result: body as unknown as ActivityUploadResult })
       } else {
-        setPreview({ mode: 'legacy', result: body })
+        setPreview({ mode: 'legacy', result: body as unknown as UploadValidationResult })
       }
       setStatus('idle')
     } catch (e) {
@@ -61,18 +61,19 @@ export function FileUploader() {
       formData.append('dryRun', 'false')
 
       const res = await fetch('/api/upload', { method: 'POST', body: formData })
-      let body: any = null
+      let body: Record<string, unknown> | null = null
       try { body = await res.json() } catch { /* non-JSON response */ }
       if (!res.ok) {
-        setMessage(`خطأ ${res.status}: ${body?.error ?? res.statusText ?? 'خطأ في الخادم'}`)
+        setMessage(`خطأ ${res.status}: ${(body?.error as string | undefined) ?? res.statusText ?? 'خطأ في الخادم'}`)
         setStatus('error')
         return
       }
 
-      if ('created' in body) {
-        setMessage(`تم إنشاء ${body.created} مؤشر، تحديث ${body.updated} مؤشر`)
-      } else {
-        setMessage(`تم استيراد ${body.imported} سجل بنجاح`)
+      if (body !== null && 'created' in body) {
+        const r = body as { created: number; updated: number }
+        setMessage(`تم إنشاء ${r.created} مؤشر، تحديث ${r.updated} مؤشر`)
+      } else if (body !== null) {
+        setMessage(`تم استيراد ${(body as { imported: number }).imported} سجل بنجاح`)
       }
       setStatus('done')
       setPreview(null)

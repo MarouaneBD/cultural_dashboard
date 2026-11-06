@@ -19,6 +19,7 @@ export function KpiCard({ kpi, onClick }: KpiCardProps) {
   return (
     <button
       onClick={onClick}
+      data-variance={variance.color}
       className="w-full text-right rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-[3px] flex flex-col gap-3 border"
       style={{
         background: 'var(--card-bg)',
