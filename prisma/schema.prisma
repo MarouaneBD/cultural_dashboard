@@ -77,6 +77,7 @@ model Target {
   value  Float
 
   @@unique([kpiId, period, year])
+  @@index([kpiId])
 }
 
 model Actual {
@@ -92,6 +93,7 @@ model Actual {
   createdAt       DateTime    @default(now())
 
   @@unique([kpiId, period, year])
+  @@index([kpiId])
 }
 
 model Program {

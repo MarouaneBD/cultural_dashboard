@@ -65,6 +65,7 @@ export async function GET(req: NextRequest) {
   try {
     const kpis = await prisma.kpiRegistry.findMany({
       where: pillarFilter ? { pillar: { in: pillarFilter as Pillar[] } } : undefined,
+      take: 500,
       include: {
         targets: { where: { year } },
         actuals: { where: { year }, orderBy: { period: 'asc' } },

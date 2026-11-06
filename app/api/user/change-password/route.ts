@@ -10,9 +10,9 @@ export async function PATCH(req: Request) {
   }
 
   const { newPassword } = (await req.json()) as { newPassword?: string }
-  if (!newPassword || newPassword.length < 6) {
+  if (!newPassword || newPassword.length < 8) {
     return NextResponse.json(
-      { error: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' },
+      { error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' },
       { status: 400 }
     )
   }

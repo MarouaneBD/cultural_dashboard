@@ -36,6 +36,9 @@ export async function PATCH(
   if (body.name !== undefined) data.name = body.name || null
   if (body.role) data.role = body.role
   if (body.newPassword) {
+    if (body.newPassword.length < 8) {
+      return NextResponse.json({ error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' }, { status: 400 })
+    }
     data.passwordHash = await hashPassword(body.newPassword)
     data.mustChangePassword = true
   }

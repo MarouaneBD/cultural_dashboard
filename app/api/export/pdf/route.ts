@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
     const period = searchParams.get('period') ?? 'ANNUAL'
 
     const kpis = await prisma.kpiRegistry.findMany({
+      take: 500,
       include: {
         targets: { where: { year } },
         actuals: { where: { year } },
