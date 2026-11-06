@@ -185,7 +185,7 @@ export function SplashScreen() {
                 color: 'rgba(255,255,255,.45)',
               }}
             >
-              Islamic Affairs Division
+              Dar Al Birr Association
             </div>
           </div>
         </div>
