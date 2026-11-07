@@ -51,7 +51,7 @@ export async function PATCH(
   // Pillar is immutable — silently exclude it
   const { nameAr, activityType, unit, owner } = body
 
-  if (!nameAr && !activityType && !unit && owner === undefined) {
+  if (nameAr === undefined && activityType === undefined && unit === undefined && owner === undefined) {
     return NextResponse.json({ error: 'لا توجد حقول للتحديث' }, { status: 400 })
   }
 
@@ -73,10 +73,14 @@ export async function PATCH(
   }
 
   const patch: Record<string, unknown> = {}
-  if (nameAr) patch.nameAr = nameAr.trim()
-  if (activityType) patch.activityType = activityType
-  if (unit) patch.unit = unit
+  if (nameAr !== undefined) patch.nameAr = nameAr.trim()
+  if (activityType !== undefined) patch.activityType = activityType
+  if (unit !== undefined) patch.unit = unit
   if (owner !== undefined) patch.owner = owner || null
+
+  if (Object.keys(patch).length === 0) {
+    return NextResponse.json({ error: 'لا توجد حقول للتحديث' }, { status: 400 })
+  }
 
   try {
     const updated = await withAuditUser(session.user.id, () =>
