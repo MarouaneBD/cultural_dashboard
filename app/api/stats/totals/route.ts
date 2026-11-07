@@ -6,6 +6,7 @@ import { REPORTING_YEAR } from '@/lib/config'
 import { DEPARTMENTS } from '@/lib/departments'
 import type { Pillar } from '@prisma/client'
 
+export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 /** Revenue KPIs are identified by owner = 'درهم' — they are financial metrics,
