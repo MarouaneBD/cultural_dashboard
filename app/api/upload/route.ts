@@ -68,12 +68,25 @@ export async function POST(req: NextRequest) {
     if (isActivityFile(buffer)) {
       const { rows, errors } = parseActivityFile(buffer)
 
-      if (dryRun) {
-        return NextResponse.json({ dryRun: true, rows, errors })
-      }
-
       const isEditor = session!.user.role === 'EDITOR'
       const assignedPillarId = session!.user.assignedPillarId ?? null
+
+      // Run scope checks during dry-run so the preview shows permission errors
+      // before the user clicks commit.
+      const dryRunScopeErrors: Array<{ row: number; message: string }> = []
+      if (dryRun) {
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i]
+          if (isEditor) {
+            if (!assignedPillarId) {
+              dryRunScopeErrors.push({ row: i + 2, message: 'لم يتم تعيين قسم لهذا المحرر، تواصل مع المدير' })
+            } else if (row.pillar !== assignedPillarId) {
+              dryRunScopeErrors.push({ row: i + 2, message: `ليس لديك صلاحية رفع بيانات القسم: ${row.pillar}` })
+            }
+          }
+        }
+        return NextResponse.json({ dryRun: true, rows, errors: [...errors, ...dryRunScopeErrors] })
+      }
 
       let created = 0
       let updated = 0
@@ -119,11 +132,15 @@ export async function POST(req: NextRequest) {
                 continue
               }
 
-              const kpi = await tx.kpiRegistry.upsert({
-                where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
-                create: { nameAr: row.nameAr, pillar: row.pillar as Pillar, unit: 'COUNT', owner: row.category ? normalizeAr(row.category) : undefined, activityType: row.activityType },
-                update: { activityType: row.activityType, ...(row.category ? { owner: normalizeAr(row.category) } : {}) },
-              })
+              // EDITORs must not modify KPI registry metadata directly (activityType, owner).
+              // At this point existing is guaranteed non-null for EDITORs (novel-KPI guard above).
+              const kpi = isEditor
+                ? existing!
+                : await tx.kpiRegistry.upsert({
+                    where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
+                    create: { nameAr: row.nameAr, pillar: row.pillar as Pillar, unit: 'COUNT', owner: row.category ? normalizeAr(row.category) : undefined, activityType: row.activityType },
+                    update: { activityType: row.activityType, ...(row.category ? { owner: normalizeAr(row.category) } : {}) },
+                  })
 
               if (row.target2026 !== undefined) {
                 if (isEditor) {

@@ -3,6 +3,9 @@ import { auth } from '@/auth'
 import { prisma, withAuditUser } from '@/lib/prisma'
 import { Period } from '@prisma/client'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 async function requireAdmin() {
   const session = await auth()
   if (!session || session.user.role !== 'ADMIN') return null
@@ -65,7 +68,7 @@ export async function POST(
             data: { status: 'APPROVED' },
           })
         }
-      })
+      }, { timeout: 30000 })
     )
   } catch (err) {
     console.error('[approve-all] transaction failed', err)

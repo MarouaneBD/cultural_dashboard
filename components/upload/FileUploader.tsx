@@ -84,13 +84,27 @@ export function FileUploader() {
       }
 
       if (body !== null && 'created' in body) {
-        const r = body as { created: number; updated: number; queued?: number }
+        const r = body as { created: number; updated: number; queued?: number; errors?: Array<{ row: number; message: string }> }
+        const responseErrors = r.errors ?? []
         const queuedMsg = r.queued && r.queued > 0 ? ` · ${r.queued} صف بانتظار الموافقة` : ''
-        setMessage(`تم إنشاء ${r.created} مؤشر، تحديث ${r.updated} مؤشر${queuedMsg}`)
+        const countMsg = `تم إنشاء ${r.created} مؤشر، تحديث ${r.updated} مؤشر${queuedMsg}`
+
+        if (responseErrors.length > 0 && r.created === 0 && r.updated === 0 && (!r.queued || r.queued === 0)) {
+          // All rows failed — show first error prominently
+          setMessage(`${responseErrors[0].message}${responseErrors.length > 1 ? ` (و${responseErrors.length - 1} خطأ آخر)` : ''}`)
+          setStatus('error')
+        } else if (responseErrors.length > 0) {
+          // Partial success — show counts and first error
+          setMessage(`${countMsg} · ${responseErrors.length} صف تعذّر: ${responseErrors[0].message}`)
+          setStatus('done')
+        } else {
+          setMessage(countMsg)
+          setStatus('done')
+        }
+
         if (r.queued && r.queued > 0) {
           qc.invalidateQueries({ queryKey: ['editor-submissions-count'] })
         }
-        setStatus('done')
       } else {
         setMessage(`خطأ: رد غير متوقع من الخادم`)
         setStatus('error')
