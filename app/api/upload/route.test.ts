@@ -38,7 +38,7 @@ jest.mock('@/lib/prisma', () => ({
     $transaction: jest.fn(async (fn: (_tx: unknown) => Promise<unknown>) => fn(mockTx)),
     kpiRegistry: { findMany: jest.fn().mockResolvedValue([]) },
     actual: { create: jest.fn().mockResolvedValue({}) },
-    submissionRow: { count: jest.fn().mockResolvedValue(0) },
+    submissionRow: { count: jest.fn().mockResolvedValue(2) },
   },
 }))
 
@@ -150,4 +150,47 @@ it('ADMIN: novel KPI is created without scope error', async () => {
   expect(body.errors).toHaveLength(0)
   // upsert MUST have been called
   expect(mockTx.kpiRegistry.upsert).toHaveBeenCalledTimes(1)
+})
+
+// ── EDITOR staging: first-write (no prior row) must be STAGED, not written live ─
+
+it('EDITOR: target with no prior row is staged (oldValue=0), not written to live table', async () => {
+  mockTx = makeTxMock({ id: 'kpi-existing-01', nameAr: 'برامج التعليم', pillar: 'EDUCATION' })
+  // No existing target or actual
+  mockTx.target.findUnique.mockResolvedValue(null)
+  mockTx.actual.findUnique.mockResolvedValue(null)
+
+  const res = await POST(makeRequest(makeActivityBuffer(), false))
+  const body = await res.json()
+
+  expect(res.status).toBe(200)
+  expect(body.queued).toBeGreaterThan(0)
+  // Live upsert must NOT have been called for target or actual
+  expect(mockTx.target.upsert).not.toHaveBeenCalled()
+  expect(mockTx.actual.upsert).not.toHaveBeenCalled()
+  // Submission must have been created
+  expect(mockTx.uploadSubmission.create).toHaveBeenCalledTimes(1)
+  // The staged rows must have oldValue: 0
+  const createCall = mockTx.uploadSubmission.create.mock.calls[0][0]
+  const stagedRows: Array<{ oldValue: number }> = createCall.data.rows.create
+  expect(stagedRows.every(r => r.oldValue === 0)).toBe(true)
+})
+
+it('EDITOR: target with existing row is staged with correct oldValue', async () => {
+  mockTx = makeTxMock({ id: 'kpi-existing-01', nameAr: 'برامج التعليم', pillar: 'EDUCATION' })
+  mockTx.target.findUnique.mockResolvedValue({ value: 90 })
+  mockTx.actual.findUnique.mockResolvedValue({ value: 75 })
+
+  const res = await POST(makeRequest(makeActivityBuffer(), false))
+  const body = await res.json()
+
+  expect(res.status).toBe(200)
+  expect(body.queued).toBeGreaterThan(0)
+  expect(mockTx.target.upsert).not.toHaveBeenCalled()
+  expect(mockTx.actual.upsert).not.toHaveBeenCalled()
+  // At least one staged row must have oldValue: 90 or 75 (from the mocked existing rows)
+  const createCall = mockTx.uploadSubmission.create.mock.calls[0][0]
+  const stagedRows: Array<{ oldValue: number }> = createCall.data.rows.create
+  const oldValues = stagedRows.map(r => r.oldValue)
+  expect(oldValues).toContain(90)  // from target.findUnique
 })

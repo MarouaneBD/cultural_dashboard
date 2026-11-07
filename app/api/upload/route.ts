@@ -130,15 +130,7 @@ export async function POST(req: NextRequest) {
                   const existingTarget = await tx.target.findUnique({
                     where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: REPORTING_YEAR } },
                   })
-                  if (existingTarget) {
-                    stagingRows.push({ kpiId: kpi.id, kpiNameAr: row.nameAr, period: 'ANNUAL', year: REPORTING_YEAR, newValue: row.target2026, oldValue: existingTarget.value, tableType: 'TARGET' })
-                  } else {
-                    await tx.target.upsert({
-                      where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: REPORTING_YEAR } },
-                      create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: REPORTING_YEAR, value: row.target2026 },
-                      update: { value: row.target2026 },
-                    })
-                  }
+                  stagingRows.push({ kpiId: kpi.id, kpiNameAr: row.nameAr, period: 'ANNUAL', year: REPORTING_YEAR, newValue: row.target2026, oldValue: existingTarget ? Number(existingTarget.value) : 0, tableType: 'TARGET' })
                 } else {
                   await tx.target.upsert({
                     where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: REPORTING_YEAR } },
@@ -153,15 +145,7 @@ export async function POST(req: NextRequest) {
                   const existingActual = await tx.actual.findUnique({
                     where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: PREV_REPORTING_YEAR } },
                   })
-                  if (existingActual) {
-                    stagingRows.push({ kpiId: kpi.id, kpiNameAr: row.nameAr, period: 'ANNUAL', year: PREV_REPORTING_YEAR, newValue: row.actual2025, oldValue: existingActual.value, tableType: 'ACTUAL' })
-                  } else {
-                    await tx.actual.upsert({
-                      where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: PREV_REPORTING_YEAR } },
-                      create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: PREV_REPORTING_YEAR, value: row.actual2025 },
-                      update: { value: row.actual2025 },
-                    })
-                  }
+                  stagingRows.push({ kpiId: kpi.id, kpiNameAr: row.nameAr, period: 'ANNUAL', year: PREV_REPORTING_YEAR, newValue: row.actual2025, oldValue: existingActual ? Number(existingActual.value) : 0, tableType: 'ACTUAL' })
                 } else {
                   await tx.actual.upsert({
                     where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: PREV_REPORTING_YEAR } },
@@ -178,15 +162,7 @@ export async function POST(req: NextRequest) {
                     const existingActual = await tx.actual.findUnique({
                       where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR } },
                     })
-                    if (existingActual) {
-                      stagingRows.push({ kpiId: kpi.id, kpiNameAr: row.nameAr, period: q, year: REPORTING_YEAR, newValue: val, oldValue: existingActual.value, tableType: 'ACTUAL' })
-                    } else {
-                      await tx.actual.upsert({
-                        where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR } },
-                        create: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR, value: val },
-                        update: { value: val },
-                      })
-                    }
+                    stagingRows.push({ kpiId: kpi.id, kpiNameAr: row.nameAr, period: q, year: REPORTING_YEAR, newValue: val, oldValue: existingActual ? Number(existingActual.value) : 0, tableType: 'ACTUAL' })
                   } else {
                     await tx.actual.upsert({
                       where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR } },
