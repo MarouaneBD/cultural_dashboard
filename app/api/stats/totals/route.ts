@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
     ? DEPARTMENTS.filter(d => d.division === division).map(d => d.id as Pillar)
     : []
   if (!division || divisionPillars.length === 0) {
-    return NextResponse.json({ error: 'قطاع غير صالح' }, { status: 400 })
+    return NextResponse.json({ totals: [] }, { status: 400 })
   }
 
   try {

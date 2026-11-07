@@ -32,11 +32,15 @@ describe('GET /api/stats/totals', () => {
   it('returns 400 when division param is missing', async () => {
     const res = await GET(makeReq({ year: '2025', period: 'ANNUAL' }))
     expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body).toEqual({ totals: [] })
   })
 
   it('returns 400 when division is unknown', async () => {
     const res = await GET(makeReq({ year: '2025', period: 'ANNUAL', division: 'UNKNOWN_DIV' }))
     expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body).toEqual({ totals: [] })
   })
 
   it('filters KPIs by showInDashboard=true and division pillars', async () => {
