@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Period, Pillar } from '@prisma/client'
-import { isActivityFile, parseActivityFile, parseExcelFile } from '@/lib/excel'
+import { isActivityFile, parseActivityFile, normalizeAr } from '@/lib/excel'
 import { prisma, withAuditUser } from '@/lib/prisma'
 import { auth } from '@/auth'
 import { REPORTING_YEAR, PREV_REPORTING_YEAR } from '@/lib/config'
@@ -68,12 +68,25 @@ export async function POST(req: NextRequest) {
     if (isActivityFile(buffer)) {
       const { rows, errors } = parseActivityFile(buffer)
 
-      if (dryRun) {
-        return NextResponse.json({ dryRun: true, rows, errors })
-      }
-
       const isEditor = session!.user.role === 'EDITOR'
       const assignedPillarId = session!.user.assignedPillarId ?? null
+
+      // Run scope checks during dry-run so the preview shows permission errors
+      // before the user clicks commit.
+      const dryRunScopeErrors: Array<{ row: number; message: string }> = []
+      if (dryRun) {
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i]
+          if (isEditor) {
+            if (!assignedPillarId) {
+              dryRunScopeErrors.push({ row: i + 2, message: 'لم يتم تعيين قسم لهذا المحرر، تواصل مع المدير' })
+            } else if (row.pillar !== assignedPillarId) {
+              dryRunScopeErrors.push({ row: i + 2, message: `ليس لديك صلاحية رفع بيانات القسم: ${row.pillar}` })
+            }
+          }
+        }
+        return NextResponse.json({ dryRun: true, rows, errors: [...errors, ...dryRunScopeErrors] })
+      }
 
       let created = 0
       let updated = 0
@@ -109,26 +122,32 @@ export async function POST(req: NextRequest) {
                 where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
               })
 
-              const kpi = await tx.kpiRegistry.upsert({
-                where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
-                create: { nameAr: row.nameAr, pillar: row.pillar as Pillar, unit: 'COUNT', owner: row.category, activityType: row.activityType },
-                update: { activityType: row.activityType, ...(row.category ? { owner: row.category } : {}) },
-              })
+              // EDITORs may update existing KPIs but must not create new registry entries.
+              // New KPI definitions require ADMIN review — reject with a scope error.
+              if (!existing && isEditor) {
+                scopeErrors.push({
+                  row: i + 2,
+                  message: `لا يمكن للمحرر إنشاء مؤشرات جديدة (${row.nameAr}). تواصل مع المدير لإضافة المؤشر أولاً`,
+                })
+                continue
+              }
+
+              // EDITORs must not modify KPI registry metadata directly (activityType, owner).
+              // At this point existing is guaranteed non-null for EDITORs (novel-KPI guard above).
+              const kpi = isEditor
+                ? existing!
+                : await tx.kpiRegistry.upsert({
+                    where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
+                    create: { nameAr: row.nameAr, pillar: row.pillar as Pillar, unit: 'COUNT', owner: row.category ? normalizeAr(row.category) : undefined, activityType: row.activityType },
+                    update: { activityType: row.activityType, ...(row.category ? { owner: normalizeAr(row.category) } : {}) },
+                  })
 
               if (row.target2026 !== undefined) {
                 if (isEditor) {
                   const existingTarget = await tx.target.findUnique({
                     where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: REPORTING_YEAR } },
                   })
-                  if (existingTarget) {
-                    stagingRows.push({ kpiId: kpi.id, kpiNameAr: row.nameAr, period: 'ANNUAL', year: REPORTING_YEAR, newValue: row.target2026, oldValue: existingTarget.value, tableType: 'TARGET' })
-                  } else {
-                    await tx.target.upsert({
-                      where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: REPORTING_YEAR } },
-                      create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: REPORTING_YEAR, value: row.target2026 },
-                      update: { value: row.target2026 },
-                    })
-                  }
+                  stagingRows.push({ kpiId: kpi.id, kpiNameAr: row.nameAr, period: 'ANNUAL', year: REPORTING_YEAR, newValue: row.target2026, oldValue: existingTarget ? Number(existingTarget.value) : 0, tableType: 'TARGET' })
                 } else {
                   await tx.target.upsert({
                     where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: REPORTING_YEAR } },
@@ -143,15 +162,7 @@ export async function POST(req: NextRequest) {
                   const existingActual = await tx.actual.findUnique({
                     where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: PREV_REPORTING_YEAR } },
                   })
-                  if (existingActual) {
-                    stagingRows.push({ kpiId: kpi.id, kpiNameAr: row.nameAr, period: 'ANNUAL', year: PREV_REPORTING_YEAR, newValue: row.actual2025, oldValue: existingActual.value, tableType: 'ACTUAL' })
-                  } else {
-                    await tx.actual.upsert({
-                      where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: PREV_REPORTING_YEAR } },
-                      create: { kpiId: kpi.id, period: 'ANNUAL' as Period, year: PREV_REPORTING_YEAR, value: row.actual2025 },
-                      update: { value: row.actual2025 },
-                    })
-                  }
+                  stagingRows.push({ kpiId: kpi.id, kpiNameAr: row.nameAr, period: 'ANNUAL', year: PREV_REPORTING_YEAR, newValue: row.actual2025, oldValue: existingActual ? Number(existingActual.value) : 0, tableType: 'ACTUAL' })
                 } else {
                   await tx.actual.upsert({
                     where: { kpiId_period_year: { kpiId: kpi.id, period: 'ANNUAL', year: PREV_REPORTING_YEAR } },
@@ -168,15 +179,7 @@ export async function POST(req: NextRequest) {
                     const existingActual = await tx.actual.findUnique({
                       where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR } },
                     })
-                    if (existingActual) {
-                      stagingRows.push({ kpiId: kpi.id, kpiNameAr: row.nameAr, period: q, year: REPORTING_YEAR, newValue: val, oldValue: existingActual.value, tableType: 'ACTUAL' })
-                    } else {
-                      await tx.actual.upsert({
-                        where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR } },
-                        create: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR, value: val },
-                        update: { value: val },
-                      })
-                    }
+                    stagingRows.push({ kpiId: kpi.id, kpiNameAr: row.nameAr, period: q, year: REPORTING_YEAR, newValue: val, oldValue: existingActual ? Number(existingActual.value) : 0, tableType: 'ACTUAL' })
                   } else {
                     await tx.actual.upsert({
                       where: { kpiId_period_year: { kpiId: kpi.id, period: q as Period, year: REPORTING_YEAR } },
@@ -234,69 +237,10 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // ── Legacy format ──────────────────────────────────────────────────────────
-    const { valid, errors } = parseExcelFile(buffer)
-
-    if (dryRun) {
-      return NextResponse.json({ dryRun: true, preview: valid, errors })
-    }
-
-    const isEditor = session!.user.role === 'EDITOR'
-    const assignedPillarId = session!.user.assignedPillarId ?? null
-
-    const dbErrors: Array<{ row: number; message: string }> = []
-    const scopeErrors: Array<{ row: number; message: string }> = []
-    let imported = 0
-
-    // EDITOR scope check — resolve each kpiId to its pillar and reject mismatches
-    let allowedRows = valid
-    if (isEditor) {
-      if (!assignedPillarId) {
-        return NextResponse.json({ error: 'لم يتم تعيين قسم لهذا المحرر، تواصل مع المدير' }, { status: 403 })
-      }
-      const kpiIds = [...new Set(valid.map(r => r.kpiId))]
-      const registryEntries = await prisma.kpiRegistry.findMany({
-        where: { id: { in: kpiIds } },
-        select: { id: true, pillar: true },
-      })
-      const pillarByKpiId = new Map(registryEntries.map(e => [e.id, e.pillar as string]))
-      allowedRows = valid.filter((row, i) => {
-        const pillar = pillarByKpiId.get(row.kpiId)
-        if (!pillar || pillar !== assignedPillarId) {
-          scopeErrors.push({ row: i + 2, message: `ليس لديك صلاحية رفع بيانات المؤشر: ${row.kpiId}` })
-          return false
-        }
-        return true
-      })
-    }
-
-    try {
-      await withAuditUser(session!.user.id, () => prisma.$transaction(async (tx: TxClient) => {
-        for (let i = 0; i < allowedRows.length; i++) {
-          const row = allowedRows[i]
-          try {
-            await tx.actual.create({
-              data: {
-                kpiId: row.kpiId,
-                period: row.period as Period,
-                year: row.year,
-                value: row.value,
-                region: row.region,
-                facility: row.facility,
-              },
-            })
-            imported++
-          } catch {
-            dbErrors.push({ row: i + 2, message: `خطأ في حفظ البيانات: ${row.kpiId}` })
-          }
-        }
-      }, { timeout: 50000 }))
-    } catch (err) {
-      console.error('[upload] legacy transaction failed', err)
-      return NextResponse.json({ error: 'فشل حفظ البيانات' }, { status: 500 })
-    }
-
-    return NextResponse.json({ imported, errors: [...errors, ...dbErrors, ...scopeErrors] })
+    return NextResponse.json(
+      { error: 'صيغة الملف غير مدعومة. استخدم قالب رفع النشاط' },
+      { status: 400 }
+    )
   } catch (err) {
     console.error('[upload] unhandled error', err)
     return NextResponse.json({ error: 'حدث خطأ أثناء معالجة الملف' }, { status: 500 })

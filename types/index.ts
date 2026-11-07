@@ -39,20 +39,6 @@ export interface DrillDownRow {
   variance: KpiVariance
 }
 
-export interface UploadRow {
-  kpiId: string
-  period: 'Q1' | 'Q2' | 'Q3' | 'Q4' | 'ANNUAL'
-  year: number
-  value: number
-  region?: string
-  facility?: string
-}
-
-export interface UploadValidationResult {
-  valid: UploadRow[]
-  errors: Array<{ row: number; message: string }>
-}
-
 export interface ActivityRow {
   nameAr: string
   pillar: PillarId

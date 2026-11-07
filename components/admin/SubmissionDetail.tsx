@@ -119,6 +119,7 @@ export function SubmissionDetail({ submissionId }: { submissionId: string }) {
   })
 
   const [approvingAll, setApprovingAll] = useState(false)
+  const [approveAllError, setApproveAllError] = useState('')
 
   function refresh() {
     qc.invalidateQueries({ queryKey: ['admin-submission', submissionId] })
@@ -128,9 +129,20 @@ export function SubmissionDetail({ submissionId }: { submissionId: string }) {
 
   async function approveAll() {
     setApprovingAll(true)
-    await fetch(`/api/admin/submissions/${submissionId}/approve-all`, { method: 'POST' })
-    setApprovingAll(false)
-    refresh()
+    setApproveAllError('')
+    try {
+      const res = await fetch(`/api/admin/submissions/${submissionId}/approve-all`, { method: 'POST' })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string }
+        setApproveAllError(body.error ?? `خطأ ${res.status}`)
+        return
+      }
+      refresh()
+    } catch {
+      setApproveAllError('خطأ في الاتصال بالخادم')
+    } finally {
+      setApprovingAll(false)
+    }
   }
 
   if (isLoading) return <div className="h-32 rounded-xl animate-pulse" style={{ background: 'var(--bg-alt)' }} />
@@ -158,6 +170,9 @@ export function SubmissionDetail({ submissionId }: { submissionId: string }) {
           </button>
         )}
       </div>
+      {approveAllError && (
+        <p className="text-sm text-red-600 text-center">{approveAllError}</p>
+      )}
 
       {/* Rows table */}
       <table className="w-full text-sm border-collapse">

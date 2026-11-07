@@ -3,6 +3,9 @@ import { auth } from '@/auth'
 import { prisma, withAuditUser } from '@/lib/prisma'
 import { Period } from '@prisma/client'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 async function requireAdmin() {
   const session = await auth()
   if (!session || session.user.role !== 'ADMIN') return null
@@ -18,43 +21,59 @@ export async function POST(
 
   const { id } = await params
 
-  const pendingRows = await prisma.submissionRow.findMany({
-    where: { submissionId: id, status: 'PENDING' },
-  })
+  let approved = 0
 
-  if (pendingRows.length === 0) {
-    return NextResponse.json({ approved: 0 })
-  }
+  try {
+    await withAuditUser(session.user.id, () =>
+      prisma.$transaction(async tx => {
+        // Fetch pending rows INSIDE the transaction for a consistent snapshot
+        const pendingRows = await tx.submissionRow.findMany({
+          where: { submissionId: id, status: 'PENDING' },
+        })
 
-  await withAuditUser(session.user.id, () =>
-    prisma.$transaction(async tx => {
-      for (const row of pendingRows) {
-        if (row.tableType === 'TARGET') {
-          await tx.target.upsert({
-            where: { kpiId_period_year: { kpiId: row.kpiId, period: row.period as Period, year: row.year } },
-            create: { kpiId: row.kpiId, period: row.period as Period, year: row.year, value: row.newValue },
-            update: { value: row.newValue },
+        if (pendingRows.length === 0) return
+
+        for (const row of pendingRows) {
+          // Atomic per-row claim — skips rows already processed by a concurrent single-approve
+          const claimed = await tx.submissionRow.updateMany({
+            where: { id: row.id, status: 'PENDING' },
+            data: { status: 'APPROVED', reviewedAt: new Date(), reviewedBy: session.user.id },
           })
-        } else {
-          await tx.actual.upsert({
-            where: { kpiId_period_year: { kpiId: row.kpiId, period: row.period as Period, year: row.year } },
-            create: { kpiId: row.kpiId, period: row.period as Period, year: row.year, value: row.newValue },
-            update: { value: row.newValue },
-          })
+          if (claimed.count === 0) continue
+
+          if (row.tableType === 'TARGET') {
+            await tx.target.upsert({
+              where: { kpiId_period_year: { kpiId: row.kpiId, period: row.period as Period, year: row.year } },
+              create: { kpiId: row.kpiId, period: row.period as Period, year: row.year, value: row.newValue },
+              update: { value: row.newValue },
+            })
+          } else {
+            await tx.actual.upsert({
+              where: { kpiId_period_year: { kpiId: row.kpiId, period: row.period as Period, year: row.year } },
+              create: { kpiId: row.kpiId, period: row.period as Period, year: row.year, value: row.newValue },
+              update: { value: row.newValue },
+            })
+          }
+
+          approved++
         }
 
-        await tx.submissionRow.update({
-          where: { id: row.id },
-          data: { status: 'APPROVED', reviewedAt: new Date(), reviewedBy: session.user.id },
+        // Auto-close if no PENDING rows remain (handles partial concurrent approvals)
+        const stillPending = await tx.submissionRow.count({
+          where: { submissionId: id, status: 'PENDING' },
         })
-      }
+        if (stillPending === 0) {
+          await tx.uploadSubmission.update({
+            where: { id },
+            data: { status: 'APPROVED' },
+          })
+        }
+      }, { timeout: 30000 })
+    )
+  } catch (err) {
+    console.error('[approve-all] transaction failed', err)
+    return NextResponse.json({ error: 'فشل معالجة الطلبات' }, { status: 500 })
+  }
 
-      await tx.uploadSubmission.update({
-        where: { id },
-        data: { status: 'APPROVED' },
-      })
-    })
-  )
-
-  return NextResponse.json({ approved: pendingRows.length })
+  return NextResponse.json({ approved })
 }
