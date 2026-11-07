@@ -3,6 +3,8 @@ import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { computeYtd } from '@/lib/kpi'
 import { REPORTING_YEAR } from '@/lib/config'
+import { DEPARTMENTS } from '@/lib/departments'
+import type { Pillar } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,9 +41,22 @@ export async function GET(req: NextRequest) {
   type Quarter = typeof VALID_QUARTERS[number]
   const isQuarter = (VALID_QUARTERS as readonly string[]).includes(period)
 
+  // division is required — prevents cross-sector bleed
+  const division = searchParams.get('division')
+  const divisionPillars = division
+    ? DEPARTMENTS.filter(d => d.division === division).map(d => d.id as Pillar)
+    : []
+  if (!division || divisionPillars.length === 0) {
+    return NextResponse.json({ error: 'قطاع غير صالح' }, { status: 400 })
+  }
+
   try {
     const kpis = await prisma.kpiRegistry.findMany({
-      where: { unit: 'COUNT' },
+      where: {
+        unit: 'COUNT',
+        showInDashboard: true,
+        pillar: { in: divisionPillars },
+      },
       take: 500,
       include: {
         actuals:  { where: { year } },
