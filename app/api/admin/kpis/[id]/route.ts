@@ -94,6 +94,7 @@ export async function PATCH(
       activityType: updated.activityType,
       unit: updated.unit,
       owner: updated.owner,
+      showInDashboard: updated.showInDashboard,
     })
   } catch (err) {
     console.error('[admin/kpis] update failed', err)

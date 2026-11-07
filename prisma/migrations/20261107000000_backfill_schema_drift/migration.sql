@@ -4,7 +4,7 @@
 -- Coverage (relative to 20260610190755_init):
 --   • Pillar: 6 missing values (3 from migration 2 + 3 new)
 --   • New enums: ActivityType, SubmissionStatus, RowStatus
---   • KpiRegistry: slug, activityType columns
+--   • KpiRegistry: slug, activityType, showInDashboard columns
 --   • User: passwordResetRequested, assignedPillarId columns
 --   • New tables: UploadSubmission, SubmissionRow, Comment
 --   • Missing indexes on Target, Actual, AuditLog + all new-table indexes
@@ -32,6 +32,7 @@ CREATE TYPE "RowStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'DISMISSED')
 
 ALTER TABLE "KpiRegistry" ADD COLUMN "slug" TEXT;
 ALTER TABLE "KpiRegistry" ADD COLUMN "activityType" "ActivityType" NOT NULL DEFAULT 'MONTHLY_VARIANCE';
+ALTER TABLE "KpiRegistry" ADD COLUMN IF NOT EXISTS "showInDashboard" BOOLEAN NOT NULL DEFAULT false;
 
 -- ── User: new columns ─────────────────────────────────────────────────────────
 
