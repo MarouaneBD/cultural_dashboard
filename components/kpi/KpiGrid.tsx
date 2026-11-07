@@ -1,9 +1,12 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useSession } from 'next-auth/react'
 import { REPORTING_YEAR } from '@/lib/config'
 import { useSearchParams } from 'next/navigation'
 import { KpiCard } from './KpiCard'
+import { KpiEditModal } from '@/components/admin/KpiEditModal'
 import type { KpiWithVariance, PillarId } from '@/types'
 
 interface KpiGridProps {
@@ -15,6 +18,11 @@ export function KpiGrid({ pillar, onKpiClick }: KpiGridProps) {
   const params = useSearchParams()
   const year = params.get('year') ?? String(REPORTING_YEAR)
   const period = params.get('period') ?? 'ANNUAL'
+  const { data: session } = useSession()
+  const isAdmin = session?.user?.role === 'ADMIN'
+  const qc = useQueryClient()
+
+  const [editingKpiId, setEditingKpiId] = useState<string | null>(null)
 
   const { data: kpis, isLoading, error } = useQuery<KpiWithVariance[]>({
     queryKey: ['kpis', year, period, pillar],
@@ -63,14 +71,29 @@ export function KpiGrid({ pillar, onKpiClick }: KpiGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4">
-      {list.map(kpi => (
-        <KpiCard
-          key={kpi.id}
-          kpi={kpi}
-          onClick={() => onKpiClick?.(kpi)}
+    <>
+      <div className="grid grid-cols-2 gap-4">
+        {list.map(kpi => (
+          <KpiCard
+            key={kpi.id}
+            kpi={kpi}
+            onClick={() => onKpiClick?.(kpi)}
+            isAdmin={isAdmin}
+            onEdit={() => setEditingKpiId(kpi.id)}
+          />
+        ))}
+      </div>
+
+      {editingKpiId && (
+        <KpiEditModal
+          kpiId={editingKpiId}
+          onClose={() => setEditingKpiId(null)}
+          onSaved={() => {
+            qc.invalidateQueries({ queryKey: ['kpis'] })
+            setEditingKpiId(null)
+          }}
         />
-      ))}
-    </div>
+      )}
+    </>
   )
 }

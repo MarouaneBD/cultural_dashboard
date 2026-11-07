@@ -2,6 +2,7 @@
 
 import { formatValue, formatVariancePct } from '@/lib/kpi'
 import { SparklineChart } from '@/components/charts/SparklineChart'
+import { Pencil } from 'lucide-react'
 import type { KpiWithVariance } from '@/types'
 
 // Fixed accent — never changes based on performance
@@ -10,9 +11,11 @@ const CARD_COLOR = '#0891b2'
 interface KpiCardProps {
   kpi: KpiWithVariance
   onClick?: () => void
+  isAdmin?: boolean
+  onEdit?: () => void
 }
 
-export function KpiCard({ kpi, onClick }: KpiCardProps) {
+export function KpiCard({ kpi, onClick, isAdmin, onEdit }: KpiCardProps) {
   const { variance, unit } = kpi
   const fillPct = Math.min(Math.max(variance.pct, 0), 100)
 
@@ -20,13 +23,24 @@ export function KpiCard({ kpi, onClick }: KpiCardProps) {
     <button
       onClick={onClick}
       data-variance={variance.color}
-      className="card-interactive w-full text-right rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-[3px] flex flex-col gap-3 border"
+      className="group card-interactive w-full text-right rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-[3px] flex flex-col gap-3 border relative"
       style={{
         background: 'var(--card-bg)',
         borderColor: 'var(--border)',
         borderTop: `3px solid ${CARD_COLOR}`,
       }}
     >
+      {isAdmin && onEdit && (
+        <span
+          role="button"
+          aria-label="تعديل المؤشر"
+          onClick={e => { e.stopPropagation(); onEdit() }}
+          className="absolute top-3 left-3 p-1 rounded opacity-0 group-hover:opacity-100 hover:!opacity-100 transition-opacity"
+          style={{ color: 'var(--ink-muted)' }}
+        >
+          <Pencil size={13} />
+        </span>
+      )}
       {/* Header: KPI name */}
       <p className="text-[13px] leading-snug text-right" style={{ color: 'var(--ink-soft)' }}>
         {kpi.nameAr}
