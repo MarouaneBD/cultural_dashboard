@@ -12,6 +12,7 @@ const mockKpi = {
   activityType: 'CUMULATIVE',
   unit: 'COUNT',
   owner: 'تعليم',
+  showInDashboard: false,
 }
 
 jest.mock('@/lib/prisma', () => ({
@@ -146,4 +147,57 @@ it('PATCH: pillar field is silently ignored', async () => {
   expect(res.status).toBe(200)
   const updateCall = mockPrisma.kpiRegistry.update.mock.calls[0][0]
   expect(updateCall.data.pillar).toBeUndefined()
+})
+
+// ── GET: showInDashboard ──────────────────────────────────────────────────────
+
+describe('GET: returns showInDashboard field', () => {
+  it('includes showInDashboard false in response', async () => {
+    mockAuth.mockResolvedValue({ user: { role: 'ADMIN', id: 'u1' } })
+    mockPrisma.kpiRegistry.findUnique.mockResolvedValue({ ...mockKpi, showInDashboard: false })
+    const req = new NextRequest('http://localhost/api/admin/kpis/kpi-1')
+    const res = await GET(req, makeParams('kpi-1'))
+    const body = await res.json()
+    expect(body.showInDashboard).toBe(false)
+  })
+
+  it('includes showInDashboard true in response', async () => {
+    mockAuth.mockResolvedValue({ user: { role: 'ADMIN', id: 'u1' } })
+    mockPrisma.kpiRegistry.findUnique.mockResolvedValue({ ...mockKpi, showInDashboard: true })
+    const req = new NextRequest('http://localhost/api/admin/kpis/kpi-1')
+    const res = await GET(req, makeParams('kpi-1'))
+    const body = await res.json()
+    expect(body.showInDashboard).toBe(true)
+  })
+})
+
+// ── PATCH: showInDashboard ────────────────────────────────────────────────────
+
+describe('PATCH: showInDashboard field', () => {
+  it('updates showInDashboard to true', async () => {
+    mockAuth.mockResolvedValue({ user: { role: 'ADMIN', id: 'u1' } })
+    mockPrisma.kpiRegistry.findUnique.mockResolvedValue(mockKpi)
+    mockPrisma.kpiRegistry.update.mockResolvedValue({ ...mockKpi, showInDashboard: true })
+    const req = new NextRequest('http://localhost/api/admin/kpis/kpi-1', {
+      method: 'PATCH',
+      body: JSON.stringify({ showInDashboard: true }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const res = await PATCH(req, makeParams('kpi-1'))
+    expect(res.status).toBe(200)
+    const updateCall = mockPrisma.kpiRegistry.update.mock.calls[0][0]
+    expect(updateCall.data.showInDashboard).toBe(true)
+  })
+
+  it('returns 400 when only showInDashboard=undefined and nothing else', async () => {
+    mockAuth.mockResolvedValue({ user: { role: 'ADMIN', id: 'u1' } })
+    mockPrisma.kpiRegistry.findUnique.mockResolvedValue(mockKpi)
+    const req = new NextRequest('http://localhost/api/admin/kpis/kpi-1', {
+      method: 'PATCH',
+      body: JSON.stringify({}),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const res = await PATCH(req, makeParams('kpi-1'))
+    expect(res.status).toBe(400)
+  })
 })

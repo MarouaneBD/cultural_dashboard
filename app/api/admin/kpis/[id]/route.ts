@@ -29,6 +29,7 @@ export async function GET(
     activityType: kpi.activityType,
     unit: kpi.unit,
     owner: kpi.owner,
+    showInDashboard: kpi.showInDashboard,
   })
 }
 
@@ -41,7 +42,7 @@ export async function PATCH(
 
   const { id } = await params
 
-  let body: { nameAr?: string; activityType?: string; unit?: string; owner?: string; pillar?: unknown }
+  let body: { nameAr?: string; activityType?: string; unit?: string; owner?: string; pillar?: unknown; showInDashboard?: boolean }
   try {
     body = await req.json()
   } catch {
@@ -49,9 +50,9 @@ export async function PATCH(
   }
 
   // Pillar is immutable — silently exclude it
-  const { nameAr, activityType, unit, owner } = body
+  const { nameAr, activityType, unit, owner, showInDashboard } = body
 
-  if (nameAr === undefined && activityType === undefined && unit === undefined && owner === undefined) {
+  if (nameAr === undefined && activityType === undefined && unit === undefined && owner === undefined && showInDashboard === undefined) {
     return NextResponse.json({ error: 'لا توجد حقول للتحديث' }, { status: 400 })
   }
 
@@ -77,6 +78,7 @@ export async function PATCH(
   if (activityType !== undefined) patch.activityType = activityType
   if (unit !== undefined) patch.unit = unit
   if (owner !== undefined) patch.owner = owner || null
+  if (showInDashboard !== undefined) patch.showInDashboard = Boolean(showInDashboard)
 
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: 'لا توجد حقول للتحديث' }, { status: 400 })
