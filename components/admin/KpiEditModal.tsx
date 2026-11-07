@@ -10,6 +10,7 @@ type KpiData = {
   activityType: string
   unit: string
   owner: string | null
+  showInDashboard: boolean
 }
 
 interface Props {
@@ -24,6 +25,7 @@ export function KpiEditModal({ kpiId, onClose, onSaved }: Props) {
   const [activityType, setActivityType] = useState('')
   const [unit, setUnit] = useState('')
   const [owner, setOwner] = useState('')
+  const [showInDashboard, setShowInDashboard] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [nameError, setNameError] = useState('')
@@ -39,6 +41,7 @@ export function KpiEditModal({ kpiId, onClose, onSaved }: Props) {
         setActivityType(d.activityType)
         setUnit(d.unit)
         setOwner(d.owner ?? '')
+        setShowInDashboard(d.showInDashboard ?? false)
         setLoading(false)
       })
       .catch(() => {
@@ -56,11 +59,12 @@ export function KpiEditModal({ kpiId, onClose, onSaved }: Props) {
       return
     }
 
-    const patch: Record<string, string | null> = {}
+    const patch: Record<string, string | boolean | null> = {}
     if (data && nameAr.trim() !== data.nameAr) patch.nameAr = nameAr.trim()
     if (data && activityType !== data.activityType) patch.activityType = activityType
     if (data && unit !== data.unit) patch.unit = unit
     if (data && (owner || null) !== data.owner) patch.owner = owner || null
+    if (data && showInDashboard !== data.showInDashboard) patch.showInDashboard = showInDashboard
 
     if (Object.keys(patch).length === 0) { onClose(); return }
 
@@ -164,6 +168,29 @@ export function KpiEditModal({ kpiId, onClose, onSaved }: Props) {
                 className="w-full rounded-lg border px-3 py-2 text-sm"
                 style={{ borderColor: 'var(--border)', background: 'var(--bg-alt)', color: 'var(--ink)' }}
               />
+            </div>
+
+            {/* Show in sector homepage */}
+            <div className="flex items-center justify-between py-2 border-t" style={{ borderColor: 'var(--border)' }}>
+              <div>
+                <p className="text-sm font-medium" style={{ color: 'var(--ink)' }}>عرض في الصفحة الرئيسية للقطاع</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--ink-muted)' }}>عند التفعيل، يظهر هذا المؤشر في مخطط القطاع</p>
+              </div>
+              {/* dir="ltr" keeps standard LTR knob travel (left=off, right=on) regardless of page RTL */}
+              <button
+                type="button"
+                dir="ltr"
+                onClick={() => setShowInDashboard(v => !v)}
+                className="relative inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors"
+                style={{ background: showInDashboard ? 'var(--accent)' : 'var(--border)' }}
+                role="switch"
+                aria-checked={showInDashboard}
+              >
+                <span
+                  className="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform mt-0.5"
+                  style={{ transform: showInDashboard ? 'translateX(1.375rem)' : 'translateX(0.125rem)' }}
+                />
+              </button>
             </div>
 
             {submitError && <p className="text-xs text-red-600">{submitError}</p>}
