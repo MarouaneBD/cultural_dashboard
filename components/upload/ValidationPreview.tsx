@@ -1,10 +1,8 @@
-import type { UploadValidationResult, ActivityUploadResult } from '@/types'
+import type { ActivityUploadResult } from '@/types'
 import { DEPT_MAP } from '@/lib/departments'
 import { REPORTING_YEAR } from '@/lib/config'
 
-type Props =
-  | { mode: 'legacy';   result: UploadValidationResult }
-  | { mode: 'activity'; result: ActivityUploadResult }
+type Props = { mode: 'activity'; result: ActivityUploadResult }
 
 export function ValidationPreview(props: Props) {
   const errors = props.result.errors
@@ -22,7 +20,7 @@ export function ValidationPreview(props: Props) {
         </div>
       )}
 
-      {props.mode === 'activity' && props.result.rows.length > 0 && (
+      {props.result.rows.length > 0 && (
         <div>
           <p className="text-sm text-slate-600 mb-2">
             {props.result.rows.length} نشاط جاهز للاستيراد
@@ -51,36 +49,6 @@ export function ValidationPreview(props: Props) {
                   <td className="p-2 border tabular-nums">{row.actual2025?.toLocaleString('ar-AE') ?? '—'}</td>
                   <td className="p-2 border tabular-nums">{row.target2026?.toLocaleString('ar-AE') ?? '—'}</td>
                   <td className="p-2 border tabular-nums">{row.actuals.Q1?.toLocaleString('ar-AE') ?? '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {props.mode === 'legacy' && props.result.valid.length > 0 && (
-        <div>
-          <p className="text-sm text-slate-600 mb-2">
-            {props.result.valid.length} سجل جاهز للاستيراد
-          </p>
-          <table className="w-full text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-50 text-slate-500">
-                <th className="text-right p-2 border">KPI ID</th>
-                <th className="text-right p-2 border">الفترة</th>
-                <th className="text-right p-2 border">السنة</th>
-                <th className="text-right p-2 border">القيمة</th>
-                <th className="text-right p-2 border">المنطقة</th>
-              </tr>
-            </thead>
-            <tbody>
-              {props.result.valid.map((row, i) => (
-                <tr key={i} className="border-b">
-                  <td className="p-2 border font-mono">{row.kpiId}</td>
-                  <td className="p-2 border">{row.period}</td>
-                  <td className="p-2 border">{row.year}</td>
-                  <td className="p-2 border tabular-nums">{row.value.toLocaleString('ar-AE')}</td>
-                  <td className="p-2 border">{row.region ?? '—'}</td>
                 </tr>
               ))}
             </tbody>

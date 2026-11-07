@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Period, Pillar } from '@prisma/client'
-import { isActivityFile, parseActivityFile, parseExcelFile } from '@/lib/excel'
+import { isActivityFile, parseActivityFile } from '@/lib/excel'
 import { prisma, withAuditUser } from '@/lib/prisma'
 import { auth } from '@/auth'
 import { REPORTING_YEAR, PREV_REPORTING_YEAR } from '@/lib/config'
@@ -244,69 +244,10 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // ── Legacy format ──────────────────────────────────────────────────────────
-    const { valid, errors } = parseExcelFile(buffer)
-
-    if (dryRun) {
-      return NextResponse.json({ dryRun: true, preview: valid, errors })
-    }
-
-    const isEditor = session!.user.role === 'EDITOR'
-    const assignedPillarId = session!.user.assignedPillarId ?? null
-
-    const dbErrors: Array<{ row: number; message: string }> = []
-    const scopeErrors: Array<{ row: number; message: string }> = []
-    let imported = 0
-
-    // EDITOR scope check — resolve each kpiId to its pillar and reject mismatches
-    let allowedRows = valid
-    if (isEditor) {
-      if (!assignedPillarId) {
-        return NextResponse.json({ error: 'لم يتم تعيين قسم لهذا المحرر، تواصل مع المدير' }, { status: 403 })
-      }
-      const kpiIds = [...new Set(valid.map(r => r.kpiId))]
-      const registryEntries = await prisma.kpiRegistry.findMany({
-        where: { id: { in: kpiIds } },
-        select: { id: true, pillar: true },
-      })
-      const pillarByKpiId = new Map(registryEntries.map(e => [e.id, e.pillar as string]))
-      allowedRows = valid.filter((row, i) => {
-        const pillar = pillarByKpiId.get(row.kpiId)
-        if (!pillar || pillar !== assignedPillarId) {
-          scopeErrors.push({ row: i + 2, message: `ليس لديك صلاحية رفع بيانات المؤشر: ${row.kpiId}` })
-          return false
-        }
-        return true
-      })
-    }
-
-    try {
-      await withAuditUser(session!.user.id, () => prisma.$transaction(async (tx: TxClient) => {
-        for (let i = 0; i < allowedRows.length; i++) {
-          const row = allowedRows[i]
-          try {
-            await tx.actual.create({
-              data: {
-                kpiId: row.kpiId,
-                period: row.period as Period,
-                year: row.year,
-                value: row.value,
-                region: row.region,
-                facility: row.facility,
-              },
-            })
-            imported++
-          } catch {
-            dbErrors.push({ row: i + 2, message: `خطأ في حفظ البيانات: ${row.kpiId}` })
-          }
-        }
-      }, { timeout: 50000 }))
-    } catch (err) {
-      console.error('[upload] legacy transaction failed', err)
-      return NextResponse.json({ error: 'فشل حفظ البيانات' }, { status: 500 })
-    }
-
-    return NextResponse.json({ imported, errors: [...errors, ...dbErrors, ...scopeErrors] })
+    return NextResponse.json(
+      { error: 'صيغة الملف غير مدعومة. استخدم قالب رفع النشاط' },
+      { status: 400 }
+    )
   } catch (err) {
     console.error('[upload] unhandled error', err)
     return NextResponse.json({ error: 'حدث خطأ أثناء معالجة الملف' }, { status: 500 })

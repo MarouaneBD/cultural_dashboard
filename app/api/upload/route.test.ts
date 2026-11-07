@@ -71,6 +71,29 @@ beforeEach(() => {
   mockAuth.mockResolvedValue({ user: { id: 'u1', role: 'EDITOR', assignedPillarId: 'EDUCATION' } })
 })
 
+// ── Legacy format must return 400 ────────────────────────────────────────────
+
+function makeLegacyBuffer(): ArrayBuffer {
+  // A file with no 'الأنشطة' column — the legacy format detector returns false
+  const ws = XLSX.utils.json_to_sheet([{
+    kpiId: 'kpi-existing-01',
+    period: 'Q1',
+    year: 2026,
+    value: 85,
+  }])
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
+  return XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer
+}
+
+it('returns 400 for legacy-format files (no الأنشطة column)', async () => {
+  mockAuth.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN', assignedPillarId: null } })
+  const res = await POST(makeRequest(makeLegacyBuffer()))
+  expect(res.status).toBe(400)
+  const body = await res.json()
+  expect(body.error).toMatch('صيغة الملف غير مدعومة')
+})
+
 // ── Dry-run (no DB writes) ────────────────────────────────────────────────────
 
 it('returns dry-run preview for activity file', async () => {

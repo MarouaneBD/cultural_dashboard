@@ -6,12 +6,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { ValidationPreview } from './ValidationPreview'
-import type { UploadValidationResult, ActivityUploadResult, UploadSubmissionClient } from '@/types'
+import type { ActivityUploadResult, UploadSubmissionClient } from '@/types'
 import { REPORTING_YEAR } from '@/lib/config'
 
 type PreviewState =
   | { mode: 'activity'; result: ActivityUploadResult }
-  | { mode: 'legacy';   result: UploadValidationResult }
 
 export function FileUploader() {
   const { data: session, status: sessionStatus } = useSession()
@@ -55,10 +54,11 @@ export function FileUploader() {
 
       if (body !== null && 'rows' in body) {
         setPreview({ mode: 'activity', result: body as unknown as ActivityUploadResult })
+        setStatus('idle')
       } else {
-        setPreview({ mode: 'legacy', result: body as unknown as UploadValidationResult })
+        setMessage(`خطأ: صيغة ملف غير مدعومة`)
+        setStatus('error')
       }
-      setStatus('idle')
     } catch (e) {
       setMessage(`خطأ في الاتصال بالخادم: ${String(e)}`)
       setStatus('error')
@@ -90,10 +90,11 @@ export function FileUploader() {
         if (r.queued && r.queued > 0) {
           qc.invalidateQueries({ queryKey: ['editor-submissions-count'] })
         }
-      } else if (body !== null) {
-        setMessage(`تم استيراد ${(body as { imported: number }).imported} سجل بنجاح`)
+        setStatus('done')
+      } else {
+        setMessage(`خطأ: رد غير متوقع من الخادم`)
+        setStatus('error')
       }
-      setStatus('done')
       setPreview(null)
     } catch (e) {
       setMessage(`خطأ في الاتصال بالخادم: ${String(e)}`)
@@ -124,11 +125,7 @@ export function FileUploader() {
     }
   }
 
-  const hasRows = preview
-    ? preview.mode === 'activity'
-      ? preview.result.rows.length > 0
-      : preview.result.valid.length > 0
-    : false
+  const hasRows = preview ? preview.result.rows.length > 0 : false
 
   const hasNoErrors = preview ? preview.result.errors.length === 0 : false
 
@@ -200,10 +197,7 @@ export function FileUploader() {
                 onClick={handleCommit}
                 className="bg-[#0f4024] text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-[#0f4024]/90"
               >
-                {preview.mode === 'activity'
-                  ? `تأكيد الاستيراد (${preview.result.rows.length} نشاط)`
-                  : `تأكيد الاستيراد (${preview.result.valid.length} سجل)`
-                }
+                تأكيد الاستيراد ({preview.result.rows.length} نشاط)
               </button>
             </div>
           )}
