@@ -1,134 +1,55 @@
+/**
+ * Unit tests for the still-active functions in lib/excel.ts.
+ *
+ * Tests for the removed legacy-format functions (validateRow, normalizeRow,
+ * parseExcelFile) were deleted alongside those functions in c9fbe72. The
+ * legacy-format rejection path is covered at the HTTP layer in
+ * app/api/upload/route.test.ts.
+ *
+ * The original parseActivityFile describe had 5 tests (not 6); the XLSX.read
+ * throws test only existed in the now-deleted parseExcelFile block. We restore
+ * those 7 tests (2 isActivityFile + 5 parseActivityFile) and add a unit test
+ * for normalizeAr, which became an exported function in f3408b8 and has no
+ * other direct coverage.
+ */
+
 import * as XLSX from 'xlsx'
-import { validateRow, normalizeRow, parseExcelFile, isActivityFile, parseActivityFile } from '@/lib/excel'
+import { isActivityFile, parseActivityFile, normalizeAr } from '@/lib/excel'
 
-describe('validateRow', () => {
-  it('returns no errors for a valid row', () => {
-    const errors = validateRow({ kpiId: 'k1', period: 'Q1', year: 2026, value: 100 }, 1)
-    expect(errors).toHaveLength(0)
-  })
+// ── Shared buffer builder ──────────────────────────────────────────────────────
 
-  it('returns error when kpiId is missing', () => {
-    const errors = validateRow({ kpiId: '', period: 'Q1', year: 2026, value: 100 }, 2)
-    expect(errors[0]).toMatch(/kpiId/)
-  })
+function makeBuffer(rows: Record<string, unknown>[]): ArrayBuffer {
+  const ws = XLSX.utils.json_to_sheet(rows)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
+  return XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer
+}
 
-  it('returns error for invalid period', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const errors = validateRow({ kpiId: 'k1', period: 'X3' as any, year: 2026, value: 100 }, 3)
-    expect(errors[0]).toMatch(/period/)
-  })
+const validRow = {
+  'الوحدة التنظيمية': 'ادارة التعليم',
+  'الأنشطة': 'برامج التعليم القرآني',
+  '2025': 80,
+  'المستهدف 2026': 100,
+  '2026 Q1': 85,
+  'الفئة': 'تعليم',
+}
 
-  it('returns error for non-numeric value', () => {
-    const errors = validateRow({ kpiId: 'k1', period: 'Q2', year: 2026, value: NaN }, 4)
-    expect(errors[0]).toMatch(/value/)
-  })
-
-  it('returns error for year outside 2020-2030', () => {
-    const errors = validateRow({ kpiId: 'k1', period: 'Q1', year: 1999, value: 50 }, 5)
-    expect(errors[0]).toMatch(/year/)
-  })
-})
-
-describe('normalizeRow', () => {
-  it('trims whitespace from string fields', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const row = normalizeRow({ kpiId: '  k1  ', period: ' Q1 ' as any, year: 2026, value: 10 })
-    expect(row.kpiId).toBe('k1')
-    expect(row.period).toBe('Q1')
-  })
-
-  it('coerces string numbers to numbers', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const row = normalizeRow({ kpiId: 'k1', period: 'Q1', year: '2026' as any, value: '99.5' as any })
-    expect(typeof row.year).toBe('number')
-    expect(typeof row.value).toBe('number')
-  })
-})
-
-describe('parseExcelFile', () => {
-  function makeBuffer(rows: Record<string, unknown>[]): ArrayBuffer {
-    const ws = XLSX.utils.json_to_sheet(rows)
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
-    const out = XLSX.write(wb, { type: 'array', bookType: 'xlsx' })
-    return out as ArrayBuffer
-  }
-
-  it('returns valid rows for a well-formed file', () => {
-    const buffer = makeBuffer([{ kpiId: 'k1', period: 'Q1', year: 2026, value: 100 }])
-    const result = parseExcelFile(buffer)
-    expect(result.valid).toHaveLength(1)
-    expect(result.errors).toHaveLength(0)
-  })
-
-  it('returns errors for invalid rows', () => {
-    const buffer = makeBuffer([{ kpiId: '', period: 'Q1', year: 2026, value: 100 }])
-    const result = parseExcelFile(buffer)
-    expect(result.valid).toHaveLength(0)
-    expect(result.errors).toHaveLength(1)
-    expect(result.errors[0].message).toMatch(/kpiId/)
-  })
-
-  it('returns structured error when XLSX.read throws', () => {
-    // Pass null to trigger a try/catch (XLSX.read will throw on null)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = parseExcelFile(null as any)
-    expect(result.valid).toHaveLength(0)
-    expect(result.errors).toHaveLength(1)
-    expect(result.errors[0].row).toBe(0)
-    expect(result.errors[0].message).toMatch(/تعذّر/)
-  })
-
-  it('row numbers in errors account for header offset (start at 2)', () => {
-    const buffer = makeBuffer([
-      { kpiId: 'k1', period: 'Q1', year: 2026, value: 100 },
-      { kpiId: '', period: 'Q1', year: 2026, value: 50 },
-    ])
-    const result = parseExcelFile(buffer)
-    expect(result.errors[0].row).toBe(3) // row 1=header, row 2=first data, row 3=second data
-  })
-})
+// ── isActivityFile ─────────────────────────────────────────────────────────────
 
 describe('isActivityFile', () => {
-  function makeActivityBuffer(): ArrayBuffer {
-    const ws = XLSX.utils.json_to_sheet([
-      { 'الوحدة التنظيمية': 'ادارة التعليم', 'الأنشطة': 'نشاط 1', '2025': 80, 'المستهدف 2026': 100, '2026 Q1': 85, 'الفئة': 'تعليم' },
-    ])
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
-    return XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer
-  }
-
   it('returns true when الأنشطة header is present', () => {
-    expect(isActivityFile(makeActivityBuffer())).toBe(true)
+    expect(isActivityFile(makeBuffer([validRow]))).toBe(true)
   })
 
-  it('returns false for the legacy format', () => {
-    const ws = XLSX.utils.json_to_sheet([{ kpiId: 'k1', period: 'Q1', year: 2026, value: 100 }])
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
-    const buf = XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer
+  it('returns false for the legacy format (no الأنشطة column)', () => {
+    const buf = makeBuffer([{ kpiId: 'k1', period: 'Q1', year: 2026, value: 100 }])
     expect(isActivityFile(buf)).toBe(false)
   })
 })
 
+// ── parseActivityFile ──────────────────────────────────────────────────────────
+
 describe('parseActivityFile', () => {
-  function makeBuffer(rows: Record<string, unknown>[]): ArrayBuffer {
-    const ws = XLSX.utils.json_to_sheet(rows)
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
-    return XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer
-  }
-
-  const validRow = {
-    'الوحدة التنظيمية': 'ادارة التعليم',
-    'الأنشطة': 'برامج التعليم القرآني',
-    '2025': 80,
-    'المستهدف 2026': 100,
-    '2026 Q1': 85,
-    'الفئة': 'تعليم',
-  }
-
   it('parses a valid row correctly', () => {
     const result = parseActivityFile(makeBuffer([validRow]))
     expect(result.rows).toHaveLength(1)
@@ -155,7 +76,8 @@ describe('parseActivityFile', () => {
   })
 
   it('handles missing optional columns gracefully', () => {
-    const { 'الفئة': _, '2025': __, ...rowWithoutOptionals } = validRow
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { 'الفئة': _cat, '2025': _act, ...rowWithoutOptionals } = validRow
     const result = parseActivityFile(makeBuffer([rowWithoutOptionals]))
     expect(result.rows).toHaveLength(1)
     expect(result.rows[0].category).toBeUndefined()
@@ -168,5 +90,17 @@ describe('parseActivityFile', () => {
     expect(result.rows[0].actuals.Q2).toBe(90)
     expect(result.rows[0].actuals.Q3).toBe(92)
     expect(result.rows[0].actuals.Q4).toBeUndefined()
+  })
+})
+
+// ── normalizeAr ───────────────────────────────────────────────────────────────
+// normalizeAr was exported in f3408b8 so the upload route can call it at write
+// time to prevent invisible-Unicode / trailing-space duplicate donut segments.
+
+describe('normalizeAr', () => {
+  it('strips invisible Unicode characters and trims surrounding whitespace', () => {
+    // zero-width space (U+200B), RTL mark (U+200F), trailing space
+    const dirty = '\u200bتعليم\u200f '
+    expect(normalizeAr(dirty)).toBe('تعليم')
   })
 })

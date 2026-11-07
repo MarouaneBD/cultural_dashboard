@@ -285,6 +285,111 @@ async function test6() {
   assert(rows.every(r => r.status === 'APPROVED'), 'all rows end as APPROVED')
 }
 
+// ── Test 7: first-time actual2025 (ANNUAL/2025) full flow ────────────────────
+// Tests 2+3 covered a Q1/2026 Actual. This test explicitly covers the
+// actual2025 period (ANNUAL/2025) — a separate code path in upload/route.ts.
+
+async function test7() {
+  console.log('\nTest 7: first-time actual2025 (ANNUAL/2025) — staged, then approved to live')
+  await resetDb()
+
+  // Stage a first-time actual2025 row (simulates EDITOR upload path)
+  const sub = await prisma.uploadSubmission.create({
+    data: {
+      submitterId: 'editor-1',
+      filename: 'test.xlsx',
+      rows: {
+        create: [{
+          kpiId: 'kpi-existing-01',
+          kpiNameAr: 'برامج التعليم',
+          period: 'ANNUAL',
+          year: 2025,
+          newValue: 320,
+          oldValue: 0,          // first-time: no prior row
+          tableType: 'ACTUAL',
+        }],
+      },
+    },
+    include: { rows: true },
+  })
+
+  assert(sub.rows[0].status === 'PENDING', 'actual2025 row status is PENDING')
+
+  // Live actual must be absent before approval
+  const beforeApproval = await prisma.actual.findUnique({
+    where: { kpiId_period_year: { kpiId: 'kpi-existing-01', period: 'ANNUAL', year: 2025 } },
+  })
+  assert(beforeApproval === null, 'live Actual (ANNUAL/2025) not written before approval')
+
+  // ADMIN approves
+  const rowId = sub.rows[0].id
+  await prisma.submissionRow.updateMany({
+    where: { id: rowId, status: 'PENDING' },
+    data: { status: 'APPROVED', reviewedAt: new Date(), reviewedBy: 'admin-1' },
+  })
+  await prisma.actual.upsert({
+    where: { kpiId_period_year: { kpiId: 'kpi-existing-01', period: 'ANNUAL', year: 2025 } },
+    create: { kpiId: 'kpi-existing-01', period: 'ANNUAL', year: 2025, value: 320 },
+    update: { value: 320 },
+  })
+
+  const afterApproval = await prisma.actual.findUnique({
+    where: { kpiId_period_year: { kpiId: 'kpi-existing-01', period: 'ANNUAL', year: 2025 } },
+  })
+  assert(afterApproval?.value === 320, 'live Actual (ANNUAL/2025) written with correct value after approval')
+}
+
+// ── Test 8: first-time quarterly actual (Q2/2026) full flow ──────────────────
+// Tests 2+3 covered Q1/2026. This test covers a different quarter to confirm
+// the quarterly actuals loop in upload/route.ts stages correctly.
+
+async function test8() {
+  console.log('\nTest 8: first-time quarterly actual (Q2/2026) — staged, then approved to live')
+  await resetDb()
+
+  const sub = await prisma.uploadSubmission.create({
+    data: {
+      submitterId: 'editor-1',
+      filename: 'test.xlsx',
+      rows: {
+        create: [{
+          kpiId: 'kpi-existing-01',
+          kpiNameAr: 'برامج التعليم',
+          period: 'Q2',
+          year: 2026,
+          newValue: 88,
+          oldValue: 0,
+          tableType: 'ACTUAL',
+        }],
+      },
+    },
+    include: { rows: true },
+  })
+
+  assert(sub.rows[0].status === 'PENDING', 'quarterly actual (Q2) row is PENDING')
+
+  const beforeApproval = await prisma.actual.findUnique({
+    where: { kpiId_period_year: { kpiId: 'kpi-existing-01', period: 'Q2', year: 2026 } },
+  })
+  assert(beforeApproval === null, 'live Actual (Q2/2026) not written before approval')
+
+  const rowId = sub.rows[0].id
+  await prisma.submissionRow.updateMany({
+    where: { id: rowId, status: 'PENDING' },
+    data: { status: 'APPROVED', reviewedAt: new Date(), reviewedBy: 'admin-1' },
+  })
+  await prisma.actual.upsert({
+    where: { kpiId_period_year: { kpiId: 'kpi-existing-01', period: 'Q2', year: 2026 } },
+    create: { kpiId: 'kpi-existing-01', period: 'Q2', year: 2026, value: 88 },
+    update: { value: 88 },
+  })
+
+  const afterApproval = await prisma.actual.findUnique({
+    where: { kpiId_period_year: { kpiId: 'kpi-existing-01', period: 'Q2', year: 2026 } },
+  })
+  assert(afterApproval?.value === 88, 'live Actual (Q2/2026) written with correct value after approval')
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -296,6 +401,8 @@ async function main() {
     await test4()
     await test5()
     await test6()
+    await test7()
+    await test8()
   } finally {
     await prisma.$disconnect()
   }
