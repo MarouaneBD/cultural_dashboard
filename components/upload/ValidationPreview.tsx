@@ -4,27 +4,36 @@ import { REPORTING_YEAR } from '@/lib/config'
 
 type Props = { mode: 'activity'; result: ActivityUploadResult }
 
+function ErrorList({ title, errors, color }: {
+  title: string
+  errors: Array<{ row: number; message: string }>
+  color: 'red' | 'amber'
+}) {
+  if (errors.length === 0) return null
+  const styles = color === 'red'
+    ? { border: 'border-red-200', bg: 'bg-red-50', heading: 'text-red-700', text: 'text-red-600' }
+    : { border: 'border-amber-200', bg: 'bg-amber-50', heading: 'text-amber-700', text: 'text-amber-600' }
+  return (
+    <div className={`rounded-lg border ${styles.border} ${styles.bg} p-4`}>
+      <p className={`text-sm font-semibold ${styles.heading} mb-2`}>{title} ({errors.length})</p>
+      <ul className={`text-xs ${styles.text} space-y-1`}>
+        {errors.map((e, i) => <li key={i}>صف {e.row}: {e.message}</li>)}
+      </ul>
+    </div>
+  )
+}
+
 export function ValidationPreview(props: Props) {
-  const errors = props.result.errors
+  const { parseErrors, scopeErrors, rows } = props.result
 
   return (
     <div className="space-y-4">
-      {errors.length > 0 && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <p className="text-sm font-semibold text-red-700 mb-2">
-            {errors.length} أخطاء في الملف
-          </p>
-          <ul className="text-xs text-red-600 space-y-1">
-            {errors.map((e, i) => <li key={i}>{e.message}</li>)}
-          </ul>
-        </div>
-      )}
+      <ErrorList title="أخطاء الصلاحيات" errors={scopeErrors} color="red" />
+      <ErrorList title="أخطاء تحليل الملف" errors={parseErrors} color="amber" />
 
-      {props.result.rows.length > 0 && (
+      {rows.length > 0 && (
         <div>
-          <p className="text-sm text-slate-600 mb-2">
-            {props.result.rows.length} نشاط جاهز للاستيراد
-          </p>
+          <p className="text-sm text-slate-600 mb-2">{rows.length} نشاط جاهز للاستيراد</p>
           <table className="w-full text-xs border-collapse">
             <thead>
               <tr className="bg-slate-50 text-slate-500">
@@ -38,7 +47,7 @@ export function ValidationPreview(props: Props) {
               </tr>
             </thead>
             <tbody>
-              {props.result.rows.map((row, i) => (
+              {rows.map((row, i) => (
                 <tr key={i} className="border-b">
                   <td className="p-2 border font-cairo">{DEPT_MAP[row.pillar]?.labelAr ?? row.pillar}</td>
                   <td className="p-2 border font-cairo">{row.nameAr}</td>
