@@ -141,7 +141,7 @@ it('EDITOR: existing KPI is updated — scopeErrors and dbErrors are empty', asy
   expect(body.updated).toBe(1)
   expect(body.scopeErrors).toHaveLength(0)
   expect(body.dbErrors).toHaveLength(0)
-  expect(mockTx.kpiRegistry.upsert).toHaveBeenCalledTimes(1)
+  expect(mockTx.kpiRegistry.upsert).not.toHaveBeenCalled()
 })
 
 it('ADMIN: novel KPI is created — scopeErrors and dbErrors are empty', async () => {

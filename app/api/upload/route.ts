@@ -132,14 +132,15 @@ export async function POST(req: NextRequest) {
                 continue
               }
 
-              // All users (ADMIN and EDITOR) may upsert KPI registry entries for existing KPIs.
-              // EDITORs are blocked above from creating new KPIs, so by this point the KPI exists.
-              // ADMINs may also create new KPIs via the upsert path (create branch).
-              const kpi = await tx.kpiRegistry.upsert({
-                where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
-                create: { nameAr: row.nameAr, pillar: row.pillar as Pillar, unit: 'COUNT', owner: row.category ? normalizeAr(row.category) : undefined, activityType: row.activityType },
-                update: { activityType: row.activityType, ...(row.category ? { owner: normalizeAr(row.category) } : {}) },
-              })
+              // EDITORs must not modify KPI registry metadata directly (activityType, owner).
+              // At this point existing is guaranteed non-null for EDITORs (novel-KPI guard above).
+              const kpi = isEditor
+                ? existing!
+                : await tx.kpiRegistry.upsert({
+                    where: { nameAr_pillar: { nameAr: row.nameAr, pillar: row.pillar as Pillar } },
+                    create: { nameAr: row.nameAr, pillar: row.pillar as Pillar, unit: 'COUNT', owner: row.category ? normalizeAr(row.category) : undefined, activityType: row.activityType },
+                    update: { activityType: row.activityType, ...(row.category ? { owner: normalizeAr(row.category) } : {}) },
+                  })
 
               if (row.target2026 !== undefined) {
                 if (isEditor) {
