@@ -66,14 +66,14 @@ export function isActivityFile(buffer: ArrayBuffer): boolean {
   }
 }
 
-export function parseActivityFile(buffer: ArrayBuffer): ActivityUploadResult {
+export function parseActivityFile(buffer: ArrayBuffer): Omit<ActivityUploadResult, 'scopeErrors'> {
   try {
     const wb = XLSX.read(new Uint8Array(buffer), { cellDates: true, codepage: 65001 })
     const sheet = wb.Sheets[wb.SheetNames[0]]
     const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' })
 
     const rows: ActivityRow[] = []
-    const errors: Array<{ row: number; message: string }> = []
+    const parseErrors: Array<{ row: number; message: string }> = []
 
     rawRows.forEach((raw, index) => {
       const rowNum = index + 2
@@ -86,7 +86,7 @@ export function parseActivityFile(buffer: ArrayBuffer): ActivityUploadResult {
       const pillar = DEPT_NAME_TO_PILLAR[deptRaw]
 
       if (!pillar) {
-        errors.push({ row: rowNum, message: `الصف ${rowNum}: الوحدة التنظيمية غير معروفة "${deptRaw}"` })
+        parseErrors.push({ row: rowNum, message: `الصف ${rowNum}: الوحدة التنظيمية غير معروفة "${deptRaw}"` })
         return
       }
 
@@ -110,8 +110,8 @@ export function parseActivityFile(buffer: ArrayBuffer): ActivityUploadResult {
       })
     })
 
-    return { rows, errors }
+    return { rows, parseErrors }
   } catch {
-    return { rows: [], errors: [{ row: 0, message: 'تعذّر قراءة الملف — تأكد من أنه ملف Excel صالح' }] }
+    return { rows: [], parseErrors: [{ row: 0, message: 'تعذّر قراءة الملف — تأكد من أنه ملف Excel صالح' }] }
   }
 }

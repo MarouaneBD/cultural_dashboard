@@ -53,7 +53,7 @@ describe('parseActivityFile', () => {
   it('parses a valid row correctly', () => {
     const result = parseActivityFile(makeBuffer([validRow]))
     expect(result.rows).toHaveLength(1)
-    expect(result.errors).toHaveLength(0)
+    expect(result.parseErrors).toHaveLength(0)
     const row = result.rows[0]
     expect(row.nameAr).toBe('برامج التعليم القرآني')
     expect(row.pillar).toBe('EDUCATION')
@@ -66,13 +66,13 @@ describe('parseActivityFile', () => {
   it('returns an error for an unrecognised department', () => {
     const result = parseActivityFile(makeBuffer([{ ...validRow, 'الوحدة التنظيمية': 'قسم مجهول' }]))
     expect(result.rows).toHaveLength(0)
-    expect(result.errors[0].message).toMatch(/الوحدة التنظيمية/)
+    expect(result.parseErrors[0].message).toMatch(/الوحدة التنظيمية/)
   })
 
   it('skips rows with an empty activity name silently', () => {
     const result = parseActivityFile(makeBuffer([{ ...validRow, 'الأنشطة': '' }]))
     expect(result.rows).toHaveLength(0)
-    expect(result.errors).toHaveLength(0)
+    expect(result.parseErrors).toHaveLength(0)
   })
 
   it('handles missing optional columns gracefully', () => {

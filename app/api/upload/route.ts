@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
   try {
     // ── Activity format ────────────────────────────────────────────────────────
     if (isActivityFile(buffer)) {
-      const { rows, errors } = parseActivityFile(buffer)
+      const { rows, parseErrors } = parseActivityFile(buffer)
 
       const isEditor = session!.user.role === 'EDITOR'
       const assignedPillarId = session!.user.assignedPillarId ?? null
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
             }
           }
         }
-        return NextResponse.json({ dryRun: true, rows, parseErrors: errors, scopeErrors: dryRunScopeErrors })
+        return NextResponse.json({ dryRun: true, rows, parseErrors, scopeErrors: dryRunScopeErrors })
       }
 
       let created = 0
@@ -234,7 +234,7 @@ export async function POST(req: NextRequest) {
         staged,
         submissionId,
         scopeErrors,
-        dbErrors: [...errors, ...dbErrors],
+        dbErrors: [...parseErrors, ...dbErrors],
       })
     }
 
