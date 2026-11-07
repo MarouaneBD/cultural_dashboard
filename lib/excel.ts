@@ -39,7 +39,7 @@ const toNum = (v: unknown) => {
 }
 
 /** Strip invisible Unicode chars Excel adds to Arabic text (RTL marks, ZWNBSP, NBSP, etc.) */
-function normalizeAr(s: string): string {
+export function normalizeAr(s: string): string {
   return s.replace(/[\u200b-\u200f\u202a-\u202e\u2060\ufeff\u00a0]/g, '').trim()
 }
 

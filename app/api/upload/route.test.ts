@@ -42,6 +42,17 @@ jest.mock('@/lib/prisma', () => ({
   },
 }))
 
+// Mock parseActivityFile — we'll override it in individual tests
+let mockParseActivityFile = jest.requireActual('@/lib/excel').parseActivityFile
+
+jest.mock('@/lib/excel', () => {
+  const actual = jest.requireActual('@/lib/excel')
+  return {
+    ...actual,
+    parseActivityFile: (...args: unknown[]) => mockParseActivityFile(...args),
+  }
+})
+
 function makeActivityBuffer(nameAr = 'برامج التعليم'): ArrayBuffer {
   const ws = XLSX.utils.json_to_sheet([{
     'الوحدة التنظيمية': 'ادارة التعليم',
@@ -193,4 +204,49 @@ it('EDITOR: target with existing row is staged with correct oldValue', async () 
   const stagedRows: Array<{ oldValue: number }> = createCall.data.rows.create
   const oldValues = stagedRows.map(r => r.oldValue)
   expect(oldValues).toContain(90)  // from target.findUnique
+})
+
+// ── owner normalization ───────────────────────────────────────────────────────
+
+function makeActivityBufferWithDirtyCategory(): ArrayBuffer {
+  const ws = XLSX.utils.json_to_sheet([{
+    'الوحدة التنظيمية': 'ادارة التعليم',
+    'الأنشطة': 'برامج التعليم',
+    '2025': 80,
+    'المستهدف 2026': 100,
+    '2026 Q1': 85,
+    'الفئة': 'تعليم ',   // trailing space
+  }])
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
+  return XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer
+}
+
+it('ADMIN: owner is normalized (trimmed) before upsert', async () => {
+  mockAuth.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN', assignedPillarId: null } })
+  mockTx = makeTxMock(null)
+
+  // Mock parseActivityFile to return dirty data (with trailing space) to test write-time normalization
+  mockParseActivityFile = jest.fn().mockReturnValue({
+    rows: [{
+      nameAr: 'برامج التعليم',
+      pillar: 'EDUCATION',
+      category: 'تعليم ',  // trailing space — not normalized yet
+      actual2025: 80,
+      target2026: 100,
+      actuals: { Q1: 85 },
+      activityType: 'MONTHLY_VARIANCE',
+    }],
+    errors: [],
+  })
+
+  await POST(makeRequest(makeActivityBufferWithDirtyCategory(), false))
+
+  expect(mockTx.kpiRegistry.upsert).toHaveBeenCalledTimes(1)
+  const upsertCall = mockTx.kpiRegistry.upsert.mock.calls[0][0]
+  // owner must not have trailing space — normalization must happen at write time
+  expect(upsertCall.create.owner).toBe('تعليم')
+
+  // Reset for other tests
+  mockParseActivityFile = jest.requireActual('@/lib/excel').parseActivityFile
 })
