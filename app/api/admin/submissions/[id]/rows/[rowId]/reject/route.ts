@@ -51,7 +51,7 @@ export async function POST(
         if (remaining === 0) {
           await tx.uploadSubmission.update({
             where: { id: preflight.submissionId },
-            data: { status: 'APPROVED' },
+            data: { status: 'REJECTED' },
           })
         }
       })
