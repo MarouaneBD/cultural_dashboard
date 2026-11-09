@@ -46,6 +46,14 @@ export async function GET(
     return NextResponse.json({ error: 'قطاع غير صالح' }, { status: 400 })
   }
 
+  // EDITOR scope guard: EDITORs may only read data for their assigned pillar
+  if (session.user.role === 'EDITOR') {
+    const assignedPillarId = session.user.assignedPillarId
+    if (!assignedPillarId || assignedPillarId !== pillar) {
+      return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
+    }
+  }
+
   try {
     const kpis = await prisma.kpiRegistry.findMany({
       where: {

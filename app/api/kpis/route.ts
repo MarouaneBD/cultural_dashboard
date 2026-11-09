@@ -67,6 +67,20 @@ export async function GET(req: NextRequest) {
   const pillar = searchParams.get('pillar') ?? undefined
   const division = searchParams.get('division') ?? undefined
 
+  // EDITOR scope guard: EDITORs may only read data for their assigned pillar/division
+  if (session.user.role === 'EDITOR') {
+    const assignedPillarId = session.user.assignedPillarId
+    if (!assignedPillarId) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
+    const assignedDept = DEPARTMENTS.find(d => d.id === assignedPillarId)
+    if (!assignedDept) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
+    if (pillar && pillar !== assignedPillarId) {
+      return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
+    }
+    if (division && division !== assignedDept.division) {
+      return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
+    }
+  }
+
   // Build pillar filter: division takes precedence over single pillar param
   let pillarFilter: string[] | undefined
   if (division) {
