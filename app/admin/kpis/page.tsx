@@ -97,7 +97,7 @@ export default function AdminKpisPage() {
 
           <form onSubmit={handleCreate} className="space-y-4">
             {/* Step 1: Sector */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium mb-1" style={{ color: 'var(--ink-muted)' }}>القطاع</label>
                 <select
@@ -144,7 +144,7 @@ export default function AdminKpisPage() {
             </div>
 
             {/* Unit + Activity type */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium mb-1" style={{ color: 'var(--ink-muted)' }}>الوحدة</label>
                 <select
@@ -213,7 +213,7 @@ export default function AdminKpisPage() {
           <h2 className="text-base font-semibold" style={{ color: 'var(--ink)' }}>مؤشرات القسم</h2>
 
           {/* Two-step sector→dept selector for grid */}
-          <div className="flex gap-3 items-center">
+          <div className="flex flex-wrap gap-3 items-center">
             <select
               value={viewDivision}
               onChange={e => handleViewDivisionChange(e.target.value as DivisionId)}

@@ -67,50 +67,96 @@ export default async function AuditPage() {
         </div>
 
         <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-xs" style={{ background: 'var(--bg-alt)', borderColor: 'var(--border)', color: 'var(--ink-muted)' }}>
-                <th className="text-right px-4 py-3 font-medium">التوقيت</th>
-                <th className="text-right px-4 py-3 font-medium">المستخدم</th>
-                <th className="text-right px-4 py-3 font-medium">الإجراء</th>
-                <th className="text-right px-4 py-3 font-medium">القيمة السابقة</th>
-                <th className="text-right px-4 py-3 font-medium">القيمة الجديدة</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((log, i) => (
-                <tr
-                  key={log.id}
-                  className="border-b last:border-0 transition-colors"
-                  style={{
-                    borderColor: 'var(--border)',
-                    background: i % 2 === 0 ? 'var(--card-bg)' : 'var(--bg)',
-                  }}
-                >
-                  <td className="px-4 py-3 text-xs tabular-nums whitespace-nowrap" style={{ color: 'var(--ink-muted)' }}>
-                    {formatDate(log.timestamp)}
-                  </td>
-                  <td className="px-4 py-3 text-sm" style={{ color: 'var(--ink)' }}>
-                    {userMap.get(log.userId) ?? log.userId}
-                  </td>
-                  <td className="px-4 py-3">
-                    <ActionBadge action={log.action} />
-                  </td>
-                  <td className="px-4 py-3 max-w-[220px]">
-                    <JsonCell value={log.oldValue} />
-                  </td>
-                  <td className="px-4 py-3 max-w-[220px]">
-                    <JsonCell value={log.newValue} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {logs.length === 0 && (
+          {logs.length === 0 ? (
             <p className="text-center py-16 text-sm" style={{ color: 'var(--ink-muted)' }}>
               لا توجد سجلات بعد
             </p>
+          ) : (
+            <>
+              {/* ── Desktop table (md and above) ── */}
+              <table className="hidden md:table w-full text-sm">
+                <thead>
+                  <tr className="border-b text-xs" style={{ background: 'var(--bg-alt)', borderColor: 'var(--border)', color: 'var(--ink-muted)' }}>
+                    <th className="text-right px-4 py-3 font-medium">التوقيت</th>
+                    <th className="text-right px-4 py-3 font-medium">المستخدم</th>
+                    <th className="text-right px-4 py-3 font-medium">الإجراء</th>
+                    <th className="text-right px-4 py-3 font-medium">القيمة السابقة</th>
+                    <th className="text-right px-4 py-3 font-medium">القيمة الجديدة</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logs.map((log, i) => (
+                    <tr
+                      key={log.id}
+                      className="border-b last:border-0 transition-colors"
+                      style={{
+                        borderColor: 'var(--border)',
+                        background: i % 2 === 0 ? 'var(--card-bg)' : 'var(--bg)',
+                      }}
+                    >
+                      <td className="px-4 py-3 text-xs tabular-nums whitespace-nowrap" style={{ color: 'var(--ink-muted)' }}>
+                        {formatDate(log.timestamp)}
+                      </td>
+                      <td className="px-4 py-3 text-sm" style={{ color: 'var(--ink)' }}>
+                        {userMap.get(log.userId) ?? log.userId}
+                      </td>
+                      <td className="px-4 py-3">
+                        <ActionBadge action={log.action} />
+                      </td>
+                      <td className="px-4 py-3 max-w-[220px]">
+                        <JsonCell value={log.oldValue} />
+                      </td>
+                      <td className="px-4 py-3 max-w-[220px]">
+                        <JsonCell value={log.newValue} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* ── Mobile cards (below md) ── */}
+              <div className="md:hidden divide-y" style={{ borderColor: 'var(--border)' }}>
+                {logs.map((log, i) => (
+                  <div
+                    key={log.id}
+                    className="p-4 space-y-2"
+                    style={{ background: i % 2 === 0 ? 'var(--card-bg)' : 'var(--bg)' }}
+                  >
+                    {/* action badge + timestamp */}
+                    <div className="flex items-center justify-between gap-2">
+                      <ActionBadge action={log.action} />
+                      <span className="text-xs tabular-nums" style={{ color: 'var(--ink-muted)' }}>
+                        {formatDate(log.timestamp)}
+                      </span>
+                    </div>
+
+                    {/* user */}
+                    <p className="text-xs" style={{ color: 'var(--ink)' }}>
+                      <span style={{ color: 'var(--ink-muted)' }}>المستخدم: </span>
+                      {userMap.get(log.userId) ?? log.userId}
+                    </p>
+
+                    {/* old / new values */}
+                    {(log.oldValue || log.newValue) && (
+                      <div className="text-xs space-y-1 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                        {log.oldValue && (
+                          <p className="break-words">
+                            <span style={{ color: 'var(--ink-muted)' }}>السابق: </span>
+                            <JsonCell value={log.oldValue} />
+                          </p>
+                        )}
+                        {log.newValue && (
+                          <p className="break-words">
+                            <span style={{ color: 'var(--ink-muted)' }}>الجديد: </span>
+                            <JsonCell value={log.newValue} />
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </div>

@@ -35,7 +35,7 @@ export function KpiCard({ kpi, onClick, isAdmin, onEdit }: KpiCardProps) {
           role="button"
           aria-label="تعديل المؤشر"
           onClick={e => { e.stopPropagation(); onEdit() }}
-          className="absolute top-3 left-3 p-1 rounded opacity-0 group-hover:opacity-100 hover:!opacity-100 transition-opacity"
+          className="absolute top-3 left-3 p-1 rounded opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:!opacity-100 transition-opacity"
           style={{ color: 'var(--ink-muted)' }}
         >
           <Pencil size={13} />
