@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
+import { X, Trash2 } from 'lucide-react'
 
 type KpiData = {
   id: string
@@ -28,6 +28,8 @@ export function KpiEditModal({ kpiId, onClose, onSaved }: Props) {
   const [showInDashboard, setShowInDashboard] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [nameError, setNameError] = useState('')
   const [submitError, setSubmitError] = useState('')
 
@@ -90,6 +92,27 @@ export function KpiEditModal({ kpiId, onClose, onSaved }: Props) {
       setSubmitError('تعذّر الاتصال بالخادم')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    setSubmitError('')
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/admin/kpis/${kpiId}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string }
+        setSubmitError(body.error ?? `خطأ ${res.status}`)
+        setConfirmDelete(false)
+        return
+      }
+      onSaved()
+      onClose()
+    } catch {
+      setSubmitError('تعذّر الاتصال بالخادم')
+      setConfirmDelete(false)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -195,18 +218,56 @@ export function KpiEditModal({ kpiId, onClose, onSaved }: Props) {
 
             {submitError && <p className="text-xs text-red-600">{submitError}</p>}
 
-            <div className="flex justify-end gap-2 pt-2">
-              <button onClick={onClose} className="text-sm px-4 py-2 rounded-lg" style={{ color: 'var(--ink-muted)' }}>
-                إلغاء
-              </button>
+            {/* Delete confirmation inline */}
+            {confirmDelete && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 space-y-2">
+                <p className="text-xs text-red-700 font-medium">
+                  سيتم حذف المؤشر وجميع بياناته (الأهداف والمتحقق) نهائياً. هذا الإجراء لا يمكن التراجع عنه.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="flex-1 text-xs py-1.5 rounded-lg text-white bg-red-600 disabled:opacity-60"
+                  >
+                    {deleting ? 'جاري الحذف...' : 'تأكيد الحذف'}
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    className="flex-1 text-xs py-1.5 rounded-lg border"
+                    style={{ borderColor: 'var(--border)', color: 'var(--ink-muted)' }}
+                  >
+                    إلغاء
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-2">
+              {/* Delete trigger */}
               <button
-                onClick={handleSave}
-                disabled={saving}
-                className="text-sm px-4 py-2 rounded-lg text-white disabled:opacity-60"
-                style={{ background: 'var(--accent)' }}
+                onClick={() => { setConfirmDelete(true); setSubmitError('') }}
+                disabled={saving || deleting}
+                className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 disabled:opacity-40 transition-colors"
               >
-                {saving ? 'جاري الحفظ...' : 'حفظ'}
+                <Trash2 size={13} />
+                حذف المؤشر
               </button>
+
+              {/* Save / Cancel */}
+              <div className="flex gap-2">
+                <button onClick={onClose} className="text-sm px-4 py-2 rounded-lg" style={{ color: 'var(--ink-muted)' }}>
+                  إلغاء
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving || deleting}
+                  className="text-sm px-4 py-2 rounded-lg text-white disabled:opacity-60"
+                  style={{ background: 'var(--accent)' }}
+                >
+                  {saving ? 'جاري الحفظ...' : 'حفظ'}
+                </button>
+              </div>
             </div>
           </div>
         )}

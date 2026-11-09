@@ -101,3 +101,31 @@ export async function PATCH(
     return NextResponse.json({ error: 'فشل التحديث' }, { status: 500 })
   }
 }
+
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await requireAdmin()
+  if (!session) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
+
+  const { id } = await params
+
+  const kpi = await prisma.kpiRegistry.findUnique({ where: { id } })
+  if (!kpi) return NextResponse.json({ error: 'المؤشر غير موجود' }, { status: 404 })
+
+  try {
+    // Delete related rows first (no cascade in schema), then the KPI itself
+    await withAuditUser(session.user.id, () =>
+      prisma.$transaction([
+        prisma.actual.deleteMany({ where: { kpiId: id } }),
+        prisma.target.deleteMany({ where: { kpiId: id } }),
+        prisma.kpiRegistry.delete({ where: { id } }),
+      ])
+    )
+    return new NextResponse(null, { status: 204 })
+  } catch (err) {
+    console.error('[admin/kpis] delete failed', err)
+    return NextResponse.json({ error: 'فشل الحذف' }, { status: 500 })
+  }
+}
