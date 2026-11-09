@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { prisma } from '@/lib/prisma'
+import { prisma, withAuditUser } from '@/lib/prisma'
 import { REPORTING_YEAR } from '@/lib/config'
 import { VALID_PILLAR_IDS, DEPARTMENTS } from '@/lib/departments'
 import type { Pillar, Period } from '@prisma/client'
@@ -125,6 +125,9 @@ export async function POST(req: NextRequest) {
 
   if (!VALID_PILLAR_IDS.has(pillar)) return NextResponse.json({ error: 'قسم غير صالح' }, { status: 400 })
   if (!['ACTUAL', 'TARGET'].includes(tableType)) return NextResponse.json({ error: 'نوع غير صالح' }, { status: 400 })
+  if (tableType === 'ACTUAL' && !VALID_PERIODS.has(period)) {
+    return NextResponse.json({ error: 'فترة غير صالحة' }, { status: 400 })
+  }
   if (!Array.isArray(rows) || rows.length === 0) return NextResponse.json({ error: 'لا توجد صفوف' }, { status: 400 })
   if (isNaN(year)) return NextResponse.json({ error: 'سنة غير صالحة' }, { status: 400 })
 
@@ -141,7 +144,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Verify all kpiIds belong to the requested pillar
-  const kpiIds = rows.map(r => r.kpiId)
+  const kpiIds = [...new Set(rows.map(r => r.kpiId))]
   const validKpis = await prisma.kpiRegistry.findMany({
     where: { id: { in: kpiIds }, pillar: pillar as Pillar },
     select: { id: true, nameAr: true },
@@ -155,83 +158,89 @@ export async function POST(req: NextRequest) {
   const dept = DEPARTMENTS.find(d => d.id === pillar)
   const deptLabel = dept?.labelAr ?? pillar
 
-  let submissionId: string | null = null
-  let direct = 0
-  let queued = 0
+  const { direct, queued } = await withAuditUser(session.user.id, () =>
+    prisma.$transaction(async (tx) => {
+      let submissionId: string | null = null
+      let direct = 0
+      let queued = 0
 
-  for (const row of rows) {
-    const kpiNameAr = kpiNameMap.get(row.kpiId) ?? ''
+      for (const row of rows) {
+        const kpiNameAr = kpiNameMap.get(row.kpiId) ?? ''
 
-    if (tableType === 'TARGET') {
-      const existing = await prisma.target.findUnique({
-        where: { kpiId_period_year: { kpiId: row.kpiId, period: 'ANNUAL', year } },
-        select: { value: true },
-      })
-      if (!submissionId) {
-        const sub = await prisma.uploadSubmission.create({
-          data: {
-            submitterId: session.user.id,
-            filename: `إدخال مستهدفات ${deptLabel} - ${year}`,
-            status: 'PENDING',
-          },
-        })
-        submissionId = sub.id
-      }
-      await prisma.submissionRow.create({
-        data: {
-          submissionId: submissionId!,
-          kpiId: row.kpiId,
-          kpiNameAr,
-          period: 'ANNUAL',
-          year,
-          newValue: row.value,
-          oldValue: existing ? Number(existing.value) : 0,
-          tableType: 'TARGET',
-          status: 'PENDING',
-        },
-      })
-      queued++
-    } else {
-      const existing = await prisma.actual.findUnique({
-        where: { kpiId_period_year: { kpiId: row.kpiId, period: entryPeriod, year } },
-        select: { value: true },
-      })
-
-      if (existing) {
-        if (!submissionId) {
-          const sub = await prisma.uploadSubmission.create({
+        if (tableType === 'TARGET') {
+          const existing = await tx.target.findUnique({
+            where: { kpiId_period_year: { kpiId: row.kpiId, period: 'ANNUAL', year } },
+            select: { value: true },
+          })
+          if (!submissionId) {
+            const sub = await tx.uploadSubmission.create({
+              data: {
+                submitterId: session.user.id,
+                filename: `إدخال مستهدفات ${deptLabel} - ${year}`,
+                status: 'PENDING',
+              },
+            })
+            submissionId = sub.id
+          }
+          await tx.submissionRow.create({
             data: {
-              submitterId: session.user.id,
-              filename: `إدخال بيانات ${deptLabel} - ${entryPeriod} ${year}`,
+              submissionId: submissionId!,
+              kpiId: row.kpiId,
+              kpiNameAr,
+              period: 'ANNUAL',
+              year,
+              newValue: row.value,
+              oldValue: existing ? Number(existing.value) : 0,
+              tableType: 'TARGET',
               status: 'PENDING',
             },
           })
-          submissionId = sub.id
+          queued++
+        } else {
+          const existing = await tx.actual.findUnique({
+            where: { kpiId_period_year: { kpiId: row.kpiId, period: entryPeriod, year } },
+            select: { value: true },
+          })
+
+          if (existing) {
+            if (!submissionId) {
+              const sub = await tx.uploadSubmission.create({
+                data: {
+                  submitterId: session.user.id,
+                  filename: `إدخال بيانات ${deptLabel} - ${entryPeriod} ${year}`,
+                  status: 'PENDING',
+                },
+              })
+              submissionId = sub.id
+            }
+            await tx.submissionRow.create({
+              data: {
+                submissionId: submissionId!,
+                kpiId: row.kpiId,
+                kpiNameAr,
+                period: entryPeriod,
+                year,
+                newValue: row.value,
+                oldValue: Number(existing.value),
+                tableType: 'ACTUAL',
+                status: 'PENDING',
+              },
+            })
+            queued++
+          } else {
+            await tx.actual.upsert({
+              where: { kpiId_period_year: { kpiId: row.kpiId, period: entryPeriod, year } },
+              update: { value: row.value },
+              create: { kpiId: row.kpiId, period: entryPeriod, year, value: row.value },
+            })
+            direct++
+          }
         }
-        await prisma.submissionRow.create({
-          data: {
-            submissionId: submissionId!,
-            kpiId: row.kpiId,
-            kpiNameAr,
-            period: entryPeriod,
-            year,
-            newValue: row.value,
-            oldValue: Number(existing.value),
-            tableType: 'ACTUAL',
-            status: 'PENDING',
-          },
-        })
-        queued++
-      } else {
-        await prisma.actual.upsert({
-          where: { kpiId_period_year: { kpiId: row.kpiId, period: entryPeriod, year } },
-          update: { value: row.value },
-          create: { kpiId: row.kpiId, period: entryPeriod, year, value: row.value },
-        })
-        direct++
       }
-    }
-  }
+
+      return { direct, queued }
+    })
+  )
 
   return NextResponse.json({ direct, queued })
 }

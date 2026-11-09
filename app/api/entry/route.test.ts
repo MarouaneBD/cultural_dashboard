@@ -7,8 +7,8 @@ jest.mock('@/auth', () => ({
   }),
 }))
 
-jest.mock('@/lib/prisma', () => ({
-  prisma: {
+jest.mock('@/lib/prisma', () => {
+  const prismaClient = {
     kpiRegistry: {
       findMany: jest.fn().mockResolvedValue([
         { id: 'k1', nameAr: 'عدد الطلاب', unit: 'COUNT', activityType: 'CUMULATIVE', pillar: 'EDUCATION' },
@@ -28,8 +28,13 @@ jest.mock('@/lib/prisma', () => ({
       findMany: jest.fn().mockResolvedValue([]),
     },
     uploadSubmission: { create: jest.fn().mockResolvedValue({ id: 'sub1' }) },
-  },
-}))
+    $transaction: jest.fn().mockImplementation((fn: (tx: unknown) => unknown) => fn(prismaClient)),
+  }
+  return {
+    prisma: prismaClient,
+    withAuditUser: jest.fn().mockImplementation((_userId: string, fn: () => unknown) => fn()),
+  }
+})
 
 // Convenience accessor for prisma mocks
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -121,4 +126,17 @@ test('POST /api/entry returns 403 for VIEWER', async () => {
   })
   const res = await POST(req)
   expect(res.status).toBe(403)
+})
+
+test('POST /api/entry returns 400 for invalid period', async () => {
+  const req = new NextRequest('http://localhost/api/entry', {
+    method: 'POST',
+    body: JSON.stringify({
+      pillar: 'EDUCATION', period: 'INVALID', year: 2026, tableType: 'ACTUAL',
+      rows: [{ kpiId: 'k1', value: 100 }],
+    }),
+    headers: { 'Content-Type': 'application/json' },
+  })
+  const res = await POST(req)
+  expect(res.status).toBe(400)
 })
