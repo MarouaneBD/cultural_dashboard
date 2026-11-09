@@ -1,7 +1,7 @@
 /**
- * Central reporting-year configuration.
- * To advance to a new reporting cycle, change REPORTING_YEAR here —
- * all API routes, the Excel parser, and UI controls read from this single source.
+ * Reporting-year configuration — derived from the current calendar year.
+ * No manual change needed: on 1 January the system automatically advances
+ * to the new cycle (current year vs previous year).
  */
-export const REPORTING_YEAR = 2026
+export const REPORTING_YEAR = new Date().getFullYear()
 export const PREV_REPORTING_YEAR = REPORTING_YEAR - 1
