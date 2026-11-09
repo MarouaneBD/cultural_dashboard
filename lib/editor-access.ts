@@ -18,6 +18,9 @@ export function getEditorRedirect(
   // Only intercept dashboard routes
   if (!pathname.startsWith('/dashboard')) return null
 
+  // Data entry page: editors can access it without division/pillar params
+  if (pathname === '/dashboard/entry') return null
+
   // No pillar assigned → send to no-access page
   if (!assignedPillarId) return '/no-access'
 
