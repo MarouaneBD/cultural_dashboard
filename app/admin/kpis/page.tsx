@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout/AppShell'
 import { KpiGrid } from '@/components/kpi/KpiGrid'
@@ -236,7 +236,9 @@ export default function AdminKpisPage() {
             </select>
           </div>
 
-          <KpiGrid pillar={viewPillar} />
+          <Suspense fallback={null}>
+            <KpiGrid pillar={viewPillar} />
+          </Suspense>
         </section>
 
       </div>
