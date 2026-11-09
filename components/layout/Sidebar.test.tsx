@@ -65,4 +65,18 @@ describe('Sidebar', () => {
     const aside = container.querySelector('aside')!
     expect(aside.style.width).toBe('60px')
   })
+
+  it('uses translate-x-full to hide sidebar on mobile when collapsed', () => {
+    const { container } = render(<Sidebar expanded={false} />, { wrapper })
+    const aside = container.querySelector('aside')!
+    expect(aside.className).toContain('translate-x-full')
+    expect(aside.className).not.toContain('hidden')
+  })
+
+  it('uses translate-x-0 to show sidebar when expanded', () => {
+    const { container } = render(<Sidebar expanded={true} />, { wrapper })
+    const aside = container.querySelector('aside')!
+    expect(aside.className).toContain('translate-x-0')
+    expect(aside.className).not.toContain('translate-x-full')
+  })
 })

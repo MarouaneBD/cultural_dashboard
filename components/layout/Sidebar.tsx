@@ -69,12 +69,13 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
         'h-screen md:h-auto md:min-h-screen flex flex-col border-e border-white/[.06] flex-shrink-0',
         'fixed inset-y-0 start-0 z-40',
         'md:relative md:inset-auto md:z-auto',
-        !expanded ? 'hidden md:flex' : 'flex',
+        'flex',
+        !expanded ? 'translate-x-full md:translate-x-0' : 'translate-x-0',
       ].join(' ')}
       style={{
         background: 'var(--sidebar-bg)',
         width: expanded ? WIDTH_EXPANDED : WIDTH_COLLAPSED,
-        transition: 'width .25s cubic-bezier(.4,0,.2,1)',
+        transition: 'width .25s cubic-bezier(.4,0,.2,1), transform .25s cubic-bezier(.4,0,.2,1)',
         overflowX: 'hidden',
         overflowY: 'hidden',
       }}
