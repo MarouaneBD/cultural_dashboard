@@ -16,7 +16,7 @@ const STATUS_COLORS: Record<string, string> = {
 }
 
 function formatDate(iso: string) {
-  return new Intl.DateTimeFormat('ar-AE', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso))
+  return new Intl.DateTimeFormat('ar-AE-u-nu-latn', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso))
 }
 
 export function SubmissionsList() {

@@ -35,7 +35,7 @@ const ROLE_COLORS: Record<UserRole, string> = {
 }
 
 function formatDateAr(iso: string) {
-  return new Intl.DateTimeFormat('ar-AE', {
+  return new Intl.DateTimeFormat('ar-AE-u-nu-latn', {
     day: '2-digit', month: 'short', year: 'numeric',
   }).format(new Date(iso))
 }

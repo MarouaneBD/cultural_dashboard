@@ -229,7 +229,7 @@ export default function DataEntryPage() {
                         {UNIT_LABEL[row.unit] ?? row.unit}
                       </td>
                       <td className="px-3 py-2 text-center" style={{ color: 'var(--ink-muted)' }}>
-                        {row.currentValue != null ? row.currentValue.toLocaleString('ar-SA') : '—'}
+                        {row.currentValue != null ? row.currentValue.toLocaleString('en') : '—'}
                       </td>
                       <td className="px-3 py-2">
                         <input

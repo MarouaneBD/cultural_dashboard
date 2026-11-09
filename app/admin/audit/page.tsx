@@ -4,7 +4,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { prisma } from '@/lib/prisma'
 
 function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat('ar-AE', {
+  return new Intl.DateTimeFormat('ar-AE-u-nu-latn', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
