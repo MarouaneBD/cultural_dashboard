@@ -1,5 +1,6 @@
 // app/api/admin/kpis/route.test.ts
 import { GET, PATCH } from '@/app/api/admin/kpis/[id]/route'
+import { POST } from '@/app/api/admin/kpis/route'
 import { NextRequest } from 'next/server'
 
 const mockAuth = jest.fn()
@@ -22,6 +23,7 @@ jest.mock('@/lib/prisma', () => ({
       findUnique: jest.fn(),
       findFirst: jest.fn().mockResolvedValue(null),
       update: jest.fn(),
+      create: jest.fn(),
     },
   },
 }))
@@ -33,11 +35,21 @@ const mockPrisma = (jest.requireMock('@/lib/prisma') as { prisma: typeof import(
     findUnique: jest.Mock
     findFirst: jest.Mock
     update: jest.Mock
+    create: jest.Mock
   }
 }
 
 function makeParams(id: string) {
   return { params: Promise.resolve({ id }) }
+}
+
+const mockCreatedKpi = {
+  id: 'k1',
+  nameAr: 'عدد البرامج',
+  pillar: 'EDUCATION',
+  unit: 'COUNT',
+  activityType: 'CUMULATIVE',
+  showInDashboard: false,
 }
 
 beforeEach(() => {
@@ -46,6 +58,7 @@ beforeEach(() => {
   mockPrisma.kpiRegistry.findUnique.mockResolvedValue(mockKpi)
   mockPrisma.kpiRegistry.findFirst.mockResolvedValue(null)
   mockPrisma.kpiRegistry.update.mockResolvedValue(mockKpi)
+  mockPrisma.kpiRegistry.create.mockResolvedValue(mockCreatedKpi)
 })
 
 // ── GET ──────────────────────────────────────────────────────────────────────
@@ -199,5 +212,97 @@ describe('PATCH: showInDashboard field', () => {
     })
     const res = await PATCH(req, makeParams('kpi-1'))
     expect(res.status).toBe(400)
+  })
+})
+
+// ── POST /api/admin/kpis ──────────────────────────────────────────────────────
+
+describe('POST /api/admin/kpis', () => {
+  it('creates a KPI and returns 201', async () => {
+    const req = new NextRequest('http://localhost/api/admin/kpis', {
+      method: 'POST',
+      body: JSON.stringify({ nameAr: 'عدد البرامج', pillar: 'EDUCATION', unit: 'COUNT', activityType: 'CUMULATIVE' }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(201)
+    const body = await res.json()
+    expect(body.nameAr).toBe('عدد البرامج')
+  })
+
+  it('returns 403 for non-admin', async () => {
+    mockAuth.mockResolvedValue({ user: { id: 'editor-1', role: 'EDITOR' } })
+    const req = new NextRequest('http://localhost/api/admin/kpis', {
+      method: 'POST',
+      body: JSON.stringify({ nameAr: 'عدد البرامج', pillar: 'EDUCATION', unit: 'COUNT', activityType: 'CUMULATIVE' }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 400 for missing nameAr', async () => {
+    const req = new NextRequest('http://localhost/api/admin/kpis', {
+      method: 'POST',
+      body: JSON.stringify({ pillar: 'EDUCATION', unit: 'COUNT', activityType: 'CUMULATIVE' }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for nameAr shorter than 3 characters', async () => {
+    const req = new NextRequest('http://localhost/api/admin/kpis', {
+      method: 'POST',
+      body: JSON.stringify({ nameAr: 'أب', pillar: 'EDUCATION', unit: 'COUNT', activityType: 'CUMULATIVE' }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for invalid pillar', async () => {
+    const req = new NextRequest('http://localhost/api/admin/kpis', {
+      method: 'POST',
+      body: JSON.stringify({ nameAr: 'عدد البرامج', pillar: 'INVALID_PILLAR', unit: 'COUNT', activityType: 'CUMULATIVE' }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for invalid unit', async () => {
+    const req = new NextRequest('http://localhost/api/admin/kpis', {
+      method: 'POST',
+      body: JSON.stringify({ nameAr: 'عدد البرامج', pillar: 'EDUCATION', unit: 'INVALID', activityType: 'CUMULATIVE' }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for invalid activityType', async () => {
+    const req = new NextRequest('http://localhost/api/admin/kpis', {
+      method: 'POST',
+      body: JSON.stringify({ nameAr: 'عدد البرامج', pillar: 'EDUCATION', unit: 'COUNT', activityType: 'WEEKLY' }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 409 on P2002 duplicate constraint error', async () => {
+    const { PrismaClientKnownRequestError } = jest.requireActual('@prisma/client') as {
+      PrismaClientKnownRequestError: new (msg: string, opts: { code: string; clientVersion: string }) => Error & { code: string }
+    }
+    const dupErr = new PrismaClientKnownRequestError('Unique constraint failed', { code: 'P2002', clientVersion: '5.0.0' })
+    mockPrisma.kpiRegistry.create.mockRejectedValueOnce(dupErr)
+    const req = new NextRequest('http://localhost/api/admin/kpis', {
+      method: 'POST',
+      body: JSON.stringify({ nameAr: 'عدد البرامج', pillar: 'EDUCATION', unit: 'COUNT', activityType: 'CUMULATIVE' }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(409)
   })
 })
