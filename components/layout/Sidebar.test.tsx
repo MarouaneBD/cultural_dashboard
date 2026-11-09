@@ -53,10 +53,11 @@ describe('Sidebar', () => {
     expect(screen.getByText('وحدة البحوث والمطبوعات')).toBeInTheDocument()
   })
 
-  it('renders upload and audit links when expanded', () => {
+  it('renders data entry and audit links when expanded', () => {
     render(<Sidebar expanded={true} />, { wrapper })
-    expect(screen.getByText('رفع البيانات')).toBeInTheDocument()
+    expect(screen.getByText('إدخال البيانات')).toBeInTheDocument()
     expect(screen.getByText('سجل المراجعة')).toBeInTheDocument()
+    expect(screen.getByText('إدارة المؤشرات')).toBeInTheDocument()
   })
 
   it('collapses to icon-only rail when expanded=false', () => {

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRef, useEffect } from 'react'
-import { LogOut, Upload, ListChecks, ClipboardList, Users, type LucideIcon } from 'lucide-react'
+import { LogOut, ClipboardEdit, LayoutList, ListChecks, ClipboardList, Users, type LucideIcon } from 'lucide-react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { useQuery } from '@tanstack/react-query'
@@ -222,10 +222,10 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
       >
         {(role === 'ADMIN' || role === 'EDITOR') && (
           <NavLink
-            href="/upload"
-            icon={Upload}
-            label="رفع البيانات"
-            active={pathname === '/upload'}
+            href="/dashboard/entry"
+            icon={ClipboardEdit}
+            label="إدخال البيانات"
+            active={pathname === '/dashboard/entry'}
             expanded={expanded}
             onNavigate={onNavigate}
           />
@@ -254,6 +254,14 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
               icon={Users}
               label="إدارة المستخدمين"
               active={pathname === '/admin/users'}
+              expanded={expanded}
+              onNavigate={onNavigate}
+            />
+            <NavLink
+              href="/admin/kpis"
+              icon={LayoutList}
+              label="إدارة المؤشرات"
+              active={pathname === '/admin/kpis'}
               expanded={expanded}
               onNavigate={onNavigate}
             />
