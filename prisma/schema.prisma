@@ -73,8 +73,8 @@ model KpiRegistry {
   unit      KpiUnit
   owner        String?
   slug         String?
-  activityType    ActivityType @default(MONTHLY_VARIANCE)
-  showInDashboard Boolean      @default(false)
+  activityType ActivityType @default(MONTHLY_VARIANCE)
+  showInDashboard Boolean @default(false)
   targets   Target[]
   actuals   Actual[]
   createdAt DateTime  @default(now())

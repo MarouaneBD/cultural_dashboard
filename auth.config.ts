@@ -19,6 +19,7 @@ export const authConfig = {
         token.username = user.username
         token.role = user.role
         token.mustChangePassword = user.mustChangePassword
+        token.assignedPillarId = user.assignedPillarId
       }
       return token
     },
@@ -27,6 +28,7 @@ export const authConfig = {
       session.user.username = token.username as string
       session.user.role = token.role as UserRole
       session.user.mustChangePassword = token.mustChangePassword as boolean
+      session.user.assignedPillarId = token.assignedPillarId as string | null
       return session
     },
   },
