@@ -4,11 +4,12 @@ import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
 import { generateNarrative } from '@/lib/narrative'
 import { DEFAULT_DIVISION, type DivisionId } from '@/lib/divisions'
+import { REPORTING_YEAR } from '@/lib/config'
 import type { KpiWithVariance } from '@/types'
 
 export function ExecutiveSummary() {
   const params        = useSearchParams()
-  const year          = params.get('year')     ?? '2026'
+  const year          = params.get('year')     ?? String(REPORTING_YEAR)
   const period        = params.get('period')   ?? 'ANNUAL'
   const divisionParam = (params.get('division') ?? DEFAULT_DIVISION) as DivisionId
 

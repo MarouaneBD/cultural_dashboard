@@ -164,7 +164,7 @@ export function SplashScreen() {
                 letterSpacing: '-.01em',
               }}
             >
-              منصة جمعية دار البر
+              منصة جمعية دار البر V1.1
             </div>
             {/* Gold divider */}
             <div

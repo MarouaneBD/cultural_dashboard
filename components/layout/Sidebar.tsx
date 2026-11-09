@@ -109,7 +109,7 @@ export function Sidebar({ expanded, onNavigate }: SidebarProps) {
                 {DIVISION_MAP[activeDivision]?.shortAr ?? 'الثقافة والبحوث'}
                 <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--gold)' }} />
               </div>
-              <div className="text-[9.5px] text-white/38 mt-0.5">منصة جمعية دار البر</div>
+              <div className="text-[9.5px] text-white/38 mt-0.5">منصة جمعية دار البر V1.1</div>
             </div>
           </div>
         ) : (

@@ -17,7 +17,7 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: 'منصة جمعية دار البر',
+  title: 'منصة جمعية دار البر V1.1',
   description: 'لوحة متابعة مؤشرات الأداء التنفيذية — جمعية دار البر',
   icons: {
     icon: '/icon.png',

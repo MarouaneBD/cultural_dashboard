@@ -141,7 +141,7 @@ function LeftPanel() {
             className="font-cairo font-bold text-[22px] leading-snug"
             style={{ color: 'rgba(255,255,255,0.95)' }}
           >
-            منصة جمعية دار البر
+            منصة جمعية دار البر V1.1
           </h1>
           <p
             className="text-[11px] tracking-[.14em] uppercase"
@@ -221,7 +221,7 @@ function LoginForm() {
         {/* App name + subtitle */}
         <div className="relative z-10 flex flex-col items-center gap-1 text-center">
           <p className="font-cairo font-bold text-[16px] leading-snug" style={{ color: 'rgba(255,255,255,0.95)' }}>
-            منصة جمعية دار البر
+            منصة جمعية دار البر V1.1
           </p>
           <p className="text-[10px] tracking-[.14em] uppercase" style={{ fontFamily: 'var(--font-space)', color: GOLD }}>
             Dar Al Ber Society Platform

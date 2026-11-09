@@ -6,6 +6,7 @@ import { Building2, BarChart3, CheckCircle2, AlertCircle, XCircle, TrendingUp } 
 import type { LucideIcon } from 'lucide-react'
 import { DEPARTMENTS } from '@/lib/departments'
 import { DEFAULT_DIVISION, type DivisionId } from '@/lib/divisions'
+import { REPORTING_YEAR } from '@/lib/config'
 import type { KpiWithVariance } from '@/types'
 
 const PERIOD_LABELS: Record<string, string> = {
@@ -56,7 +57,7 @@ const SKELETON_STATS: StatItem[] = [
 
 export function DivisionStats() {
   const searchParams = useSearchParams()
-  const year         = searchParams.get('year')     ?? '2026'
+  const year         = searchParams.get('year')     ?? String(REPORTING_YEAR)
   const period       = searchParams.get('period')   ?? 'ANNUAL'
   const divisionParam = (searchParams.get('division') ?? DEFAULT_DIVISION) as DivisionId
   const periodLabel  = PERIOD_LABELS[period] ?? period
