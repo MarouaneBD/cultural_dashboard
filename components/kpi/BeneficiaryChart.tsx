@@ -276,9 +276,9 @@ export function BeneficiaryChart() {
   const period  = params.get('period') ?? 'ANNUAL'
 
   const { data, isLoading } = useQuery<TotalsResponse>({
-    queryKey: ['stats-totals', year, period],
+    queryKey: ['stats-totals', year, period, 'CULTURE_RESEARCH'],
     queryFn: () =>
-      fetch(`/api/stats/totals?year=${year}&period=${period}`).then(r => {
+      fetch(`/api/stats/totals?year=${year}&period=${period}&division=CULTURE_RESEARCH`).then(r => {
         if (!r.ok) throw new Error(`API ${r.status}`)
         return r.json()
       }),

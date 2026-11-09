@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth'
 import { authConfig } from './auth.config'
 import { NextResponse } from 'next/server'
+import { getEditorRedirect } from '@/lib/editor-access'
 
 const { auth } = NextAuth(authConfig)
 
@@ -36,6 +37,16 @@ export default auth((req) => {
   // VIEWER trying to access /upload
   if (pathname.startsWith('/upload') && session.user.role === 'VIEWER') {
     return NextResponse.redirect(new URL('/dashboard', req.url))
+  }
+
+  // EDITOR sector access control
+  if (session.user.role === 'EDITOR') {
+    const redirect = getEditorRedirect(
+      pathname,
+      req.nextUrl.searchParams,
+      session.user.assignedPillarId,
+    )
+    if (redirect) return NextResponse.redirect(new URL(redirect, req.url))
   }
 
   return NextResponse.next()

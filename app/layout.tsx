@@ -6,14 +6,12 @@ import '@/app/globals.css'
 
 const cairo = Cairo({
   subsets: ['arabic', 'latin'],
-  weight: ['400', '500', '600', '700'],
   variable: '--nf-cairo',
   display: 'swap',
 })
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
   variable: '--nf-space',
   display: 'swap',
 })

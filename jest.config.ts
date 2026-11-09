@@ -5,8 +5,8 @@ const config: Config = {
     {
       displayName: 'dom',
       testEnvironment: '<rootDir>/jest.env.ts',
-      testMatch: ['<rootDir>/**/*.test.ts', '<rootDir>/**/*.test.tsx'],
-      testPathIgnorePatterns: ['/node_modules/', '<rootDir>/prisma/', '<rootDir>/.claude/'],
+      testRegex: '\\.test\\.(ts|tsx)$',
+      testPathIgnorePatterns: ['/node_modules/', '/prisma/'],
       setupFiles: ['<rootDir>/jest.globals.ts'],
       setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
       transform: {

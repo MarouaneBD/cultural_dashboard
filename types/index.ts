@@ -39,20 +39,6 @@ export interface DrillDownRow {
   variance: KpiVariance
 }
 
-export interface UploadRow {
-  kpiId: string
-  period: 'Q1' | 'Q2' | 'Q3' | 'Q4' | 'ANNUAL'
-  year: number
-  value: number
-  region?: string
-  facility?: string
-}
-
-export interface UploadValidationResult {
-  valid: UploadRow[]
-  errors: Array<{ row: number; message: string }>
-}
-
 export interface ActivityRow {
   nameAr: string
   pillar: PillarId
@@ -63,15 +49,21 @@ export interface ActivityRow {
   activityType: import('@prisma/client').ActivityType
 }
 
+// Dry-run result (returned by upload route when dryRun=true, consumed by ValidationPreview)
 export interface ActivityUploadResult {
   rows: ActivityRow[]
-  errors: Array<{ row: number; message: string }>
+  parseErrors: Array<{ row: number; message: string }>
+  scopeErrors: Array<{ row: number; message: string }>
 }
 
-export interface ActivityUploadResponse {
+// Commit result (returned by upload route when dryRun=false, consumed by FileUploader)
+export interface UploadCommitResult {
   created: number
   updated: number
-  errors: Array<{ row: number; message: string }>
+  staged: number
+  submissionId: string | null
+  scopeErrors: Array<{ row: number; message: string }>
+  dbErrors: Array<{ row: number; message: string }>
 }
 
 export interface SubmissionRowClient {
@@ -97,12 +89,4 @@ export interface UploadSubmissionClient {
   rows: SubmissionRowClient[]
   pendingCount: number
   totalCount: number
-}
-
-export interface ActivityUploadResponseWithQueue {
-  created: number
-  updated: number
-  queued: number
-  submissionId: string | null
-  errors: Array<{ row: number; message: string }>
 }

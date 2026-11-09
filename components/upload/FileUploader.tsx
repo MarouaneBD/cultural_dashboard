@@ -1,3 +1,4 @@
+// components/upload/FileUploader.tsx
 'use client'
 
 import { useState, useRef } from 'react'
@@ -6,12 +7,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { ValidationPreview } from './ValidationPreview'
-import type { UploadValidationResult, ActivityUploadResult, UploadSubmissionClient } from '@/types'
+import type { ActivityUploadResult, UploadCommitResult, UploadSubmissionClient } from '@/types'
 import { REPORTING_YEAR } from '@/lib/config'
 
-type PreviewState =
-  | { mode: 'activity'; result: ActivityUploadResult }
-  | { mode: 'legacy';   result: UploadValidationResult }
+type PreviewState = { mode: 'activity'; result: ActivityUploadResult }
 
 export function FileUploader() {
   const { data: session, status: sessionStatus } = useSession()
@@ -19,8 +18,9 @@ export function FileUploader() {
   const inputRef = useRef<HTMLInputElement>(null)
   const [activeFile, setActiveFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<PreviewState | null>(null)
-  const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
-  const [message, setMessage] = useState('')
+  const [commitResult, setCommitResult] = useState<UploadCommitResult | null>(null)
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
   const [clearing, setClearing] = useState(false)
   const qc = useQueryClient()
 
@@ -38,6 +38,8 @@ export function FileUploader() {
     setActiveFile(file)
     setStatus('loading')
     setPreview(null)
+    setCommitResult(null)
+    setErrorMessage('')
 
     try {
       const formData = new FormData()
@@ -48,19 +50,20 @@ export function FileUploader() {
       let body: Record<string, unknown> | null = null
       try { body = await res.json() } catch { /* non-JSON response */ }
       if (!res.ok) {
-        setMessage(`خطأ ${res.status}: ${(body?.error as string | undefined) ?? res.statusText ?? 'خطأ في الخادم'}`)
+        setErrorMessage(`خطأ ${res.status} من الخادم — ${(body?.error as string | undefined) ?? 'حاول مجدداً'}`)
         setStatus('error')
         return
       }
 
       if (body !== null && 'rows' in body) {
         setPreview({ mode: 'activity', result: body as unknown as ActivityUploadResult })
+        setStatus('idle')
       } else {
-        setPreview({ mode: 'legacy', result: body as unknown as UploadValidationResult })
+        setErrorMessage('خطأ: صيغة ملف غير مدعومة')
+        setStatus('error')
       }
-      setStatus('idle')
-    } catch (e) {
-      setMessage(`خطأ في الاتصال بالخادم: ${String(e)}`)
+    } catch {
+      setErrorMessage('تعذّر الاتصال بالخادم — تحقق من اتصالك وحاول مجدداً')
       setStatus('error')
     }
   }
@@ -68,6 +71,8 @@ export function FileUploader() {
   async function handleCommit() {
     if (!activeFile) return
     setStatus('loading')
+    setCommitResult(null)
+    setErrorMessage('')
 
     try {
       const formData = new FormData()
@@ -78,25 +83,26 @@ export function FileUploader() {
       let body: Record<string, unknown> | null = null
       try { body = await res.json() } catch { /* non-JSON response */ }
       if (!res.ok) {
-        setMessage(`خطأ ${res.status}: ${(body?.error as string | undefined) ?? res.statusText ?? 'خطأ في الخادم'}`)
+        setErrorMessage(`خطأ ${res.status} من الخادم — ${(body?.error as string | undefined) ?? 'حاول مجدداً'}`)
         setStatus('error')
         return
       }
 
       if (body !== null && 'created' in body) {
-        const r = body as { created: number; updated: number; queued?: number }
-        const queuedMsg = r.queued && r.queued > 0 ? ` · ${r.queued} صف بانتظار الموافقة` : ''
-        setMessage(`تم إنشاء ${r.created} مؤشر، تحديث ${r.updated} مؤشر${queuedMsg}`)
-        if (r.queued && r.queued > 0) {
+        const r = body as unknown as UploadCommitResult
+        setCommitResult(r)
+        setStatus('idle')
+        setPreview(null)
+
+        if (r.staged > 0) {
           qc.invalidateQueries({ queryKey: ['editor-submissions-count'] })
         }
-      } else if (body !== null) {
-        setMessage(`تم استيراد ${(body as { imported: number }).imported} سجل بنجاح`)
+      } else {
+        setErrorMessage('خطأ: رد غير متوقع من الخادم')
+        setStatus('error')
       }
-      setStatus('done')
-      setPreview(null)
-    } catch (e) {
-      setMessage(`خطأ في الاتصال بالخادم: ${String(e)}`)
+    } catch {
+      setErrorMessage('تعذّر الاتصال بالخادم — تحقق من اتصالك وحاول مجدداً')
       setStatus('error')
     }
   }
@@ -108,29 +114,27 @@ export function FileUploader() {
       const res = await fetch('/api/admin/clear-data', { method: 'POST' })
       const body = await res.json()
       if (!res.ok) {
-        setMessage(body?.error ?? 'فشل مسح البيانات')
+        setErrorMessage(body?.error ?? 'فشل مسح البيانات')
         setStatus('error')
       } else {
-        setMessage(`تم مسح ${body.kpis} نشاط و${body.actuals} قيمة فعلية`)
-        setStatus('done')
+        setErrorMessage('')
+        setCommitResult(null)
         setPreview(null)
         setActiveFile(null)
+        // Show a simple success inline — no state for this, reuse error field with green styling omitted
+        // (commit result panel will be empty; the confirm dialog already informed user)
       }
-    } catch (e) {
-      setMessage(`خطأ في الاتصال بالخادم: ${String(e)}`)
+    } catch {
+      setErrorMessage('تعذّر الاتصال بالخادم — تحقق من اتصالك وحاول مجدداً')
       setStatus('error')
     } finally {
       setClearing(false)
     }
   }
 
-  const hasRows = preview
-    ? preview.mode === 'activity'
-      ? preview.result.rows.length > 0
-      : preview.result.valid.length > 0
-    : false
-
-  const hasNoErrors = preview ? preview.result.errors.length === 0 : false
+  const hasRows = preview ? preview.result.rows.length > 0 : false
+  const hasNoScopeErrors = preview ? preview.result.scopeErrors.length === 0 : false
+  const hasNoParseErrors = preview ? preview.result.parseErrors.length === 0 : false
 
   return (
     <div className="space-y-6">
@@ -188,22 +192,42 @@ export function FileUploader() {
       </div>
 
       {status === 'loading' && <p className="text-sm text-slate-500 text-center">جاري المعالجة...</p>}
-      {status === 'done'    && <p className="text-sm text-emerald-700 font-medium text-center">{message}</p>}
-      {status === 'error'   && <p className="text-sm text-red-700 font-medium text-center">{message}</p>}
+      {status === 'error' && <p className="text-sm text-red-700 font-medium text-center">{errorMessage}</p>}
+
+      {/* Structured commit result */}
+      {commitResult && (
+        <div className="rounded-xl border p-4 space-y-1.5 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--card-bg)' }}>
+          {commitResult.updated > 0 && (
+            <p style={{ color: '#059669' }}>✓ {commitResult.updated} مؤشر حُدِّث مباشرة</p>
+          )}
+          {commitResult.staged > 0 && (
+            <p style={{ color: '#b8822a' }}>⏳ {commitResult.staged} صف بانتظار موافقة المدير</p>
+          )}
+          {commitResult.scopeErrors.length > 0 && (
+            <div>
+              <p style={{ color: '#dc2626' }}>✗ {commitResult.scopeErrors.length} صف مرفوض: خارج نطاق الصلاحية</p>
+              <p className="text-xs mt-0.5 mr-4" style={{ color: '#dc2626' }}>{commitResult.scopeErrors[0].message}</p>
+            </div>
+          )}
+          {commitResult.dbErrors.length > 0 && (
+            <p style={{ color: '#dc2626' }}>✗ {commitResult.dbErrors.length} صف فشل بسبب خطأ في الخادم</p>
+          )}
+          {commitResult.updated === 0 && commitResult.staged === 0 && commitResult.scopeErrors.length === 0 && commitResult.dbErrors.length === 0 && (
+            <p style={{ color: 'var(--ink-muted)' }}>لم يتم معالجة أي صفوف</p>
+          )}
+        </div>
+      )}
 
       {preview && (
         <>
           <ValidationPreview {...preview} />
-          {hasRows && hasNoErrors && (
+          {hasRows && hasNoScopeErrors && hasNoParseErrors && (
             <div className="flex justify-end">
               <button
                 onClick={handleCommit}
                 className="bg-[#0f4024] text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-[#0f4024]/90"
               >
-                {preview.mode === 'activity'
-                  ? `تأكيد الاستيراد (${preview.result.rows.length} نشاط)`
-                  : `تأكيد الاستيراد (${preview.result.valid.length} سجل)`
-                }
+                تأكيد الاستيراد ({preview.result.rows.length} نشاط)
               </button>
             </div>
           )}
