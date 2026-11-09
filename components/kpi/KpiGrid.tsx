@@ -43,7 +43,7 @@ export function KpiGrid({ pillar, onKpiClick }: KpiGridProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {[0, 1, 2, 3].map(i => (
           <div key={i} className="h-40 rounded-2xl animate-pulse" style={{ background: 'var(--bg-alt)' }} />
         ))}
@@ -72,7 +72,7 @@ export function KpiGrid({ pillar, onKpiClick }: KpiGridProps) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {list.map(kpi => (
           <KpiCard
             key={kpi.id}

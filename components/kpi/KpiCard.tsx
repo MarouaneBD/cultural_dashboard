@@ -23,7 +23,7 @@ export function KpiCard({ kpi, onClick, isAdmin, onEdit }: KpiCardProps) {
     <button
       onClick={onClick}
       data-variance={variance.color}
-      className="group card-interactive w-full text-right rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-[3px] flex flex-col gap-3 border relative"
+      className="group card-interactive w-full text-right rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-[3px] flex flex-col gap-3 border relative overflow-hidden"
       style={{
         background: 'var(--card-bg)',
         borderColor: 'var(--border)',
@@ -47,12 +47,12 @@ export function KpiCard({ kpi, onClick, isAdmin, onEdit }: KpiCardProps) {
       </p>
 
       {/* Body: sparkline + big number */}
-      <div className="flex items-end justify-between gap-2">
-        <div className="h-10 flex-shrink-0" style={{ width: '88px' }}>
+      <div className="flex items-end justify-between gap-2 min-w-0">
+        <div className="h-10 flex-shrink-0" style={{ width: '72px' }}>
           <SparklineChart data={kpi.sparkline} color={CARD_COLOR} />
         </div>
         <p
-          className="font-fraunces font-medium text-[38px] leading-none flex-shrink-0"
+          className="font-fraunces font-medium text-[28px] sm:text-[38px] leading-none min-w-0 truncate"
           style={{ color: 'var(--ink)', letterSpacing: '-.02em' }}
         >
           {formatValue(variance.actual, unit)}
