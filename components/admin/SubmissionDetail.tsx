@@ -174,8 +174,8 @@ export function SubmissionDetail({ submissionId }: { submissionId: string }) {
         <p className="text-sm text-red-600 text-center">{approveAllError}</p>
       )}
 
-      {/* Rows table */}
-      <table className="w-full text-sm border-collapse">
+      {/* ── Desktop rows table (unchanged) ── */}
+      <table className="hidden md:table w-full text-sm border-collapse">
         <thead>
           <tr className="border-b text-xs" style={{ color: 'var(--ink-muted)', borderColor: 'var(--border)' }}>
             <th className="text-right p-3 font-medium">المؤشر</th>
@@ -204,6 +204,55 @@ export function SubmissionDetail({ submissionId }: { submissionId: string }) {
           ))}
         </tbody>
       </table>
+
+      {/* ── Mobile card list ── */}
+      <div className="md:hidden space-y-3">
+        {data.rows.map(row => (
+          <div
+            key={row.id}
+            className="rounded-xl border p-4 space-y-3"
+            style={{ background: 'var(--card-bg)', borderColor: 'var(--border)' }}
+          >
+            <p className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>
+              {row.kpiNameAr}
+            </p>
+            <div className="grid grid-cols-2 gap-x-4 text-xs" style={{ color: 'var(--ink-muted)' }}>
+              <div>
+                <span className="block mb-0.5">الفترة</span>
+                <span className="font-medium" style={{ color: 'var(--ink)' }}>
+                  {PERIOD_LABELS[row.period] ?? row.period} {row.year}
+                </span>
+              </div>
+              <div>
+                <span className="block mb-0.5">الفرق</span>
+                <span className="font-mono font-medium">
+                  <Diff oldVal={row.oldValue} newVal={row.newValue} />
+                </span>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-x-4 text-xs" style={{ color: 'var(--ink-muted)' }}>
+              <div>
+                <span className="block mb-0.5">الحالي</span>
+                <span className="font-mono font-medium" style={{ color: 'var(--ink)' }}>
+                  {fmt(row.oldValue)}
+                </span>
+              </div>
+              <div>
+                <span className="block mb-0.5">الجديد</span>
+                <span className="font-mono font-medium" style={{ color: 'var(--ink)' }}>
+                  {fmt(row.newValue)}
+                </span>
+              </div>
+            </div>
+            <div className="pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+              <RowActions row={row} submissionId={submissionId} onRefresh={refresh} />
+              {row.adminComment && (
+                <p className="text-xs mt-2" style={{ color: 'var(--ink-muted)' }}>{row.adminComment}</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
