@@ -19,18 +19,24 @@ export async function GET(
   if (!session) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
 
   const { id } = await params
-  const kpi = await prisma.kpiRegistry.findUnique({ where: { id } })
-  if (!kpi) return NextResponse.json({ error: 'المؤشر غير موجود' }, { status: 404 })
 
-  return NextResponse.json({
-    id: kpi.id,
-    nameAr: kpi.nameAr,
-    pillar: kpi.pillar,
-    activityType: kpi.activityType,
-    unit: kpi.unit,
-    owner: kpi.owner,
-    showInDashboard: kpi.showInDashboard,
-  })
+  try {
+    const kpi = await prisma.kpiRegistry.findUnique({ where: { id } })
+    if (!kpi) return NextResponse.json({ error: 'المؤشر غير موجود' }, { status: 404 })
+
+    return NextResponse.json({
+      id: kpi.id,
+      nameAr: kpi.nameAr,
+      pillar: kpi.pillar,
+      activityType: kpi.activityType,
+      unit: kpi.unit,
+      owner: kpi.owner,
+      showInDashboard: kpi.showInDashboard,
+    })
+  } catch (err) {
+    console.error('[admin/kpis] GET failed', err)
+    return NextResponse.json({ error: 'فشل تحميل المؤشر' }, { status: 500 })
+  }
 }
 
 export async function PATCH(

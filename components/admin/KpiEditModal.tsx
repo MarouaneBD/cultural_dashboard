@@ -36,7 +36,11 @@ export function KpiEditModal({ kpiId, onClose, onSaved }: Props) {
   useEffect(() => {
     setLoading(true)
     fetch(`/api/admin/kpis/${kpiId}`)
-      .then(r => r.json())
+      .then(async r => {
+        const body = await r.json()
+        if (!r.ok) throw new Error(body?.error ?? `API ${r.status}`)
+        return body as KpiData
+      })
       .then((d: KpiData) => {
         setData(d)
         setNameAr(d.nameAr)
@@ -46,8 +50,8 @@ export function KpiEditModal({ kpiId, onClose, onSaved }: Props) {
         setShowInDashboard(d.showInDashboard ?? false)
         setLoading(false)
       })
-      .catch(() => {
-        setSubmitError('تعذّر تحميل بيانات المؤشر')
+      .catch((err: unknown) => {
+        setSubmitError(err instanceof Error ? err.message : 'تعذّر تحميل بيانات المؤشر')
         setLoading(false)
       })
   }, [kpiId])
@@ -56,13 +60,14 @@ export function KpiEditModal({ kpiId, onClose, onSaved }: Props) {
     setNameError('')
     setSubmitError('')
 
-    if (nameAr.trim().length < 3) {
-      setNameError('الاسم قصير جداً (3 أحرف على الأقل)')
-      return
-    }
-
     const patch: Record<string, string | boolean | null> = {}
-    if (data && nameAr.trim() !== data.nameAr) patch.nameAr = nameAr.trim()
+    if (data && nameAr.trim() !== data.nameAr) {
+      if (nameAr.trim().length < 3) {
+        setNameError('الاسم قصير جداً (3 أحرف على الأقل)')
+        return
+      }
+      patch.nameAr = nameAr.trim()
+    }
     if (data && activityType !== data.activityType) patch.activityType = activityType
     if (data && unit !== data.unit) patch.unit = unit
     if (data && (owner || null) !== data.owner) patch.owner = owner || null
